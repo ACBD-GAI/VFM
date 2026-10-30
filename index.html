@@ -40,6 +40,54 @@
 .dialog-buttons{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .msg-actions button{font-size:12px;padding:4px 8px}.msg-actions button:hover{color:var(--red);background:#fff0f0}
 
+
+/* VillFam visual refresh: cleaner surfaces, stronger hierarchy, softer motion. */
+:root{--blue:#496ff0;--blue-dark:#3159dc;--ink:#18233a;--muted:#74819a;--line:#e7ebf4;--bg:#f3f5fb;--panel:#fff;--green:#159b70;--red:#cf4754;--shadow:0 22px 65px rgba(32,48,88,.10)}
+html,body{background:radial-gradient(ellipse at 3% 0%,rgba(112,145,255,.11),transparent 32%),radial-gradient(ellipse at 100% 95%,rgba(124,219,188,.10),transparent 30%),var(--bg);-webkit-font-smoothing:antialiased}
+button{transition:background .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
+button:active:not(:disabled){transform:scale(.97)}
+#authView{background:radial-gradient(circle at 12% 12%,rgba(91,135,255,.16),transparent 35%),radial-gradient(circle at 88% 85%,rgba(80,201,157,.13),transparent 33%),var(--bg)}
+.auth-card{border:1px solid rgba(220,228,243,.9);border-radius:28px;box-shadow:0 26px 90px rgba(38,57,101,.12);padding:34px}
+.brand-icon{box-shadow:0 7px 18px rgba(49,96,221,.24)}
+.auth-card h1{letter-spacing:-1.15px}
+.field input,.inapp-input,.picker-search{transition:border-color .16s ease,box-shadow .16s ease,background .16s ease}
+.field input:focus,.inapp-input:focus,.picker-search:focus{background:#fff;border-color:#88a5fb;box-shadow:0 0 0 4px rgba(73,111,240,.12)}
+.primary,.send-btn{background:linear-gradient(135deg,#5b83fa,#3f66e9);box-shadow:0 7px 16px rgba(65,103,232,.18)}
+.primary:hover,.send-btn:hover{background:linear-gradient(135deg,#4c76ee,#3159d9);box-shadow:0 9px 20px rgba(65,103,232,.24)}
+.secondary,.icon-btn{transition:all .16s ease}
+#appView{padding:16px}
+.topbar{padding:0 5px 13px}
+.layout{border:1px solid rgba(224,230,242,.95);border-radius:25px;box-shadow:0 24px 75px rgba(31,48,85,.09);background:rgba(255,255,255,.94)}
+.sidebar{background:linear-gradient(180deg,#fff,#fbfcff)}
+.side-title{padding-top:22px}.side-title h2{letter-spacing:-.9px}
+.search{border:1px solid #edf0f6;background:#f6f8fc;border-radius:13px}
+.conv{margin:2px 0;padding:12px;border:1px solid transparent;transition:background .16s ease,border-color .16s ease,transform .16s ease}
+.conv:hover{background:#f5f7ff;border-color:#edf0fb;transform:translateX(2px)}
+.conv.active{background:linear-gradient(110deg,#edf2ff,#f4f7ff);border-color:#e1e9ff}
+.conv-title{font-size:13px;color:#24314a}.conv-preview{color:#8793a8}
+.chat-head{background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-bottom-color:#edf0f6}
+.messages{background:radial-gradient(ellipse at 50% 0%,rgba(84,125,242,.035),transparent 50%),#fff;padding-top:26px}
+.msg-row{margin-bottom:16px}.bubble{box-shadow:0 2px 7px rgba(24,38,67,.045);padding:11px 14px;font-size:13.5px}
+.msg-row.mine .bubble{background:linear-gradient(135deg,#5d83f5,#3f67e8);box-shadow:0 5px 14px rgba(65,103,232,.15)}
+.msg-actions button{opacity:.62}.msg-row:hover .msg-actions button{opacity:1}
+.composer{padding:13px 16px max(13px,env(safe-area-inset-bottom));background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top-color:#edf0f6}
+.compose-input{border-color:#e8ecf4;background:#f7f9fd;border-radius:16px;padding:12px 15px;line-height:1.45}
+.compose-input:focus{background:#fff;border-color:#91aaf6;box-shadow:0 0 0 4px rgba(73,111,240,.09)}
+.icon-btn{border:1px solid transparent;background:#f2f5fa;color:#64728b;border-radius:12px}
+.icon-btn:hover{background:#eaf0ff;color:var(--blue);border-color:#dfe8ff}
+.chat-tools .icon-btn{background:#f4f6fb;border-color:#edf0f6}
+.chat-tools .icon-btn:hover{background:#eaf0ff}
+.action-dialog,.picker-dialog{border:1px solid #e6ebf5;box-shadow:0 28px 90px rgba(17,29,57,.2);border-radius:23px}
+.action-dialog .actions button,.dialog-buttons button{min-height:42px}
+.member-option{border:1px solid #edf0f6}.member-option:hover,.member-option.selected{background:#f2f6ff;border-color:#dce6ff}
+.call-dialog{border:1px solid rgba(142,165,210,.18);background:radial-gradient(ellipse at top,#20365e,#111a2b 58%);box-shadow:0 30px 100px rgba(4,11,25,.55);padding:18px}
+.call-grid{gap:11px}.call-tile{border:1px solid rgba(255,255,255,.09);background:linear-gradient(145deg,#263e66,#17243a);min-height:190px}
+.call-controls{padding:9px 0 2px}.call-controls button{min-height:43px;border:1px solid rgba(255,255,255,.07);background:#304567;border-radius:14px;box-shadow:0 5px 15px rgba(0,0,0,.16)}
+.call-controls button:hover{background:#3b557d}.call-controls .hangup{background:linear-gradient(135deg,#e24d5c,#bd3043)}.call-controls .hangup:hover{background:#b92e40}
+.toast{border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 34px rgba(12,23,47,.26);padding:12px 17px;font-weight:650}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#dfe5f0;border-radius:99px}::-webkit-scrollbar-track{background:transparent}
+@media(max-width:760px){#appView{padding:0}.layout{border-radius:0;box-shadow:none}.topbar{padding-bottom:7px}.chat-head{background:#fff}.composer{padding-bottom:max(10px,env(safe-area-inset-bottom))}.call-dialog{border-radius:22px 22px 0 0;margin:auto 0 0;width:100%;max-width:none;max-height:94dvh}.call-grid{grid-template-columns:1fr 1fr}.call-tile{min-height:135px}.call-tile video{min-height:135px}.auth-card{padding:26px 22px}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -135,7 +183,7 @@ const SUPABASE_URL = 'https://zjuivpsvhuzceltszjut.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SA_OZCUkyHiWR6O7CwYYhQ_DpP9m3ah';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBgPwwjZylmH9wuMMvKmhqkctO4dK6vxFleB7PUScWKPoEtNPK8PAiAR3Jebk4PLfWPg/exec';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
@@ -381,8 +429,35 @@ $('deleteGroupButton').addEventListener('click',async()=>{const c=state.activeCo
 function createConversation(isGroup){openMemberPicker(isGroup?'group':'direct').catch(e=>toast(errorText(e)));}
 $('newChatButton').addEventListener('click',()=>createConversation(false));$('newGroupButton').addEventListener('click',()=>createConversation(true));$('emptyNewChat').addEventListener('click',()=>createConversation(false));
 
-async function sendText(){const content=$('messageInput').value.trim();const conv=state.activeConversation;if(!content||!conv)return;const btn=$('sendButton');btn.disabled=true;try{const {error}=await state.client.from('messages').insert({conversation_id:conv.id,sender_id:state.user.id,content,message_type:'text'});if(error)throw error;$('messageInput').value='';await loadMessages();await loadConversations();}catch(err){toast('Message not sent: '+errorText(err));}finally{btn.disabled=false;$('messageInput').focus();}}
-$('composer').addEventListener('submit',e=>{e.preventDefault();sendText();});$('messageInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendText();}});
+function newMessageNonce(){if(window.crypto?.randomUUID)return window.crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});}
+async function sendText(){
+ const input=$('messageInput'),content=input.value.trim(),conv=state.activeConversation;
+ if(!content||!conv)return;
+ // One in-flight send no matter whether Enter, mobile keyboard, or Send is tapped.
+ if(state.sendingText)return state.sendingText;
+ const signature=conv.id+'\u0000'+content,now=Date.now();
+ // Ignore a second event replayed immediately after the first request resolved.
+ if(state.lastSentText?.signature===signature&&now-state.lastSentText.at<1800){if(input.value.trim()===content)input.value='';return;}
+ const btn=$('sendButton'),nonce=newMessageNonce();btn.disabled=true;btn.textContent='…';
+ let task;
+ task=(async()=>{
+  let inserted=false;
+  try{
+   const {error}=await state.client.from('messages').insert({conversation_id:conv.id,sender_id:state.user.id,content,message_type:'text',client_nonce:nonce});
+   if(error&&error.code!=='23505')throw error;
+   inserted=true;state.lastSentText={signature,at:Date.now()};
+   // Preserve a new draft typed while the original message was in flight.
+   if(input.value.trim()===content)input.value='';
+   try{await Promise.all([loadMessages(),loadConversations()]);}
+   catch(refreshError){toast('Message was sent, but the chat could not refresh. Reopen the conversation to see it.');console.warn('Message refresh:',refreshError);}
+  }catch(err){if(!inserted)state.lastSentText=null;toast('Message not sent: '+errorText(err));}
+  finally{btn.disabled=false;btn.textContent='➤';if(state.sendingText===task)state.sendingText=null;input.focus();}
+ })();
+ state.sendingText=task;
+ return task;
+}
+$('composer').addEventListener('submit',e=>{e.preventDefault();sendText();});
+$('messageInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('composer').requestSubmit();}});
 $('attachButton').addEventListener('click',()=>$('fileInput').click());$('fileInput').addEventListener('change',async e=>{const file=e.target.files?.[0];if(file)await sendAttachment(file);e.target.value='';});
 async function sendAttachment(file){const conv=state.activeConversation;if(!conv)return;if(file.size>25*1024*1024){toast('Files must be 25 MB or smaller.');return;}try{
  const clean=file.name.replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100);const path=conv.id+'/'+state.user.id+'/'+Date.now()+'_'+clean;
@@ -606,14 +681,27 @@ async function startCall(type){
  const conv=state.activeConversation;if(!conv)return toast('Open a conversation first.');
  if(state.currentCallId)return toast('You are already in a call.');if(state.callStarting)return;
  if(!window.isSecureContext&&location.hostname!=='localhost')return toast('Calls require HTTPS.');
- state.callStarting=true;setBusy($('callAudioBtn'),true,'Starting…');setBusy($('callVideoBtn'),true,'Starting…');let media=null;let callId=null;
+ state.callStarting=true;setBusy($('callAudioBtn'),true,'Connecting…');setBusy($('callVideoBtn'),true,'Connecting…');let media=null;let callId=null;
  try{
-  // Acquire permissions before creating a call row, so a denied mic/camera never leaves a ghost call.
-  media=await acquireCallMedia(type);
-  const {error:cleanupError}=await state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:conv.id});if(cleanupError)throw cleanupError;
-  const {data,error}=await state.client.rpc('villfam_start_call',{p_conversation_id:conv.id,p_call_type:type});if(error)throw error;callId=data;
-  await enterPeerCall(callId,true,media);media=null;
- }catch(e){if(media)media.getTracks().forEach(t=>t.stop());if(callId)await state.client.rpc('villfam_end_call',{p_call_id:callId});toast('Could not start call: '+errorText(e));cleanupCall();}
+  // If a member left an active group call, rejoin that same room rather than
+  // creating a second call or trapping the participant in an "already active" error.
+  const {data:rejoinData,error:rejoinLookupError}=await state.client.rpc('villfam_find_rejoinable_call',{p_conversation_id:conv.id});
+  if(rejoinLookupError)throw new Error('Could not check for an ongoing call. Run the latest supabase.sql update. '+errorText(rejoinLookupError));
+  const rejoin=Array.isArray(rejoinData)?rejoinData[0]:rejoinData;
+  if(rejoin?.call_id){
+   media=await acquireCallMedia(rejoin.call_type||type);
+   const {error:joinError}=await state.client.rpc('villfam_rejoin_call',{p_call_id:rejoin.call_id});if(joinError)throw joinError;
+   callId=rejoin.call_id;
+   await enterPeerCall(callId,false,media);media=null;toast('You rejoined the ongoing call.');
+  }else{
+   // Acquire permissions before creating a new call row, so denied permissions
+   // never leave a ghost invitation behind.
+   media=await acquireCallMedia(type);
+   const {error:cleanupError}=await state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:conv.id});if(cleanupError)throw cleanupError;
+   const {data,error}=await state.client.rpc('villfam_start_call',{p_conversation_id:conv.id,p_call_type:type});if(error)throw error;callId=data;
+   await enterPeerCall(callId,true,media);media=null;
+  }
+ }catch(e){if(media)media.getTracks().forEach(t=>t.stop());if(callId)await state.client.rpc('villfam_end_call',{p_call_id:callId});toast('Could not start or rejoin call: '+errorText(e));cleanupCall();}
  finally{state.callStarting=false;setBusy($('callAudioBtn'),false);setBusy($('callVideoBtn'),false);}
 }
 async function answerIncomingCall(){
