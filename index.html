@@ -42,6 +42,7 @@
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.23.0/dist/livekit-client.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
@@ -135,7 +136,7 @@ const SUPABASE_URL = 'https://zjuivpsvhuzceltszjut.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SA_OZCUkyHiWR6O7CwYYhQ_DpP9m3ah';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBgPwwjZylmH9wuMMvKmhqkctO4dK6vxFleB7PUScWKPoEtNPK8PAiAR3Jebk4PLfWPg/exec';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, currentCallId:null, incomingCall:null, liveKitRoom:null, liveKitSdk:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, currentCallId:null, incomingCall:null, liveKitRoom:null, liveKitSdk:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
@@ -420,36 +421,144 @@ function addCallTile(participant,isLocal=false){
  tile=document.createElement('div');tile.className='call-tile';tile.id=id;const avatar=document.createElement('div');avatar.className='audio-avatar';avatar.textContent=initials(participant.name||identity);const label=document.createElement('span');label.className='participant-name';label.textContent=isLocal?'You':(participant.name||'Family member');tile.append(avatar,label);$('callGrid').append(tile);return tile;
 }
 function attachCallTrack(track,participant,isLocal){const tile=addCallTile(participant,isLocal);const media=track.attach();media.autoplay=true;media.playsInline=true;if(track.kind==='video'){media.style.width='100%';media.style.height='100%';media.style.objectFit='cover';media.muted=!!isLocal;const old=tile.querySelector('video');if(old)old.remove();tile.insertBefore(media,tile.querySelector('.participant-name'));const avatar=tile.querySelector('.audio-avatar');if(avatar)avatar.remove();}else{media.muted=!!isLocal;media.style.display='none';tile.append(media);}}
-function showCallDialog(type,conversation){$('callTitle').textContent=(type==='video'?'Video call':'Audio call')+' · '+(conversation?.displayTitle||'VillFam');$('callGrid').replaceChildren();$('callDialog').showModal();$('toggleCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').classList.toggle('hidden',type!=='video');}
-function showIncomingCall(call){state.incomingCall=call;$('incomingCallIcon').textContent=call.call_type==='video'?'📹':'☎';$('incomingCallTitle').textContent='Incoming '+(call.call_type==='video'?'video':'audio')+' call';$('incomingCallText').textContent=(call.caller_name||'A VillFam member')+' is calling '+(call.conversation_title||'you');$('incomingCallDialog').showModal();}
+function showCallDialog(type,conversation){state.callMuted=false;state.callCameraEnabled=true;$('muteCallButton').textContent='Mute mic';$('toggleCameraButton').textContent='Turn camera off';$('callTitle').textContent=(type==='video'?'Video call':'Audio call')+' · '+(conversation?.displayTitle||'VillFam');$('callGrid').replaceChildren();$('callDialog').showModal();$('toggleCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').classList.toggle('hidden',type!=='video');}
+function showIncomingCall(call){state.incomingCall=call;$('incomingCallIcon').textContent=call.call_type==='video'?'📹':'☎';$('incomingCallTitle').textContent='Incoming '+(call.call_type==='video'?'video':'audio')+' call';$('incomingCallText').textContent=(call.caller_name||'A VillFam member')+' is calling '+(call.conversation_title||'you');if(!$('incomingCallDialog').open)$('incomingCallDialog').showModal();}
 function subscribeCallInbox(){
  if(!state.user||!state.client||state.callInboxChannel)return;
+ // Clear abandoned calls before showing old invitations or attempting a new call.
+ state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:null}).then(({error})=>{if(error)console.warn('Call recovery:',error.message);});
  const channel=state.client.channel('villfam-call-inbox-'+state.user.id);
  channel.on('postgres_changes',{event:'INSERT',schema:'public',table:'villfam_call_participants',filter:'user_id=eq.'+state.user.id},payload=>{if(payload.new?.state==='ringing')handleIncomingCall(payload.new.call_id);});
- channel.on('postgres_changes',{event:'UPDATE',schema:'public',table:'villfam_calls'},payload=>{if(payload.new?.id===state.currentCallId&&payload.new?.status==='ended'){cleanupCall();if($('callDialog').open)$('callDialog').close();toast('The call has ended.');}});
- channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Call inbox Realtime:',status);});state.callInboxChannel=channel;
+ channel.on('postgres_changes',{event:'UPDATE',schema:'public',table:'villfam_call_participants'},payload=>{
+  const row=payload.new;if(!row)return;
+  if(row.call_id===state.currentCallId){
+   if(row.state==='declined'){callStatus('A family member declined the call.');toast('A family member declined the call.');}
+   else if(row.state==='left'&&row.user_id!==state.user.id){callStatus('A participant left the call.');}
+  }
+  if(state.incomingCall&&row.call_id===state.incomingCall.id&&row.user_id===state.user.id&&row.state!=='ringing'&&!state.callActionBusy){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
+ });
+ channel.on('postgres_changes',{event:'UPDATE',schema:'public',table:'villfam_calls'},payload=>{
+  const updated=payload.new;if(!updated)return;
+  if(updated.id===state.currentCallId&&updated.status==='ended'){stopCallHeartbeat();cleanupCall();if($('callDialog').open)$('callDialog').close();toast('The call has ended.');}
+  if(state.incomingCall&&updated.id===state.incomingCall.id&&updated.status==='ended'&&!state.callActionBusy){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();toast('This call is no longer available.');}
+ });
+ channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){console.warn('Call inbox Realtime:',status);toast('Call alerts lost connection. Refresh VillFam to reconnect.');}});state.callInboxChannel=channel;
 }
-async function refreshPendingCallInvites(){if(!state.user||state.incomingCall||state.currentCallId)return;const {data,error}=await state.client.from('villfam_call_participants').select('call_id').eq('user_id',state.user.id).eq('state','ringing').order('invited_at',{ascending:false}).limit(1);if(error){console.warn(error);return;}if(data?.[0])await handleIncomingCall(data[0].call_id);}
-async function handleIncomingCall(callId){if(!callId||state.currentCallId||state.incomingCall)return;try{const {data:call,error}=await state.client.from('villfam_calls').select('id,conversation_id,caller_id,room_name,call_type,status,expires_at').eq('id',callId).maybeSingle();if(error)throw error;if(!call||call.status==='ended'||new Date(call.expires_at).getTime()<Date.now())return;const {data:invite,error:inviteError}=await state.client.from('villfam_call_participants').select('state').eq('call_id',callId).eq('user_id',state.user.id).maybeSingle();if(inviteError)throw inviteError;if(!invite||invite.state!=='ringing')return;const [{data:caller},{data:conversation}]=await Promise.all([state.client.from('profiles').select('nickname').eq('id',call.caller_id).maybeSingle(),state.client.from('conversations').select('title,is_group').eq('id',call.conversation_id).maybeSingle()]);call.caller_name=caller?.nickname||'A VillFam member';call.conversation_title=conversation?.title||(conversation?.is_group?'family group':'your chat');showIncomingCall(call);}catch(e){console.warn('Incoming call could not be loaded:',e);}}
-async function requestLiveKitToken(callId){const {data:{session}}=await state.client.auth.getSession();if(!session?.access_token)throw new Error('Your VillFam session expired. Sign in again.');const result=await appsScriptRequest({action:'livekitToken',callId,accessToken:session.access_token});if(!result.url||!result.token)throw new Error('Apps Script did not return a LiveKit token. Check its LiveKit Script Properties.');return result;}
-async function startCall(type){const conv=state.activeConversation;if(!conv)return toast('Open a conversation first.');if(state.currentCallId)return toast('You are already in a call.');if(!window.isSecureContext&&location.hostname!=='localhost')return toast('Calls require HTTPS.');try{const {data:callId,error}=await state.client.rpc('villfam_start_call',{p_conversation_id:conv.id,p_call_type:type});if(error)throw error;state.callConversation=conv;await joinLiveKitCall(callId,true);}catch(e){toast('Could not start call: '+errorText(e));if(state.currentCallId)await state.client.rpc('villfam_end_call',{p_call_id:state.currentCallId}).catch(()=>{});cleanupCall();}}
-async function joinLiveKitCall(callId,isCaller){if(state.currentCallId&&state.currentCallId!==callId)throw new Error('You are already in another call.');try{
- const {data:call,error}=await state.client.from('villfam_calls').select('id,conversation_id,caller_id,room_name,call_type,status,expires_at').eq('id',callId).single();if(error)throw error;if(call.status==='ended'||new Date(call.expires_at).getTime()<Date.now())throw new Error('This call has expired.');
- if(!isCaller){const {error:respondError}=await state.client.rpc('villfam_respond_call',{p_call_id:callId,p_response:'accept'});if(respondError)throw respondError;}
- state.currentCallId=callId;state.callType=call.call_type;state.callConversation=state.conversations.find(c=>c.id===call.conversation_id)||state.activeConversation;state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();showCallDialog(call.call_type,state.callConversation);callStatus('Getting secure room access…');
- const tokenData=await requestLiveKitToken(callId);const sdk=window.LivekitClient;if(!sdk?.Room)throw new Error('LiveKit browser SDK did not load. Refresh the page and try again.');state.liveKitSdk=sdk;
- const room=new sdk.Room({adaptiveStream:true,dynacast:true,stopLocalTrackOnUnpublish:true,videoCaptureDefaults:{resolution:sdk.VideoPresets?.h720?.resolution||{width:1280,height:720},facingMode:state.facingMode},audioCaptureDefaults:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});state.liveKitRoom=room;
- room.on(sdk.RoomEvent.TrackSubscribed,(track,publication,participant)=>attachCallTrack(track,participant,false));room.on(sdk.RoomEvent.TrackUnsubscribed,track=>track.detach().forEach(el=>el.remove()));room.on(sdk.RoomEvent.ParticipantConnected,participant=>{addCallTile(participant,false);callStatus((participant.name||'A member')+' joined');});room.on(sdk.RoomEvent.ParticipantDisconnected,participant=>{const tile=document.getElementById(callTileKey(participant.identity));if(tile)tile.remove();callStatus((participant.name||'A member')+' left');});room.on(sdk.RoomEvent.Disconnected,()=>{if(state.liveKitRoom===room&&state.currentCallId){cleanupCall();if($('callDialog').open)$('callDialog').close();}});
- room.prepareConnection(tokenData.url,tokenData.token);await room.connect(tokenData.url,tokenData.token,{autoSubscribe:true});await room.localParticipant.setMicrophoneEnabled(true);if(call.call_type==='video')await room.localParticipant.setCameraEnabled(true);addCallTile({identity:state.user.id,name:state.profile?.nickname||'You'},true);for(const pub of room.localParticipant.trackPublications.values())if(pub.track)attachCallTrack(pub.track,room.localParticipant,true);room.remoteParticipants.forEach(p=>addCallTile(p,false));callStatus('Connected · '+room.remoteParticipants.size+' other participant(s)');
- }catch(e){await state.client.rpc('villfam_end_call',{p_call_id:callId}).catch(()=>{});cleanupCall();if($('callDialog').open)$('callDialog').close();if($('incomingCallDialog').open)$('incomingCallDialog').close();toast('Could not join call: '+errorText(e));}}
-async function declineIncomingCall(){const call=state.incomingCall;if(call)await state.client.rpc('villfam_respond_call',{p_call_id:call.id,p_response:'decline'}).catch(e=>console.warn(e));state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
-async function endCall(){const id=state.currentCallId;if(id)await state.client.rpc('villfam_end_call',{p_call_id:id}).catch(e=>console.warn(e));cleanupCall();if($('callDialog').open)$('callDialog').close();}
-function cleanupCall(updateDb=false){const room=state.liveKitRoom;state.liveKitRoom=null;if(room){try{room.removeAllListeners();room.disconnect();}catch(e){console.warn(e);}}state.currentCallId=null;state.callType=null;state.callConversation=null;state.callMuted=false;state.callCameraEnabled=true;$('callGrid')?.replaceChildren();}
+async function refreshPendingCallInvites(){
+ if(!state.user||state.incomingCall||state.currentCallId)return;
+ const {error:cleanupError}=await state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:null});if(cleanupError)console.warn('Call recovery:',cleanupError.message);
+ const {data,error}=await state.client.from('villfam_call_participants').select('call_id').eq('user_id',state.user.id).eq('state','ringing').order('invited_at',{ascending:false}).limit(1);if(error){console.warn(error);return;}if(data?.[0])await handleIncomingCall(data[0].call_id);
+}
+async function handleIncomingCall(callId){
+ if(!callId||state.currentCallId||state.incomingCall)return;
+ try{
+  const {data:call,error}=await state.client.from('villfam_calls').select('id,conversation_id,caller_id,room_name,call_type,status,expires_at').eq('id',callId).maybeSingle();
+  if(error)throw error;if(!call||call.status==='ended'||new Date(call.expires_at).getTime()<Date.now())return;
+  const {data:invite,error:inviteError}=await state.client.from('villfam_call_participants').select('state').eq('call_id',callId).eq('user_id',state.user.id).maybeSingle();
+  if(inviteError)throw inviteError;if(!invite||invite.state!=='ringing')return;
+  const [{data:caller},{data:conversation}]=await Promise.all([state.client.from('profiles').select('nickname').eq('id',call.caller_id).maybeSingle(),state.client.from('conversations').select('title,is_group').eq('id',call.conversation_id).maybeSingle()]);
+  call.caller_name=caller?.nickname||'A VillFam member';call.conversation_title=conversation?.title||(conversation?.is_group?'family group':'your chat');showIncomingCall(call);
+ }catch(e){console.warn('Incoming call could not be loaded:',e);}
+}
+async function requestLiveKitToken(callId){
+ const {data:{session}}=await state.client.auth.getSession();if(!session?.access_token)throw new Error('Your VillFam session expired. Sign in again.');
+ const result=await appsScriptRequest({action:'livekitToken',callId,accessToken:session.access_token});if(!result.url||!result.token)throw new Error('Apps Script did not return a LiveKit token. Check its LiveKit Script Properties.');return result;
+}
+function stopCallHeartbeat(){if(state.callHeartbeatTimer){clearInterval(state.callHeartbeatTimer);state.callHeartbeatTimer=null;}state.callHeartbeatBusy=false;}
+async function sendCallHeartbeat(callId){
+ if(!callId||state.currentCallId!==callId||state.callHeartbeatBusy)return;
+ state.callHeartbeatBusy=true;
+ try{
+  const {error}=await state.client.rpc('villfam_call_heartbeat',{p_call_id:callId});
+  if(error){
+   const now=Date.now();if(now-state.lastCallHeartbeatWarningAt>60000){state.lastCallHeartbeatWarningAt=now;console.warn('Call heartbeat:',error.message);}
+   if(/ended|expired|not a participant|not joined/i.test(error.message||'')){stopCallHeartbeat();if(state.currentCallId===callId){cleanupCall();if($('callDialog').open)$('callDialog').close();toast('This call is no longer active.');}}
+  }
+ }catch(e){console.warn('Call heartbeat failed:',e);}
+ finally{state.callHeartbeatBusy=false;}
+}
+function startCallHeartbeat(callId){stopCallHeartbeat();sendCallHeartbeat(callId);state.callHeartbeatTimer=setInterval(()=>sendCallHeartbeat(callId),15000);}
+async function startCall(type){
+ const conv=state.activeConversation;if(!conv)return toast('Open a conversation first.');
+ if(state.currentCallId)return toast('You are already in a call.');if(state.callStarting)return;
+ if(!window.isSecureContext&&location.hostname!=='localhost')return toast('Calls require HTTPS.');
+ // Do not create a Supabase call row unless the browser SDK is actually available.
+ if(!window.LivekitClient?.Room)return toast('The calling service did not load. Refresh VillFam and try again.');
+ state.callStarting=true;setBusy($('callAudioBtn'),true,'Starting…');setBusy($('callVideoBtn'),true,'Starting…');
+ try{
+  const {error:cleanupError}=await state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:conv.id});if(cleanupError)throw cleanupError;
+  const {data:callId,error}=await state.client.rpc('villfam_start_call',{p_conversation_id:conv.id,p_call_type:type});if(error)throw error;
+  state.callConversation=conv;await joinLiveKitCall(callId,true);
+ }catch(e){toast('Could not start call: '+errorText(e));if(state.currentCallId)await state.client.rpc('villfam_end_call',{p_call_id:state.currentCallId}).catch(()=>{});cleanupCall();}
+ finally{state.callStarting=false;setBusy($('callAudioBtn'),false);setBusy($('callVideoBtn'),false);}
+}
+async function joinLiveKitCall(callId,isCaller){
+ if(state.currentCallId&&state.currentCallId!==callId)throw new Error('You are already in another call.');
+ let acceptedByUs=false,room=null;
+ try{
+  const {data:call,error}=await state.client.from('villfam_calls').select('id,conversation_id,caller_id,room_name,call_type,status,expires_at').eq('id',callId).single();
+  if(error)throw error;if(!call||call.status==='ended'||new Date(call.expires_at).getTime()<Date.now())throw new Error('This call has ended or expired.');
+  const sdk=window.LivekitClient;if(!sdk?.Room)throw new Error('LiveKit browser SDK did not load. Refresh the page and try again.');
+  // Fetch the token before accepting. If token configuration is broken, the invite
+  // remains ringing and the recipient can retry instead of accepting a dead call.
+  const tokenData=await requestLiveKitToken(callId);
+  if(!isCaller){const {error:respondError}=await state.client.rpc('villfam_respond_call',{p_call_id:callId,p_response:'accept'});if(respondError)throw respondError;acceptedByUs=true;}
+  state.currentCallId=callId;state.callType=call.call_type;state.callConversation=state.conversations.find(c=>c.id===call.conversation_id)||state.activeConversation;
+  if(isCaller||acceptedByUs){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
+  showCallDialog(call.call_type,state.callConversation);callStatus('Connecting to the secure call…');state.liveKitSdk=sdk;
+  room=new sdk.Room({adaptiveStream:true,dynacast:true,stopLocalTrackOnUnpublish:true,videoCaptureDefaults:{resolution:sdk.VideoPresets?.h720?.resolution||{width:1280,height:720},facingMode:state.facingMode},audioCaptureDefaults:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});state.liveKitRoom=room;
+  room.on(sdk.RoomEvent.TrackSubscribed,(track,publication,participant)=>attachCallTrack(track,participant,false));
+  room.on(sdk.RoomEvent.TrackUnsubscribed,track=>track.detach().forEach(el=>el.remove()));
+  room.on(sdk.RoomEvent.ParticipantConnected,participant=>{addCallTile(participant,false);callStatus((participant.name||'A member')+' joined');});
+  room.on(sdk.RoomEvent.ParticipantDisconnected,participant=>{const tile=document.getElementById(callTileKey(participant.identity));if(tile)tile.remove();callStatus((participant.name||'A member')+' left');});
+  room.on(sdk.RoomEvent.Disconnected,()=>{
+   if(state.liveKitRoom!==room||state.currentCallId!==callId)return;
+   stopCallHeartbeat();state.liveKitRoom=null;state.currentCallId=null;state.callType=null;state.callConversation=null;room.removeAllListeners();if($('callDialog').open)$('callDialog').close();
+   state.client.rpc('villfam_end_call',{p_call_id:callId}).then(({error})=>{if(error)console.warn('Could not update disconnected call:',error.message);});
+   $('callGrid')?.replaceChildren();toast('Your connection to the call was lost.');
+  });
+  room.prepareConnection(tokenData.url,tokenData.token);await room.connect(tokenData.url,tokenData.token,{autoSubscribe:true});
+  await room.localParticipant.setMicrophoneEnabled(true);if(call.call_type==='video')await room.localParticipant.setCameraEnabled(true);
+  addCallTile({identity:state.user.id,name:state.profile?.nickname||'You'},true);
+  for(const pub of room.localParticipant.trackPublications.values())if(pub.track)attachCallTrack(pub.track,room.localParticipant,true);
+  room.remoteParticipants.forEach(p=>addCallTile(p,false));startCallHeartbeat(callId);callStatus('Connected · '+room.remoteParticipants.size+' other participant(s)');
+ }catch(e){
+  if(room){try{room.removeAllListeners();await room.disconnect();}catch(_){} }
+  if(isCaller||acceptedByUs){const {error:endError}=await state.client.rpc('villfam_end_call',{p_call_id:callId});if(endError)console.warn('Call cleanup after join failure:',endError.message);}
+  stopCallHeartbeat();cleanupCall();
+  if($('callDialog').open)$('callDialog').close();
+  if(isCaller||acceptedByUs){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
+  throw e;
+ }
+}
+async function declineIncomingCall(){
+ const call=state.incomingCall;if(!call||state.callActionBusy)return;
+ state.callActionBusy=true;setBusy($('declineIncomingCall'),true,'Declining…');
+ try{
+  const {error}=await state.client.rpc('villfam_respond_call',{p_call_id:call.id,p_response:'decline'});if(error)throw error;
+  state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();toast('Call declined.');
+ }catch(e){toast('Could not decline the call: '+errorText(e));}
+ finally{state.callActionBusy=false;setBusy($('declineIncomingCall'),false);}
+}
+async function endCall(){
+ if(state.callActionBusy)return;const id=state.currentCallId;state.callActionBusy=true;
+ setBusy($('hangupCallButton'),true,'Leaving…');setBusy($('closeCallDialog'),true,'Leaving…');let failure=null;
+ try{if(id){const {error}=await state.client.rpc('villfam_end_call',{p_call_id:id});if(error)throw error;}}
+ catch(e){failure=e;}
+ finally{cleanupCall();if($('callDialog').open)$('callDialog').close();state.callActionBusy=false;setBusy($('hangupCallButton'),false);setBusy($('closeCallDialog'),false);}
+ if(failure)toast('You left this device’s call, but the server could not update call status: '+errorText(failure));else if(id)toast('You left the call.');
+}
+function cleanupCall(){stopCallHeartbeat();const room=state.liveKitRoom;state.liveKitRoom=null;if(room){try{room.removeAllListeners();room.disconnect();}catch(e){console.warn(e);}}state.currentCallId=null;state.callType=null;state.callConversation=null;state.callMuted=false;state.callCameraEnabled=true;$('callGrid')?.replaceChildren();}
 $('callAudioBtn').addEventListener('click',()=>startCall('audio'));$('callVideoBtn').addEventListener('click',()=>startCall('video'));
-$('declineIncomingCall').addEventListener('click',declineIncomingCall);$('answerIncomingCall').addEventListener('click',()=>{const call=state.incomingCall;if(call)joinLiveKitCall(call.id,false);});$('hangupCallButton').addEventListener('click',endCall);$('closeCallDialog').addEventListener('click',endCall);
-$('muteCallButton').addEventListener('click',async()=>{if(!state.liveKitRoom)return;state.callMuted=!state.callMuted;await state.liveKitRoom.localParticipant.setMicrophoneEnabled(!state.callMuted);$('muteCallButton').textContent=state.callMuted?'Unmute mic':'Mute mic';});
-$('toggleCameraButton').addEventListener('click',async()=>{if(!state.liveKitRoom)return;state.callCameraEnabled=!state.callCameraEnabled;await state.liveKitRoom.localParticipant.setCameraEnabled(state.callCameraEnabled);$('toggleCameraButton').textContent=state.callCameraEnabled?'Turn camera off':'Turn camera on';});
-$('switchCallCameraButton').addEventListener('click',async()=>{try{const pub=state.liveKitRoom?.localParticipant.getTrackPublication(state.liveKitSdk?.Track.Source.Camera);if(!pub?.track)return toast('Camera is not active.');state.facingMode=state.facingMode==='user'?'environment':'user';await pub.track.restartTrack({facingMode:state.facingMode});}catch(e){toast('Could not switch camera: '+errorText(e));}});
+$('declineIncomingCall').addEventListener('click',declineIncomingCall);
+$('answerIncomingCall').addEventListener('click',async()=>{const call=state.incomingCall;if(!call||state.callActionBusy)return;state.callActionBusy=true;setBusy($('answerIncomingCall'),true,'Answering…');try{await joinLiveKitCall(call.id,false);}catch(e){toast('Could not answer call: '+errorText(e));}finally{state.callActionBusy=false;setBusy($('answerIncomingCall'),false);}});
+$('hangupCallButton').addEventListener('click',endCall);$('closeCallDialog').addEventListener('click',endCall);
+$('incomingCallDialog').addEventListener('cancel',e=>{e.preventDefault();declineIncomingCall();});
+$('callDialog').addEventListener('cancel',e=>{e.preventDefault();endCall();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state.currentCallId)sendCallHeartbeat(state.currentCallId);});
+$('muteCallButton').addEventListener('click',async()=>{const room=state.liveKitRoom;if(!room)return;const next=!state.callMuted;const btn=$('muteCallButton');btn.disabled=true;btn.textContent='Updating…';try{await room.localParticipant.setMicrophoneEnabled(!next);state.callMuted=next;}catch(e){toast('Could not change microphone: '+errorText(e));}finally{btn.disabled=false;btn.textContent=state.callMuted?'Unmute mic':'Mute mic';}});
+$('toggleCameraButton').addEventListener('click',async()=>{const room=state.liveKitRoom;if(!room)return;const next=!state.callCameraEnabled;const btn=$('toggleCameraButton');btn.disabled=true;btn.textContent='Updating…';try{await room.localParticipant.setCameraEnabled(next);state.callCameraEnabled=next;}catch(e){toast('Could not change camera: '+errorText(e));}finally{btn.disabled=false;btn.textContent=state.callCameraEnabled?'Turn camera off':'Turn camera on';}});
+$('switchCallCameraButton').addEventListener('click',async()=>{const room=state.liveKitRoom;try{const pub=room?.localParticipant.getTrackPublication(state.liveKitSdk?.Track.Source.Camera);if(!pub?.track)return toast('Camera is not active.');const next=state.facingMode==='user'?'environment':'user';setBusy($('switchCallCameraButton'),true,'Switching…');await pub.track.restartTrack({facingMode:next});state.facingMode=next;}catch(e){toast('Could not switch camera: '+errorText(e));}finally{setBusy($('switchCallCameraButton'),false);}});
 
 initSupabase().catch(err=>notice('Could not initialize VillFam: '+errorText(err),'error'));
 })();
