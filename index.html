@@ -88,6 +88,62 @@ button:active:not(:disabled){transform:scale(.97)}
 ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#dfe5f0;border-radius:99px}::-webkit-scrollbar-track{background:transparent}
 @media(max-width:760px){#appView{padding:0}.layout{border-radius:0;box-shadow:none}.topbar{padding-bottom:7px}.chat-head{background:#fff}.composer{padding-bottom:max(10px,env(safe-area-inset-bottom))}.call-dialog{border-radius:22px 22px 0 0;margin:auto 0 0;width:100%;max-width:none;max-height:94dvh}.call-grid{grid-template-columns:1fr 1fr}.call-tile{min-height:135px}.call-tile video{min-height:135px}.auth-card{padding:26px 22px}}
 
+
+/* VillFam 2026 interface refinement + live-call presence */
+:root{--blue:#4169e8;--blue-dark:#3153c9;--green:#168a58;--green-deep:#0b7047;--green-soft:#e6f8ed;--ink:#17243a;--muted:#75829a;--line:#e5eaf2;--bg:#f3f6fc;--panel:#ffffff;--shadow:0 24px 70px rgba(26,43,78,.11)}
+html,body{background:radial-gradient(ellipse at 6% 0%,rgba(93,137,255,.09),transparent 38%),radial-gradient(ellipse at 100% 100%,rgba(32,184,120,.07),transparent 35%),var(--bg)}
+button{transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+button:not(:disabled):active{transform:translateY(1px) scale(.985)}
+.primary,.send-btn{background:linear-gradient(135deg,#557df4,#365bd8);box-shadow:0 7px 18px rgba(65,105,232,.19)}
+.primary:hover,.send-btn:hover{background:linear-gradient(135deg,#456ee9,#294fc8);box-shadow:0 9px 22px rgba(65,105,232,.25)}
+.auth-card{border-radius:28px;box-shadow:0 28px 85px rgba(33,55,98,.13);backdrop-filter:blur(16px)}
+.layout{border-radius:26px;box-shadow:0 24px 75px rgba(29,48,86,.11)}
+.sidebar{background:linear-gradient(180deg,#fff,#fbfcff)}
+.side-title h2{letter-spacing:-.9px}
+.conv{margin:3px 4px;padding:12px;border:1px solid transparent;transition:background .18s,border-color .18s,box-shadow .18s}
+.conv:hover{background:#f2f6ff;border-color:#e6edff}
+.conv.active{background:linear-gradient(110deg,#edf3ff,#f7f9ff);border-color:#dfe8ff}
+.conv.call-ongoing{background:linear-gradient(110deg,#e4f8eb,#f1fcf5);border:1px solid #bde8ca;box-shadow:inset 3px 0 0 #1ba66a}
+.conv.call-ongoing:hover{background:linear-gradient(110deg,#d9f4e3,#eaf9ef)}
+.conv.call-ongoing.active{background:linear-gradient(110deg,#d5f3df,#e7f9ed);border-color:#9ddbb2}
+.conv.call-ringing{background:linear-gradient(110deg,#edf4ff,#f7faff);border-color:#d7e5ff}
+.conv-heading{display:flex;align-items:center;gap:7px;min-width:0}
+.conv-heading .conv-title{min-width:0;flex:1}
+.call-live-badge{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border-radius:999px;padding:4px 7px;font-size:8px;font-weight:900;letter-spacing:.45px}
+.call-live-badge.is-live{background:#c9f0d6;color:#087344}
+.call-live-badge.is-ringing{background:#e0eaff;color:#285bc1}
+.call-live-badge.is-live:before{content:"";width:6px;height:6px;border-radius:50%;background:#14a765;box-shadow:0 0 0 3px rgba(20,167,101,.13);animation:villfamPulse 1.7s infinite}
+@keyframes villfamPulse{50%{box-shadow:0 0 0 6px rgba(20,167,101,0)}}
+.conv.call-ongoing .conv-preview{color:#168052;font-weight:700}
+.chat-head{background:rgba(255,255,255,.96);backdrop-filter:blur(14px)}
+.chat-live-badge{display:inline-flex;margin-top:4px;padding:3px 7px;border-radius:999px;font-size:9px;line-height:1.2;font-weight:850;letter-spacing:.35px}
+.chat-live-badge.is-live{background:#d9f5e3;color:#0b7548}
+.chat-live-badge.is-ringing{background:#e4edff;color:#2859b6}
+.join-ongoing-call-btn{border:0;border-radius:11px;padding:9px 12px;background:linear-gradient(135deg,#19a66b,#087648);color:#fff;font-size:11px;font-weight:850;box-shadow:0 6px 17px rgba(18,145,86,.20);white-space:nowrap}
+.join-ongoing-call-btn:hover:not(:disabled){background:linear-gradient(135deg,#0e965c,#06683e);box-shadow:0 8px 22px rgba(18,145,86,.27)}
+.join-ongoing-call-btn:disabled{background:#d8e2dc;color:#6c7c73;box-shadow:none;opacity:1}
+.messages{background:radial-gradient(ellipse at 50% 0%,#f9fbff,transparent 55%),#fff}
+.bubble{box-shadow:0 2px 5px rgba(25,43,75,.035)}
+.mine .bubble{background:linear-gradient(135deg,#537cf0,#365cda);box-shadow:0 5px 12px rgba(65,105,232,.14)}
+.compose-input{background:#f7f9fd;border-color:#e6ebf3}
+.compose-input:focus{background:#fff;box-shadow:0 0 0 4px rgba(65,105,232,.09)}
+.icon-btn{border:1px solid transparent;transition:all .18s ease}
+.icon-btn:hover{border-color:#dce6ff;box-shadow:0 4px 12px rgba(52,88,164,.08)}
+.call-dialog{border:1px solid rgba(255,255,255,.12);background:radial-gradient(ellipse at 50% 0%,#263a58,#111a2a 65%);border-radius:25px}
+.call-tile{background:linear-gradient(145deg,#314562,#1e2b40);border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.call-tile.local{border:1px solid rgba(98,185,255,.55)}
+.call-tile video.mirror-camera,#cameraVideo.mirror-camera{transform:scaleX(-1)}
+.call-controls button{border:1px solid rgba(255,255,255,.12);box-shadow:0 4px 15px rgba(0,0,0,.16)}
+.call-controls button:hover{background:#405777}
+.call-controls .hangup{background:linear-gradient(135deg,#e34b58,#b92336)}
+.call-controls .hangup:hover{background:linear-gradient(135deg,#cf3c4b,#a91d30)}
+#cameraDialog,.action-dialog,.picker-dialog{border:1px solid rgba(214,223,239,.9);box-shadow:0 28px 90px rgba(21,38,70,.22)}
+.toast{border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(14px);box-shadow:0 12px 34px rgba(12,25,49,.24)}
+@media(max-width:760px){
+ #appView{padding:0;background:#fff}.topbar{background:rgba(255,255,255,.97);border-bottom:1px solid #edf0f6;padding:7px 12px}.layout{border-radius:0;box-shadow:none}.sidebar{background:#fff}.side-title{padding:17px 15px 12px}.conv{margin:3px 5px;padding:12px 10px}.chat-head{min-height:68px;height:auto;padding:8px 8px}.chat-head-copy{min-width:76px}.chat-tools{gap:3px;flex-wrap:wrap;justify-content:flex-end}.chat-tools .icon-btn{width:34px;height:35px}.join-ongoing-call-btn{padding:8px 9px;font-size:10px}.messages{padding:16px 11px}.composer{padding:10px;background:rgba(255,255,255,.98)}.call-dialog{width:100vw;max-width:none;max-height:94dvh;border-radius:22px 22px 0 0;margin:auto 0 0}.call-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:60dvh}.call-tile{min-height:145px}.call-tile video{min-height:145px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -139,7 +195,7 @@ button:active:not(:disabled){transform:scale(.97)}
    <section class="chat">
     <div id="chatEmpty" class="chat-empty"><div class="big">💬</div><h2>Your family, one chat away</h2><p>Choose a conversation or start a new chat. Your family messages stay private to their members.</p><button id="emptyNewChat" class="primary" type="button">Start a conversation</button></div>
     <div id="chatActive" class="hidden" style="display:flex;flex-direction:column;min-height:0;flex:1">
-      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div></div><div class="chat-tools"><button id="addMembersButton" class="icon-btn hidden" title="Add group members" type="button">♧</button><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
+      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div><span id="chatLiveBadge" class="chat-live-badge hidden"></span></div><div class="chat-tools"><button id="joinOngoingCallBtn" class="join-ongoing-call-btn hidden" type="button">Join live call</button><button id="addMembersButton" class="icon-btn hidden" title="Add group members" type="button">♧</button><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
       <div id="messages" class="messages"></div>
       <div class="hint">Enter to send · Shift + Enter for a new line</div>
       <form id="composer" class="composer">
@@ -183,7 +239,7 @@ const SUPABASE_URL = 'https://zjuivpsvhuzceltszjut.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SA_OZCUkyHiWR6O7CwYYhQ_DpP9m3ah';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBgPwwjZylmH9wuMMvKmhqkctO4dK6vxFleB7PUScWKPoEtNPK8PAiAR3Jebk4PLfWPg/exec';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
@@ -331,14 +387,14 @@ async function initSupabase(){
   else if(event==='SIGNED_OUT'){showAuth();}
  });
 }
-function showAuth(){state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
+function showAuth(){if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
 async function enterApp(){
  if(state.entering)return;state.entering=true;
  $('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
  try{
   const {data:profile,error}=await state.client.from('profiles').select('*').eq('id',state.user.id).maybeSingle();if(error)throw error;
   state.profile=profile||{id:state.user.id,email:state.user.email,nickname:(state.user.email||'VillFam').split('@')[0]};
-  updateProfileHeader();await loadPeople();await loadConversations();subscribeInbox();subscribeCallInbox();await refreshPendingCallInvites();
+  updateProfileHeader();await loadPeople();await loadConversations();subscribeInbox();subscribeCallInbox();await refreshPendingCallInvites();if(state.callStateInterval)clearInterval(state.callStateInterval);state.callStateInterval=setInterval(()=>{if(state.user)loadConversations().catch(e=>console.warn('Conversation refresh:',e));},30000);
  }catch(err){toast('App setup error: '+errorText(err));console.error(err);}
  finally{state.entering=false;}
 }
@@ -348,13 +404,20 @@ async function loadConversations(){
  if(!state.user)return;
  const {data:memberships,error:memberError}=await state.client.from('conversation_members').select('conversation_id,user_id,role').eq('user_id',state.user.id);if(memberError)throw memberError;
  const ids=(memberships||[]).map(x=>x.conversation_id);if(!ids.length){state.conversations=[];state.hiddenConversations.clear();renderConversations();return;}
- const [convRes,memberRes,msgRes,hideRes]=await Promise.all([
+ const [convRes,memberRes,msgRes,hideRes,callsRes]=await Promise.all([
   state.client.from('conversations').select('*').in('id',ids).order('updated_at',{ascending:false}),
   state.client.from('conversation_members').select('conversation_id,user_id,role').in('conversation_id',ids),
   state.client.from('messages').select('id,conversation_id,content,message_type,attachment_name,created_at,sender_id,deleted_at').in('conversation_id',ids).order('created_at',{ascending:false}).limit(1000),
-  state.client.from('conversation_user_hides').select('conversation_id,hidden_at').eq('user_id',state.user.id)
+  state.client.from('conversation_user_hides').select('conversation_id,hidden_at').eq('user_id',state.user.id),
+  state.client.from('villfam_calls').select('id,conversation_id,call_type,status,expires_at,created_at').in('conversation_id',ids).in('status',['ringing','active']).gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false})
  ]);
  if(convRes.error)throw convRes.error;if(memberRes.error)throw memberRes.error;if(msgRes.error)throw msgRes.error;if(hideRes.error)throw hideRes.error;
+ if(callsRes.error)console.warn('Ongoing call status is unavailable until the latest call SQL is installed:',callsRes.error.message);
+ const calls=callsRes.error?[]:(callsRes.data||[]);let participantRows=[];
+ if(calls.length){const participantRes=await state.client.from('villfam_call_participants').select('call_id,user_id,state,last_seen_at').in('call_id',calls.map(c=>c.id));if(participantRes.error)console.warn('Call participant status could not be loaded:',participantRes.error.message);else participantRows=participantRes.data||[];}
+ const participantsByCall=new Map();participantRows.forEach(p=>{if(!participantsByCall.has(p.call_id))participantsByCall.set(p.call_id,[]);participantsByCall.get(p.call_id).push(p);});
+ const ongoingCallByConversation=new Map();
+ for(const call of calls){if(ongoingCallByConversation.has(call.conversation_id))continue;const participants=participantsByCall.get(call.id)||[];const cutoff=Date.now()-90000;const live=participants.filter(p=>p.state==='joined'&&p.last_seen_at&&new Date(p.last_seen_at).getTime()>cutoff);const mine=participants.find(p=>p.user_id===state.user.id);ongoingCallByConversation.set(call.conversation_id,{...call,liveCount:live.length,myState:mine?.state||null,myLastSeenAt:mine?.last_seen_at||null,isLive:call.status==='active'&&live.length>0});}
  const memberMap=new Map();(memberRes.data||[]).forEach(m=>{if(!memberMap.has(m.conversation_id))memberMap.set(m.conversation_id,[]);memberMap.get(m.conversation_id).push(m);});
  const latest=new Map();(msgRes.data||[]).forEach(m=>{if(!latest.has(m.conversation_id))latest.set(m.conversation_id,m);});
  state.hiddenConversations=new Map((hideRes.data||[]).map(x=>[x.conversation_id,x.hidden_at]));
@@ -362,18 +425,37 @@ async function loadConversations(){
   const members=memberMap.get(c.id)||[];const other=state.people.find(p=>members.some(m=>m.user_id===p.id)&&p.id!==state.user.id);
   const last=latest.get(c.id);const title=c.is_group?(c.title||'Family group'):(other?.nickname||other?.email||'Direct message');
   const hiddenAt=state.hiddenConversations.get(c.id);const isHidden=hiddenAt&&(!last||new Date(last.created_at).getTime()<=new Date(hiddenAt).getTime());
-  return {...c,members,me:members.find(m=>m.user_id===state.user.id),displayTitle:title,otherProfile:other,lastPreview:last?(last.deleted_at?'Message deleted':last.message_type==='text'?last.content:(last.attachment_name||'Attachment')):'Start the conversation',isHidden};
+  return {...c,members,me:members.find(m=>m.user_id===state.user.id),displayTitle:title,otherProfile:other,lastPreview:last?(last.deleted_at?'Message deleted':last.message_type==='text'?last.content:(last.attachment_name||'Attachment')):'Start the conversation',ongoingCall:ongoingCallByConversation.get(c.id)||null,isHidden};
  }).filter(c=>!c.isHidden);
+ const active=state.activeConversation&&state.conversations.find(c=>c.id===state.activeConversation.id);if(active){state.activeConversation=active;updateChatCallState(active);}
  renderConversations();
 }
 function renderConversations(){
  const list=$('conversationList');list.replaceChildren();const q=$('searchChats').value.trim().toLowerCase();const filtered=state.conversations.filter(c=>c.displayTitle.toLowerCase().includes(q));
  if(!filtered.length){const el=document.createElement('div');el.className='empty';el.textContent=state.conversations.length?'No matching conversations.':'No conversations yet. Use ＋ to start a chat or create a family group.';list.append(el);return;}
- filtered.forEach(c=>{const row=document.createElement('div');row.className='conv'+(state.activeConversation?.id===c.id?' active':'');row.dataset.id=c.id;const profile=c.is_group?null:c.otherProfile;row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='conv-text';const title=document.createElement('div');title.className='conv-title';title.textContent=c.displayTitle;const preview=document.createElement('div');preview.className='conv-preview';preview.textContent=c.lastPreview||'No messages yet';copy.append(title,preview);row.append(copy);row.addEventListener('click',()=>openConversation(c.id));list.append(row);});
+ filtered.forEach(c=>{
+  const call=c.ongoingCall;const activeCall=!!call&&call.status==='active';const ringingCall=!!call&&call.status==='ringing';
+  const row=document.createElement('div');row.className='conv'+(state.activeConversation?.id===c.id?' active':'')+(activeCall?' call-ongoing':'')+(ringingCall?' call-ringing':'');row.dataset.id=c.id;
+  const profile=c.is_group?null:c.otherProfile;row.append(avatarElement(profile));
+  const copy=document.createElement('div');copy.className='conv-text';const heading=document.createElement('div');heading.className='conv-heading';
+  const title=document.createElement('div');title.className='conv-title';title.textContent=c.displayTitle;heading.append(title);
+  if(call){const badge=document.createElement('span');badge.className='call-live-badge '+(activeCall?'is-live':'is-ringing');badge.textContent=activeCall?(call.call_type==='video'?'LIVE VIDEO':'LIVE AUDIO'):'CALLING';heading.append(badge);}
+  const preview=document.createElement('div');preview.className='conv-preview';
+  preview.textContent=activeCall?(call.liveCount>0?`${call.liveCount} member${call.liveCount===1?' is':'s are'} in the call · Tap to join`:'Call room open · Tap to rejoin'):ringingCall?'VillFam is ringing…':(c.lastPreview||'No messages yet');
+  copy.append(heading,preview);row.append(copy);row.addEventListener('click',()=>openConversation(c.id));list.append(row);
+ });
 }
 $('searchChats').addEventListener('input',renderConversations);
+function updateChatCallState(conv){
+ const call=conv?.ongoingCall;const badge=$('chatLiveBadge');const join=$('joinOngoingCallBtn');if(!badge||!join)return;
+ if(!call||!['active','ringing'].includes(call.status)){badge.classList.add('hidden');join.classList.add('hidden');join.disabled=false;return;}
+ const active=call.status==='active';badge.className='chat-live-badge '+(active?'is-live':'is-ringing');badge.textContent=active?(call.call_type==='video'?'● LIVE VIDEO CALL':'● LIVE AUDIO CALL'):'● CALLING FAMILY';
+ join.classList.remove('hidden');const freshJoined=call.myState==='joined'&&call.myLastSeenAt&&Date.now()-new Date(call.myLastSeenAt).getTime()<35000;
+ join.disabled=!!state.currentCallId||!!freshJoined;
+ join.textContent=state.currentCallId===call.id?'You are in this call':freshJoined?'Already joined':'Join '+(call.call_type==='video'?'video':'audio')+' call';
+}
 async function openConversation(id){
- const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';$('addMembersButton').classList.toggle('hidden',!conv.is_group||conv.me?.role!=='admin');replaceAvatar('chatAvatar',conv.is_group?null:conv.otherProfile);renderConversations();
+ const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';$('addMembersButton').classList.toggle('hidden',!conv.is_group||conv.me?.role!=='admin');replaceAvatar('chatAvatar',conv.is_group?null:conv.otherProfile);updateChatCallState(conv);renderConversations();
  if(state.messageChannel){await state.client.removeChannel(state.messageChannel);state.messageChannel=null;}
  await loadMessages();
  state.messageChannel=state.client.channel('villfam-chat-'+id).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'conversation_id=eq.'+id},async()=>{await loadMessages();loadConversations().catch(console.error);}).on('postgres_changes',{event:'*',schema:'public',table:'message_user_deletions'},async()=>loadMessages()).subscribe();
@@ -404,6 +486,7 @@ async function loadMessages(){
 }
 
 function subscribeInbox(){if(state.inboxChannel)state.client.removeChannel(state.inboxChannel);state.inboxChannel=state.client.channel('villfam-inbox').on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>loadConversations().catch(console.error)).subscribe();}
+function refreshConversationCallState(){if(state.callRefreshTimer)clearTimeout(state.callRefreshTimer);state.callRefreshTimer=setTimeout(()=>{state.callRefreshTimer=null;loadConversations().catch(e=>console.warn('Call status refresh:',e));},500);}
 async function openMessageActions(msg){
  state.pendingMessage=msg;$('messageActionLabel').textContent=msg.deleted_at?'This message was already removed for everyone. You can still hide this deletion notice for yourself.':'Choose whether to hide this message only for you or remove your message for everyone.';
  $('deleteMessageMe').classList.remove('hidden');$('deleteMessageEveryone').classList.toggle('hidden',msg.sender_id!==state.user.id||!!msg.deleted_at);if($('messageActionDialog').showModal)$('messageActionDialog').showModal();
@@ -473,10 +556,32 @@ $('voiceButton').addEventListener('click',async()=>{
  }catch(err){toast('Microphone permission failed: '+errorText(err));}
 });
 
+async function acquireFacingCameraStream(targetFacing,currentTrack){
+ const constraints={width:{ideal:1280},height:{ideal:720}};let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){ }
+ const currentId=currentTrack?.getSettings?.().deviceId||'';
+ const sideOf=label=>/back|rear|environment|world/i.test(label||'')?'environment':/front|user|facetime|selfie/i.test(label||'')?'user':null;
+ const preferred=devices.filter(d=>d.deviceId&&d.deviceId!==currentId).sort((a,b)=>Number(sideOf(b.label)===targetFacing)-Number(sideOf(a.label)===targetFacing));
+ let fresh=null,lastError=null;
+ for(const device of preferred){try{fresh=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:device.deviceId},...constraints},audio:false});break;}catch(e){lastError=e;}}
+ if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
+ if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
+ if(!fresh)throw lastError||new Error('No alternate camera is available.');
+ const track=fresh.getVideoTracks()[0];if(!track){fresh.getTracks().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
+ const settings=track.getSettings?.()||{};const selectedDevice=devices.find(d=>d.deviceId&&d.deviceId===(settings.deviceId||preferred[0]?.deviceId));
+ const actualFacing=settings.facingMode||sideOf(selectedDevice?.label)||targetFacing;
+ if(currentId&&settings.deviceId&&currentId===settings.deviceId&&devices.some(d=>d.deviceId&&d.deviceId!==currentId)){fresh.getTracks().forEach(t=>t.stop());throw new Error('The browser selected the same camera. Allow camera access and try switching again.');}
+ return {stream:fresh,track,facing:actualFacing};
+}
 async function openCamera(){if(!navigator.mediaDevices?.getUserMedia){toast('Camera is not available in this browser.');return;}try{$('cameraDialog').showModal();await startCamera('environment');}catch(err){toast('Camera permission failed: '+errorText(err));$('cameraDialog').close();}}
-async function startCamera(facing){if(state.cameraStream)state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraFacing=facing;state.cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing}},audio:false});$('cameraVideo').srcObject=state.cameraStream;await $('cameraVideo').play().catch(()=>{});}
+async function startCamera(facing){
+ const current=state.cameraStream?.getVideoTracks?.()[0];
+ if(current&&typeof current.applyConstraints==='function'){
+  try{await current.applyConstraints({facingMode:{exact:facing}});const actual=current.getSettings?.().facingMode;if(!actual||actual===facing){state.cameraFacing=actual||facing;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';return;}}catch(_){ }
+ }
+ const result=await acquireFacingCameraStream(facing,current);const previous=state.cameraStream;state.cameraStream=result.stream;state.cameraFacing=result.facing;$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});if(previous)previous.getTracks().forEach(t=>t.stop());$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
+}
 function closeCamera(){if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null;}$('cameraVideo').srcObject=null;if($('cameraDialog').open)$('cameraDialog').close();}
-$('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEventListener('click',closeCamera);$('switchCamera').addEventListener('click',async()=>{try{await startCamera(state.cameraFacing==='environment'?'user':'environment');}catch(err){toast('Could not switch camera: '+errorText(err));}});
+$('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEventListener('click',closeCamera);$('switchCamera').addEventListener('click',async()=>{if(state.cameraSwitchBusy)return;state.cameraSwitchBusy=true;setBusy($('switchCamera'),true,'Switching…');try{await startCamera(state.cameraFacing==='environment'?'user':'environment');}catch(err){toast('Could not switch camera: '+errorText(err));}finally{state.cameraSwitchBusy=false;setBusy($('switchCamera'),false);}});
 $('takePhoto').addEventListener('click',async()=>{const video=$('cameraVideo');if(!video.videoWidth){toast('Camera is not ready yet.');return;}const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);canvas.toBlob(async blob=>{if(blob){closeCamera();await sendAttachment(new File([blob],'villfam-photo.jpg',{type:'image/jpeg'}));}},'image/jpeg',.88);});
 
 $('profileButton').addEventListener('click',()=>$('avatarInput').click());$('avatarInput').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;e.target.value='';if(!file.type.startsWith('image/')){toast('Choose an image file.');return;}if(file.size>5*1024*1024){toast('Profile pictures must be 5 MB or smaller.');return;}try{const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path=state.user.id+'/'+Date.now()+'.'+ext;const {error:upErr}=await state.client.storage.from('avatars').upload(path,file,{contentType:file.type,upsert:true});if(upErr)throw upErr;const {data}=state.client.storage.from('avatars').getPublicUrl(path);const {error}=await state.client.from('profiles').update({avatar_url:data.publicUrl,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.avatar_url=data.publicUrl;updateProfileHeader();toast('Profile picture updated.');}catch(err){toast('Profile picture failed: '+errorText(err));}});
@@ -486,7 +591,7 @@ $('profileEditSave').addEventListener('click',async()=>{const nickname=$('profil
 $('logoutButton').addEventListener('click',async()=>{const {error}=await state.client.auth.signOut();if(error)toast(errorText(error));else showAuth();});
 
 // Calls use native WebRTC peer-to-peer connections. Supabase stores invitations
-// and relays encrypted-in-transit SDP/ICE signaling. No LiveKit account or API keys.
+// and relays encrypted-in-transit SDP/ICE signaling without a media-service account.
 // Mesh calling is designed for small family calls (up to 6 members including caller).
 const VILLFAM_RTC_CONFIG = {
  iceServers:[
@@ -500,14 +605,14 @@ function callTileKey(id){return 'call-tile-'+String(id).replace(/[^a-zA-Z0-9_-]/
 function findCallProfile(userId){return state.people.find(p=>p.id===userId)||{id:userId,nickname:userId===state.user?.id?'You':'VillFam member'};}
 function addCallTile(userId,label,isLocal=false){
  const id=callTileKey(userId);let tile=document.getElementById(id);if(tile)return tile;
- tile=document.createElement('div');tile.className='call-tile';tile.id=id;
+ tile=document.createElement('div');tile.className='call-tile'+(isLocal?' local':'');tile.id=id;
  const avatar=document.createElement('div');avatar.className='audio-avatar';avatar.textContent=initials(label||'VillFam member');
  const name=document.createElement('span');name.className='participant-name';name.textContent=isLocal?'You':(label||'Family member');tile.append(avatar,name);$('callGrid').append(tile);return tile;
 }
 function showVideoOnTile(userId,stream,isLocal=false){
  const profile=findCallProfile(userId);const tile=addCallTile(userId,profile.nickname,isLocal);
  let video=tile.querySelector('video');if(!video){video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;video.style.width='100%';video.style.height='100%';video.style.objectFit='cover';tile.insertBefore(video,tile.querySelector('.participant-name'));}
- video.srcObject=stream;const avatar=tile.querySelector('.audio-avatar');if(avatar)avatar.remove();video.play().catch(()=>{});
+ video.srcObject=stream;video.classList.toggle('mirror-camera',isLocal&&state.facingMode==='user');const avatar=tile.querySelector('.audio-avatar');if(avatar)avatar.remove();video.play().catch(()=>{});
 }
 function showAudioOnTile(userId,stream){
  const profile=findCallProfile(userId);const tile=addCallTile(userId,profile.nickname,false);
@@ -517,7 +622,7 @@ function showAudioOnTile(userId,stream){
 function showCallDialog(type,conversation){
  state.callMuted=false;state.callCameraEnabled=true;$('muteCallButton').textContent='Mute mic';$('toggleCameraButton').textContent='Turn camera off';
  $('callTitle').textContent=(type==='video'?'Video call':'Audio call')+' · '+(conversation?.displayTitle||'VillFam');$('callGrid').replaceChildren();
- $('callDialog').showModal();$('toggleCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').classList.toggle('hidden',type!=='video');
+ $('callDialog').showModal();$('toggleCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';
 }
 function showIncomingCall(call){state.incomingCall=call;$('incomingCallIcon').textContent=call.call_type==='video'?'📹':'☎';$('incomingCallTitle').textContent='Incoming '+(call.call_type==='video'?'video':'audio')+' call';$('incomingCallText').textContent=(call.caller_name||'A VillFam member')+' is calling '+(call.conversation_title||'you');if(!$('incomingCallDialog').open)$('incomingCallDialog').showModal();}
 function subscribeCallInbox(){
@@ -532,11 +637,12 @@ function subscribeCallInbox(){
    else if((row.state==='left'||row.state==='declined')&&row.user_id!==state.user.id){closeCallPeer(row.user_id);callStatus(row.state==='declined'?'A family member declined the call.':'A participant left the call.');}
   }
   if(state.incomingCall&&row.call_id===state.incomingCall.id&&row.user_id===state.user.id&&row.state!=='ringing'&&!state.callActionBusy){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
+  if(payload.old?.state!==row.state)refreshConversationCallState();
  });
- channel.on('postgres_changes',{event:'UPDATE',schema:'public',table:'villfam_calls'},payload=>{
-  const updated=payload.new;if(!updated)return;
-  if(updated.id===state.currentCallId&&updated.status==='ended'){cleanupCall();if($('callDialog').open)$('callDialog').close();toast('The call has ended.');}
-  if(state.incomingCall&&updated.id===state.incomingCall.id&&updated.status==='ended'&&!state.callActionBusy){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();toast('This call is no longer available.');}
+ channel.on('postgres_changes',{event:'*',schema:'public',table:'villfam_calls'},payload=>{
+  const updated=payload.new;if(updated?.id===state.currentCallId&&updated.status==='ended'){cleanupCall();if($('callDialog').open)$('callDialog').close();toast('The call has ended.');}
+  if(updated&&state.incomingCall&&updated.id===state.incomingCall.id&&updated.status==='ended'&&!state.callActionBusy){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();toast('This call is no longer available.');}
+  if(payload.eventType==='INSERT'||payload.old?.status!==updated?.status)refreshConversationCallState();
  });
  channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){console.warn('Call inbox Realtime:',status);toast('Call alerts lost connection. Refresh VillFam to reconnect.');}});state.callInboxChannel=channel;
 }
@@ -560,7 +666,7 @@ async function handleIncomingCall(callId){
 async function acquireCallMedia(type){
  if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection)throw new Error('This browser does not support WebRTC calls. Use the latest Chrome, Edge, Safari, or Firefox over HTTPS.');
  const constraints={audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:type==='video'?{facingMode:{ideal:state.facingMode},width:{ideal:1280},height:{ideal:720}}:false};
- try{return await navigator.mediaDevices.getUserMedia(constraints);}catch(e){if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError')throw new Error('Allow microphone'+(type==='video'?' and camera':'')+' access in your browser settings, then try again.');if(e.name==='NotFoundError')throw new Error('No microphone or camera was found on this device.');if(e.name==='NotReadableError')throw new Error('Your microphone or camera is being used by another app. Close it and try again.');throw e;}
+ try{const stream=await navigator.mediaDevices.getUserMedia(constraints);const track=stream.getVideoTracks()[0];if(track?.getSettings?.().facingMode)state.facingMode=track.getSettings().facingMode;return stream;}catch(e){if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError')throw new Error('Allow microphone'+(type==='video'?' and camera':'')+' access in your browser settings, then try again.');if(e.name==='NotFoundError')throw new Error('No microphone or camera was found on this device.');if(e.name==='NotReadableError')throw new Error('Your microphone or camera is being used by another app. Close it and try again.');throw e;}
 }
 function stopCallHeartbeat(){if(state.callHeartbeatTimer){clearInterval(state.callHeartbeatTimer);state.callHeartbeatTimer=null;}state.callHeartbeatBusy=false;}
 async function sendCallHeartbeat(callId){
@@ -681,28 +787,26 @@ async function startCall(type){
  const conv=state.activeConversation;if(!conv)return toast('Open a conversation first.');
  if(state.currentCallId)return toast('You are already in a call.');if(state.callStarting)return;
  if(!window.isSecureContext&&location.hostname!=='localhost')return toast('Calls require HTTPS.');
- state.callStarting=true;setBusy($('callAudioBtn'),true,'Connecting…');setBusy($('callVideoBtn'),true,'Connecting…');let media=null;let callId=null;
+ state.callStarting=true;setBusy($('callAudioBtn'),true,'Connecting…');setBusy($('callVideoBtn'),true,'Connecting…');setBusy($('joinOngoingCallBtn'),true,'Joining…');let media=null;let callId=null;let joinedExisting=false;
  try{
-  // If a member left an active group call, rejoin that same room rather than
-  // creating a second call or trapping the participant in an "already active" error.
-  const {data:rejoinData,error:rejoinLookupError}=await state.client.rpc('villfam_find_rejoinable_call',{p_conversation_id:conv.id});
-  if(rejoinLookupError)throw new Error('Could not check for an ongoing call. Run the latest supabase.sql update. '+errorText(rejoinLookupError));
-  const rejoin=Array.isArray(rejoinData)?rejoinData[0]:rejoinData;
-  if(rejoin?.call_id){
-   media=await acquireCallMedia(rejoin.call_type||type);
-   const {error:joinError}=await state.client.rpc('villfam_rejoin_call',{p_call_id:rejoin.call_id});if(joinError)throw joinError;
-   callId=rejoin.call_id;
-   await enterPeerCall(callId,false,media);media=null;toast('You rejoined the ongoing call.');
+  // Prefer any live call in this conversation, including calls where this user
+  // was not in the original invite list or previously declined/left.
+  const {data:activeData,error:activeError}=await state.client.rpc('villfam_find_active_call',{p_conversation_id:conv.id});
+  if(activeError)throw new Error('Could not check the ongoing call. Run the latest supabase.sql update. '+errorText(activeError));
+  const existing=Array.isArray(activeData)?activeData[0]:activeData;
+  if(existing?.call_id){
+   media=await acquireCallMedia(existing.call_type||type);
+   const {error:joinError}=await state.client.rpc('villfam_join_active_call',{p_call_id:existing.call_id});if(joinError)throw joinError;
+   callId=existing.call_id;joinedExisting=true;
+   await enterPeerCall(callId,false,media);media=null;toast('You joined the ongoing '+(existing.call_type==='video'?'video':'audio')+' call.');
   }else{
-   // Acquire permissions before creating a new call row, so denied permissions
-   // never leave a ghost invitation behind.
    media=await acquireCallMedia(type);
    const {error:cleanupError}=await state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:conv.id});if(cleanupError)throw cleanupError;
    const {data,error}=await state.client.rpc('villfam_start_call',{p_conversation_id:conv.id,p_call_type:type});if(error)throw error;callId=data;
    await enterPeerCall(callId,true,media);media=null;
   }
- }catch(e){if(media)media.getTracks().forEach(t=>t.stop());if(callId)await state.client.rpc('villfam_end_call',{p_call_id:callId});toast('Could not start or rejoin call: '+errorText(e));cleanupCall();}
- finally{state.callStarting=false;setBusy($('callAudioBtn'),false);setBusy($('callVideoBtn'),false);}
+ }catch(e){if(media)media.getTracks().forEach(t=>t.stop());if(callId){const {error:endError}=await state.client.rpc('villfam_end_call',{p_call_id:callId});if(endError)console.warn('Call rollback:',endError.message);}toast((joinedExisting?'Could not join the ongoing call: ':'Could not start or join call: ')+errorText(e));cleanupCall();}
+ finally{state.callStarting=false;setBusy($('callAudioBtn'),false);setBusy($('callVideoBtn'),false);setBusy($('joinOngoingCallBtn'),false);if(state.activeConversation)updateChatCallState(state.activeConversation);}
 }
 async function answerIncomingCall(){
  const call=state.incomingCall;if(!call||state.callActionBusy)return;state.callActionBusy=true;setBusy($('answerIncomingCall'),true,'Connecting…');let media=null;
@@ -719,15 +823,15 @@ function cleanupCall(){
  stopCallHeartbeat();if(state.callSignalChannel){state.client?.removeChannel(state.callSignalChannel);state.callSignalChannel=null;}
  for(const id of [...state.peerConnections.keys()])closeCallPeer(id);
  if(state.localCallStream){state.localCallStream.getTracks().forEach(t=>t.stop());state.localCallStream=null;}
- state.remoteStreams.clear();state.processedSignalIds.clear();state.callSignalQueues.clear();state.currentCallId=null;state.callType=null;state.callConversation=null;state.callMuted=false;state.callCameraEnabled=true;state.callPeerSyncing=false;state.callPeerSyncPending=false;$('callGrid')?.replaceChildren();
+ state.remoteStreams.clear();state.processedSignalIds.clear();state.callSignalQueues.clear();state.currentCallId=null;state.callType=null;state.callConversation=null;state.callMuted=false;state.callCameraEnabled=true;state.callPeerSyncing=false;state.callPeerSyncPending=false;$('callGrid')?.replaceChildren();if(state.activeConversation)updateChatCallState(state.activeConversation);
 }
 async function endCall(){
  if(state.callActionBusy)return;const id=state.currentCallId;state.callActionBusy=true;setBusy($('hangupCallButton'),true,'Leaving…');setBusy($('closeCallDialog'),true,'Leaving…');let failure=null;
  try{if(id){const {error}=await state.client.rpc('villfam_end_call',{p_call_id:id});if(error)throw error;}}
  catch(e){failure=e;}finally{cleanupCall();if($('callDialog').open)$('callDialog').close();state.callActionBusy=false;setBusy($('hangupCallButton'),false);setBusy($('closeCallDialog'),false);}
- if(failure)toast('Call ended on this device, but the server update failed: '+errorText(failure));else if(id)toast('You left the call.');
+ if(failure)toast('Call ended on this device, but the server update failed: '+errorText(failure));else if(id){toast('You left the call.');loadConversations().catch(e=>console.warn('Call list refresh:',e));}
 }
-$('callAudioBtn').addEventListener('click',()=>startCall('audio'));$('callVideoBtn').addEventListener('click',()=>startCall('video'));
+$('callAudioBtn').addEventListener('click',()=>startCall('audio'));$('callVideoBtn').addEventListener('click',()=>startCall('video'));$('joinOngoingCallBtn').addEventListener('click',()=>startCall(state.activeConversation?.ongoingCall?.call_type||'video'));
 $('declineIncomingCall').addEventListener('click',declineIncomingCall);
 $('answerIncomingCall').addEventListener('click',answerIncomingCall);
 $('hangupCallButton').addEventListener('click',endCall);$('closeCallDialog').addEventListener('click',endCall);
@@ -736,12 +840,36 @@ $('callDialog').addEventListener('cancel',e=>{e.preventDefault();endCall();});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state.currentCallId)sendCallHeartbeat(state.currentCallId);});
 $('muteCallButton').addEventListener('click',()=>{const track=state.localCallStream?.getAudioTracks()[0];if(!track)return;state.callMuted=!state.callMuted;track.enabled=!state.callMuted;$('muteCallButton').textContent=state.callMuted?'Unmute mic':'Mute mic';});
 $('toggleCameraButton').addEventListener('click',()=>{const track=state.localCallStream?.getVideoTracks()[0];if(!track)return;state.callCameraEnabled=!state.callCameraEnabled;track.enabled=state.callCameraEnabled;$('toggleCameraButton').textContent=state.callCameraEnabled?'Turn camera off':'Turn camera on';});
-$('switchCallCameraButton').addEventListener('click',async()=>{
- const oldTrack=state.localCallStream?.getVideoTracks()[0];if(!oldTrack)return toast('Camera is not active.');const next=state.facingMode==='user'?'environment':'user';setBusy($('switchCallCameraButton'),true,'Switching…');
- try{const fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:next},width:{ideal:1280},height:{ideal:720}},audio:false});const newTrack=fresh.getVideoTracks()[0];for(const pc of state.peerConnections.values()){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(newTrack);}
-  state.localCallStream.removeTrack(oldTrack);state.localCallStream.addTrack(newTrack);oldTrack.stop();state.facingMode=next;showVideoOnTile(state.user.id,state.localCallStream,true);
- }catch(e){toast('Could not switch camera: '+errorText(e));}finally{setBusy($('switchCallCameraButton'),false);}
-});
+async function switchCallCamera(){
+ const oldTrack=state.localCallStream?.getVideoTracks()[0];if(!oldTrack)return toast('Camera is not active.');if(state.cameraSwitchBusy)return;
+ state.cameraSwitchBusy=true;setBusy($('switchCallCameraButton'),true,'Switching…');
+ const settings=oldTrack.getSettings?.()||{};const currentFacing=settings.facingMode||state.facingMode;const next=currentFacing==='user'?'environment':'user';
+ try{
+  // Prefer changing the active track in place; this is more reliable on iOS,
+  // where opening a second camera while the first is active can fail.
+  let switchedInPlace=false;
+  if(typeof oldTrack.applyConstraints==='function'){
+   try{await oldTrack.applyConstraints({facingMode:{exact:next}});const actual=oldTrack.getSettings?.().facingMode;if(!actual||actual===next){switchedInPlace=true;state.facingMode=actual||next;}}
+   catch(_){switchedInPlace=false;}
+  }
+  if(!switchedInPlace){
+   const result=await acquireFacingCameraStream(next,oldTrack);const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
+   const changed=[];
+   try{
+    for(const pc of state.peerConnections.values()){
+     const sender=pc.getSenders().find(s=>s.track?.kind==='video');
+     if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
+    }
+   }catch(replaceError){for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}result.stream.getTracks().forEach(t=>t.stop());throw replaceError;}
+   state.localCallStream.removeTrack(oldTrack);state.localCallStream.addTrack(newTrack);oldTrack.stop();state.facingMode=result.facing;
+  }
+  showVideoOnTile(state.user.id,state.localCallStream,true);
+  $('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';
+  toast(state.facingMode==='user'?'Front camera is on.':'Back camera is on.');
+ }catch(e){toast('Could not switch camera: '+errorText(e));}
+ finally{state.cameraSwitchBusy=false;setBusy($('switchCallCameraButton'),false);}
+}
+$('switchCallCameraButton').addEventListener('click',switchCallCamera);
 
 initSupabase().catch(err=>notice('Could not initialize VillFam: '+errorText(err),'error'));
 })();
