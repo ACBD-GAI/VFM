@@ -142,6 +142,9 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 @media(max-width:760px){
  #appView{padding:0;background:#fff}.topbar{background:rgba(255,255,255,.97);border-bottom:1px solid #edf0f6;padding:7px 12px}.layout{border-radius:0;box-shadow:none}.sidebar{background:#fff}.side-title{padding:17px 15px 12px}.conv{margin:3px 5px;padding:12px 10px}.chat-head{min-height:68px;height:auto;padding:8px 8px}.chat-head-copy{min-width:76px}.chat-tools{gap:3px;flex-wrap:wrap;justify-content:flex-end}.chat-tools .icon-btn{width:34px;height:35px}.join-ongoing-call-btn{padding:8px 9px;font-size:10px}.messages{padding:16px 11px}.composer{padding:10px;background:rgba(255,255,255,.98)}.call-dialog{width:100vw;max-width:none;max-height:94dvh;border-radius:22px 22px 0 0;margin:auto 0 0}.call-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:60dvh}.call-tile{min-height:145px}.call-tile video{min-height:145px}
 }
+
+.auth-link-row{display:flex;justify-content:flex-end;margin-top:2px}.auth-link-row button,.auth-back{border:0;background:transparent;color:#3267d7;font-size:13px;font-weight:750;padding:7px 2px;cursor:pointer}.auth-link-row button:hover,.auth-back:hover{text-decoration:underline}.reset-panel{margin-top:12px;padding:14px;border:1px solid #e3eaf5;border-radius:15px;background:#f8faff}.reset-panel .field:first-child{margin-top:0}.reset-panel .small{font-size:12px;line-height:1.45;color:#748199;margin:0 0 10px}.auth-back-row{display:flex;justify-content:center;margin-top:9px}
+
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
 </style>
@@ -158,20 +161,31 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
     <form id="authForm">
       <div class="field"><label for="authEmail">Email address</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@gmail.com" required></div>
       <div class="field hidden" id="nicknameField"><label for="authNickname">Nickname</label><input id="authNickname" maxlength="40" placeholder="How should your family see you?"></div>
-      <div class="field"><label for="authPassword">Password</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></div>
+      <div class="field" id="authPasswordField"><label for="authPassword">Password</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></div>
       <div id="otpArea" class="hidden">
         <div class="field"><label for="authOtp">6-digit Gmail code</label><input id="authOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
         <div class="small muted">Check your inbox and spam folder. The code expires after 10 minutes.</div>
+      </div>
+      <div id="resetOtpArea" class="reset-panel hidden">
+        <p class="small">Enter the 6-digit code sent to your Gmail, then choose a new password. The code expires after 10 minutes.</p>
+        <div class="field"><label for="resetOtp">6-digit reset code</label><input id="resetOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
+        <div class="field"><label for="resetNewPassword">New password</label><input id="resetNewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" placeholder="At least 8 characters"></div>
+        <div class="field"><label for="resetConfirmPassword">Confirm new password</label><input id="resetConfirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" placeholder="Enter the new password again"></div>
       </div>
       <div class="auth-actions">
         <button id="loginButton" class="primary" type="submit">Sign in</button>
         <button id="sendOtpButton" class="primary hidden" type="button">Send Gmail verification code</button>
         <button id="createAccountButton" class="primary hidden" type="button">Verify code & create account</button>
         <button id="resendOtpButton" class="secondary hidden" type="button">Resend code</button>
+        <button id="sendResetOtpButton" class="primary hidden" type="button">Send password-reset code</button>
+        <button id="resetPasswordButton" class="primary hidden" type="button">Verify code & reset password</button>
+        <button id="resendResetOtpButton" class="secondary hidden" type="button">Resend reset code</button>
       </div>
+      <div class="auth-link-row" id="forgotLinkRow"><button id="forgotPasswordLink" type="button">Forgot password?</button></div>
+      <div class="auth-back-row hidden" id="forgotBackRow"><button id="forgotBackButton" class="auth-back" type="button">← Back to sign in</button></div>
     </form>
     <div id="authNotice" class="notice"></div>
-    <div class="auth-foot">Email registration is verified through VillFam Gmail OTP. Your password is never emailed. Keep your account password private.</div>
+    <div class="auth-foot">Email registration and password recovery use VillFam Gmail OTP. Only one browser or device can stay signed in to this account at a time.</div>
   </div>
 </section>
 
@@ -238,8 +252,10 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 const SUPABASE_URL = 'https://zjuivpsvhuzceltszjut.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SA_OZCUkyHiWR6O7CwYYhQ_DpP9m3ah';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBgPwwjZylmH9wuMMvKmhqkctO4dK6vxFleB7PUScWKPoEtNPK8PAiAR3Jebk4PLfWPg/exec';
+const SESSION_DEVICE_KEY = 'villfam_single_device_session_v1';
+const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
@@ -327,16 +343,35 @@ function appsScriptRequest(fields){
    if(!data || data.channel!=='villfam-gas' || data.requestId!==requestId)return;
    if(finished)return;finished=true;clearTimeout(timer);cleanup();
    if(!data.result || typeof data.result.ok!=='boolean'){reject(new Error('Apps Script returned an unreadable response.'));return;}
-   if(!data.result.ok){reject(new Error(data.result.message||'Apps Script request failed.'));return;}
+   if(!data.result.ok){const err=new Error(data.result.message||'Apps Script request failed.');err.code=data.result.code||'REQUEST_FAILED';reject(err);return;}
    resolve(data.result);
   };
   window.addEventListener('message',onMessage);document.body.append(frame,form);form.submit();
  });
 }
 
-function setAuthMode(mode){state.authMode=mode;state.otpSent=false;state.otpEmail='';$('authEmail').readOnly=false;$('otpArea').classList.add('hidden');$('authOtp').value='';$('nicknameField').classList.toggle('hidden',mode!=='signup');$('signInTab').classList.toggle('active',mode==='signin');$('signUpTab').classList.toggle('active',mode==='signup');$('authHeading').textContent=mode==='signup'?'Create your VillFam account':'Welcome back';$('authSubheading').textContent=mode==='signup'?'Verify your Gmail address, then create your account.':'Sign in to your family’s private messenger.';$('loginButton').classList.toggle('hidden',mode!=='signin');$('sendOtpButton').classList.toggle('hidden',mode!=='signup');$('createAccountButton').classList.add('hidden');$('resendOtpButton').classList.add('hidden');$('authPassword').autocomplete=mode==='signup'?'new-password':'current-password';$('authPassword').minLength=mode==='signup'?8:6;clearNotice();}
+function setAuthMode(mode){
+ state.authMode=mode;state.otpSent=false;state.otpEmail='';state.resetOtpSent=false;state.resetOtpEmail='';
+ $('authEmail').readOnly=false;$('authPassword').value='';$('authPassword').disabled=(mode==='forgot');
+ $('authPasswordField').classList.toggle('hidden',mode==='forgot');
+ $('otpArea').classList.add('hidden');$('authOtp').value='';
+ $('resetOtpArea').classList.add('hidden');$('resetOtp').value='';$('resetNewPassword').value='';$('resetConfirmPassword').value='';
+ $('nicknameField').classList.toggle('hidden',mode!=='signup');
+ $('signInTab').classList.toggle('active',mode==='signin');$('signUpTab').classList.toggle('active',mode==='signup');
+ document.querySelector('.tabs').classList.toggle('hidden',mode==='forgot');
+ $('authHeading').textContent=mode==='signup'?'Create your VillFam account':mode==='forgot'?'Reset your password':'Welcome back';
+ $('authSubheading').textContent=mode==='signup'?'Verify your Gmail address, then create your account.':mode==='forgot'?'Recover access using a code sent to your registered Gmail address.':'Sign in to your family’s private messenger.';
+ $('loginButton').classList.toggle('hidden',mode!=='signin');$('sendOtpButton').classList.toggle('hidden',mode!=='signup');
+ $('createAccountButton').classList.add('hidden');$('resendOtpButton').classList.add('hidden');
+ $('sendResetOtpButton').classList.toggle('hidden',mode!=='forgot');$('resetPasswordButton').classList.add('hidden');$('resendResetOtpButton').classList.add('hidden');
+ $('forgotLinkRow').classList.toggle('hidden',mode!=='signin');$('forgotBackRow').classList.toggle('hidden',mode!=='forgot');
+ $('authPassword').autocomplete=mode==='signup'?'new-password':'current-password';$('authPassword').minLength=mode==='signup'?8:6;
+ clearNotice();
+}
 $('signInTab').addEventListener('click',()=>setAuthMode('signin'));
 $('signUpTab').addEventListener('click',()=>setAuthMode('signup'));
+$('forgotPasswordLink').addEventListener('click',()=>setAuthMode('forgot'));
+$('forgotBackButton').addEventListener('click',()=>setAuthMode('signin'));
 
 $('sendOtpButton').addEventListener('click',async()=>{
  const email=$('authEmail').value.trim().toLowerCase();
@@ -362,32 +397,112 @@ $('createAccountButton').addEventListener('click',async()=>{
   const result=await appsScriptRequest({action:'createAccount',email,otp,password,nickname});
   const {data,error}=await state.client.auth.signInWithPassword({email,password});
   if(error)throw new Error('Account created, but sign-in failed: '+error.message+' Check Supabase Auth settings.');
-  state.user=data.user;state.profile=null;await enterApp();toast(result.message||'Welcome to VillFam!');
+  await activateSingleSession(data.session);state.profile=null;await enterApp();toast(result.message||'Welcome to VillFam!');
  }catch(err){notice(errorText(err),'error');}
  finally{setBusy($('createAccountButton'),false);}
 });
+$('sendResetOtpButton').addEventListener('click',async()=>{
+ const email=$('authEmail').value.trim().toLowerCase();
+ if(!email||!$('authEmail').checkValidity()){notice('Enter the Gmail address associated with your VillFam account.','error');return;}
+ setBusy($('sendResetOtpButton'),true,'Sending reset code…');clearNotice();
+ try{
+  const result=await appsScriptRequest({action:'sendResetOtp',email});state.resetOtpSent=true;state.resetOtpEmail=email;
+  $('authEmail').value=email;$('authEmail').readOnly=true;$('resetOtpArea').classList.remove('hidden');
+  $('sendResetOtpButton').classList.add('hidden');$('resetPasswordButton').classList.remove('hidden');$('resendResetOtpButton').classList.remove('hidden');
+  $('resetOtp').focus();notice(result.message||'If a VillFam account exists for this email, a reset code has been sent.','success');
+ }catch(err){notice(errorText(err),'error');}
+ finally{setBusy($('sendResetOtpButton'),false);}
+});
+$('resendResetOtpButton').addEventListener('click',async()=>{
+ const email=state.resetOtpEmail;if(!email)return;setBusy($('resendResetOtpButton'),true,'Sending…');clearNotice();
+ try{const result=await appsScriptRequest({action:'sendResetOtp',email});notice(result.message||'If a VillFam account exists, a new reset code has been sent.','success');}
+ catch(err){notice(errorText(err),'error');}
+ finally{setBusy($('resendResetOtpButton'),false);}
+});
+$('resetPasswordButton').addEventListener('click',async()=>{
+ const email=$('authEmail').value.trim().toLowerCase(),otp=$('resetOtp').value.trim();
+ const password=$('resetNewPassword').value,confirm=$('resetConfirmPassword').value;
+ if(!state.resetOtpSent||email!==state.resetOtpEmail){notice('Request a new password-reset code for this email address.','error');return;}
+ if(!/^\d{6}$/.test(otp)){notice('Enter the 6-digit reset code from Gmail.','error');return;}
+ if(password.length<8||password.length>72){notice('Your new password must be between 8 and 72 characters.','error');return;}
+ if(password!==confirm){notice('The new passwords do not match.','error');return;}
+ setBusy($('resetPasswordButton'),true,'Resetting password…');clearNotice();
+ try{
+  const result=await appsScriptRequest({action:'resetPassword',email,otp,password});
+  setAuthMode('signin');$('authEmail').value=email;notice(result.message||'Your password has been reset. Sign in with your new password.','success');
+  $('authPassword').focus();
+ }catch(err){notice(errorText(err),'error');}
+ finally{setBusy($('resetPasswordButton'),false);}
+});
+
 $('authForm').addEventListener('submit',async e=>{
  e.preventDefault();if(state.authMode!=='signin')return;
  const email=$('authEmail').value.trim().toLowerCase();const password=$('authPassword').value;
  if(!email||!password){notice('Enter your email and password.','error');return;}
  setBusy($('loginButton'),true,'Signing in…');clearNotice();
- try{const {data,error}=await state.client.auth.signInWithPassword({email,password});if(error)throw error;state.user=data.user;await enterApp();}
+ try{const {data,error}=await state.client.auth.signInWithPassword({email,password});if(error)throw error;await activateSingleSession(data.session);await enterApp();}
  catch(err){notice(errorText(err),'error');}
  finally{setBusy($('loginButton'),false);}
 });
-$('authEmail').addEventListener('input',()=>{if(state.otpSent && $('authEmail').value.trim().toLowerCase()!==state.otpEmail){state.otpSent=false;$('authEmail').readOnly=false;$('otpArea').classList.add('hidden');$('createAccountButton').classList.add('hidden');$('resendOtpButton').classList.add('hidden');$('sendOtpButton').classList.remove('hidden');}});
+$('authEmail').addEventListener('input',()=>{
+ const current=$('authEmail').value.trim().toLowerCase();
+ if(state.otpSent&&current!==state.otpEmail){state.otpSent=false;$('authEmail').readOnly=false;$('otpArea').classList.add('hidden');$('createAccountButton').classList.add('hidden');$('resendOtpButton').classList.add('hidden');$('sendOtpButton').classList.remove('hidden');}
+ if(state.resetOtpSent&&current!==state.resetOtpEmail){state.resetOtpSent=false;$('authEmail').readOnly=false;$('resetOtpArea').classList.add('hidden');$('resetPasswordButton').classList.add('hidden');$('resendResetOtpButton').classList.add('hidden');$('sendResetOtpButton').classList.remove('hidden');}
+});
 
+function getSingleDeviceId(){
+ let id='';try{id=localStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}
+ if(!/^[a-f0-9-]{32,64}$/i.test(id)){
+  id=(crypto.randomUUID?crypto.randomUUID():('xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);}))).replace(/[^a-f0-9-]/gi,'').toLowerCase();
+  try{localStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
+ }
+ return id;
+}
+async function currentAccessToken(){const {data,error}=await state.client.auth.getSession();if(error)throw error;if(!data.session?.access_token)throw new Error('Your sign-in has expired. Please sign in again.');return data.session.access_token;}
+async function activateSingleSession(session){
+ if(!session?.user||!session.access_token)throw new Error('Supabase did not return a valid login session.');
+ const sid=getSingleDeviceId();
+ try{await appsScriptRequest({action:'claimSession',accessToken:session.access_token,sessionId:sid});}
+ catch(err){try{await state.client.auth.signOut({scope:'local'});}catch(_){}throw err;}
+ state.singleSessionId=sid;state.user=session.user;startSingleSessionHeartbeat();
+}
+function startSingleSessionHeartbeat(){
+ if(state.sessionHeartbeatTimer)clearInterval(state.sessionHeartbeatTimer);
+ state.sessionHeartbeatTimer=setInterval(()=>refreshSingleSessionLease(),SESSION_HEARTBEAT_MS);
+}
+function stopSingleSessionHeartbeat(){if(state.sessionHeartbeatTimer){clearInterval(state.sessionHeartbeatTimer);state.sessionHeartbeatTimer=null;}state.sessionHeartbeatBusy=false;}
+async function refreshSingleSessionLease(){
+ if(!state.user||!state.singleSessionId||state.sessionHeartbeatBusy)return;
+ state.sessionHeartbeatBusy=true;
+ try{const token=await currentAccessToken();await appsScriptRequest({action:'heartbeatSession',accessToken:token,sessionId:state.singleSessionId});}
+ catch(err){
+  if(err.code==='SESSION_REPLACED'||err.code==='SESSION_AUTH_REQUIRED'){
+   stopSingleSessionHeartbeat();state.singleSessionId=null;
+   try{await state.client.auth.signOut({scope:'local'});}catch(_){}
+   showAuth();notice(err.code==='SESSION_REPLACED'?'This account is active on another device. This session has been signed out.':'Your VillFam session is no longer valid. Please sign in again.','error');
+  }else{console.warn('VillFam session heartbeat failed; it will retry automatically.',err);}
+ }finally{state.sessionHeartbeatBusy=false;}
+}
+async function releaseSingleSession(){
+ stopSingleSessionHeartbeat();
+ if(!state.singleSessionId||!state.client)return;
+ const sid=state.singleSessionId;state.singleSessionId=null;
+ try{const token=await currentAccessToken();await appsScriptRequest({action:'releaseSession',accessToken:token,sessionId:sid});}
+ catch(err){console.warn('Could not release session immediately; it will expire automatically.',err);}
+}
 async function initSupabase(){
  if(!window.supabase || !window.supabase.createClient){notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
  state.client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const {data,error}=await state.client.auth.getSession();if(error)console.warn(error);
- if(data&&data.session){state.user=data.session.user;await enterApp();}
- state.client.auth.onAuthStateChange(async(event,session)=>{
-  if(session&&session.user){if(!state.user||state.user.id!==session.user.id){state.user=session.user;await enterApp();}}
-  else if(event==='SIGNED_OUT'){showAuth();}
+ if(data&&data.session){
+  try{await activateSingleSession(data.session);await enterApp();}
+  catch(err){await state.client.auth.signOut({scope:'local'});state.user=null;notice(errorText(err),'error');}
+ }
+ state.client.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;showAuth();}
  });
 }
-function showAuth(){if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
+function showAuth(){stopSingleSessionHeartbeat();if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
 async function enterApp(){
  if(state.entering)return;state.entering=true;
  $('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
@@ -588,7 +703,7 @@ $('profileButton').addEventListener('click',()=>$('avatarInput').click());$('ava
 $('editProfileButton').addEventListener('click',()=>{$('profileNicknameInput').value=state.profile?.nickname||'';$('profileEditDialog').showModal();setTimeout(()=>$('profileNicknameInput').focus(),20);});
 $('profileEditCancel').addEventListener('click',()=>$('profileEditDialog').close());
 $('profileEditSave').addEventListener('click',async()=>{const nickname=$('profileNicknameInput').value.trim().slice(0,40);if(!nickname){toast('Nickname cannot be empty.');return;}const btn=$('profileEditSave');setBusy(btn,true,'Saving…');try{const {error}=await state.client.from('profiles').update({nickname,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.nickname=nickname;updateProfileHeader();await loadPeople();await loadConversations();$('profileEditDialog').close();toast('Nickname updated.');}catch(err){toast('Could not update nickname: '+errorText(err));}finally{setBusy(btn,false);}});
-$('logoutButton').addEventListener('click',async()=>{const {error}=await state.client.auth.signOut();if(error)toast(errorText(error));else showAuth();});
+$('logoutButton').addEventListener('click',async()=>{await releaseSingleSession();const {error}=await state.client.auth.signOut({scope:'local'});if(error)toast(errorText(error));else showAuth();});
 
 // Calls use native WebRTC peer-to-peer connections. Supabase stores invitations
 // and relays encrypted-in-transit SDP/ICE signaling without a media-service account.
@@ -837,7 +952,7 @@ $('answerIncomingCall').addEventListener('click',answerIncomingCall);
 $('hangupCallButton').addEventListener('click',endCall);$('closeCallDialog').addEventListener('click',endCall);
 $('incomingCallDialog').addEventListener('cancel',e=>{e.preventDefault();declineIncomingCall();});
 $('callDialog').addEventListener('cancel',e=>{e.preventDefault();endCall();});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state.currentCallId)sendCallHeartbeat(state.currentCallId);});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(state.currentCallId)sendCallHeartbeat(state.currentCallId);if(state.user)refreshSingleSessionLease();}});
 $('muteCallButton').addEventListener('click',()=>{const track=state.localCallStream?.getAudioTracks()[0];if(!track)return;state.callMuted=!state.callMuted;track.enabled=!state.callMuted;$('muteCallButton').textContent=state.callMuted?'Unmute mic':'Mute mic';});
 $('toggleCameraButton').addEventListener('click',()=>{const track=state.localCallStream?.getVideoTracks()[0];if(!track)return;state.callCameraEnabled=!state.callCameraEnabled;track.enabled=state.callCameraEnabled;$('toggleCameraButton').textContent=state.callCameraEnabled?'Turn camera off':'Turn camera on';});
 async function switchCallCamera(){
