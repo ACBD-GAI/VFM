@@ -19,6 +19,27 @@
 .call-dialog{border:0;border-radius:22px;padding:16px;width:min(96vw,900px);max-width:900px;max-height:92dvh;box-shadow:0 20px 70px #0005;background:#101827;color:#fff}.call-dialog::backdrop{background:#07101bcc}.call-dialog h3{margin:0;font-size:17px}.call-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:9px;max-height:66dvh;overflow:auto;margin:14px 0}.call-tile{position:relative;min-height:180px;border-radius:15px;overflow:hidden;background:#263348;display:flex;align-items:center;justify-content:center}.call-tile video{width:100%;height:100%;min-height:180px;object-fit:cover}.call-tile .participant-name{position:absolute;left:10px;bottom:9px;padding:5px 8px;border-radius:8px;background:#07101aaa;font-size:12px;z-index:2}.call-tile .audio-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:#48618a;font-size:23px;font-weight:800}.call-status{font-size:12px;color:#bdc9dc;text-align:center;margin:9px}.call-controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}.call-controls button{border:0;border-radius:12px;padding:11px 15px;background:#30415c;color:white;font-weight:700}.call-controls .hangup{background:#cf3947}.incoming-call-card{text-align:center;padding:10px 8px}.incoming-call-icon{font-size:48px;margin:9px}.incoming-call-actions{display:flex;justify-content:center;gap:12px;margin-top:18px}.incoming-call-actions button{min-width:125px}.call-note{color:#b9c7dc;font-size:12px;margin-top:8px}
 @media(max-width:760px){.chat-head{padding:0 8px}.chat-tools{gap:2px}.chat-tools .icon-btn{width:33px;height:34px;font-size:14px}.call-dialog{padding:12px}.call-grid{grid-template-columns:1fr 1fr}.call-tile{min-height:130px}.call-tile video{min-height:130px}}
 
+
+/* Member picker and friendly in-app dialogs */
+.picker-dialog{border:0;border-radius:20px;padding:20px;width:min(94vw,520px);max-height:88dvh;box-shadow:0 20px 70px #0004;color:var(--ink)}
+.picker-dialog::backdrop{background:#0b183399}
+.picker-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}.picker-head h3{margin:0;font-size:18px}
+.picker-search{width:100%;padding:13px 14px;border:1px solid #dfe6f0;border-radius:12px;background:#fbfcff;outline:0;margin:8px 0 10px}
+.picker-search:focus{border-color:#91b2ff;box-shadow:0 0 0 3px #3478f618}
+.picker-list{max-height:38dvh;overflow:auto;display:grid;gap:5px;margin:8px 0}
+.member-option{display:flex;align-items:center;gap:10px;width:100%;padding:9px;border:1px solid transparent;border-radius:12px;background:#fff;text-align:left}
+.member-option:hover,.member-option.selected{background:#edf3ff;border-color:#cbdcff}
+.member-option-copy{min-width:0;flex:1}.member-option-name{font-size:13px;font-weight:800}.member-option-email{font-size:11px;color:var(--muted);overflow-wrap:anywhere;margin-top:2px}
+.member-option-check{font-weight:900;color:var(--blue)}
+.selected-members{display:flex;gap:6px;flex-wrap:wrap;min-height:4px;margin:5px 0}
+.member-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#edf3ff;color:#2458b0;font-size:11px;font-weight:750}
+.member-chip button{border:0;background:none;color:inherit;font-weight:900;padding:0 2px}
+.picker-empty{padding:18px;text-align:center;color:var(--muted);font-size:12px}
+.inapp-input{width:100%;padding:12px 13px;border:1px solid #dfe6f0;border-radius:11px;background:#fbfcff;outline:0}
+.inapp-input:focus{border-color:#91b2ff;box-shadow:0 0 0 3px #3478f618}
+.dialog-buttons{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.msg-actions button{font-size:12px;padding:4px 8px}.msg-actions button:hover{color:var(--red);background:#fff0f0}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
@@ -70,7 +91,7 @@
    <section class="chat">
     <div id="chatEmpty" class="chat-empty"><div class="big">💬</div><h2>Your family, one chat away</h2><p>Choose a conversation or start a new chat. Your family messages stay private to their members.</p><button id="emptyNewChat" class="primary" type="button">Start a conversation</button></div>
     <div id="chatActive" class="hidden" style="display:flex;flex-direction:column;min-height:0;flex:1">
-      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div></div><div class="chat-tools"><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
+      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div></div><div class="chat-tools"><button id="addMembersButton" class="icon-btn hidden" title="Add group members" type="button">♧</button><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
       <div id="messages" class="messages"></div>
       <div class="hint">Enter to send · Shift + Enter for a new line</div>
       <form id="composer" class="composer">
@@ -87,9 +108,22 @@
 
 <dialog id="cameraDialog"><h3 style="margin:0 0 12px">Take a picture</h3><video id="cameraVideo" autoplay playsinline></video><div class="dialog-actions"><button id="closeCamera" class="secondary" type="button">Cancel</button><div style="display:flex;gap:8px"><button id="switchCamera" class="secondary" type="button">Switch camera</button><button id="takePhoto" class="primary" type="button">Capture</button></div></div></dialog>
 <dialog id="messageActionDialog" class="action-dialog"><h3>Message options</h3><p id="messageActionLabel">Choose what to do with this message.</p><div class="actions"><button id="deleteMessageMe" class="secondary" type="button">Delete for me</button><button id="deleteMessageEveryone" class="danger-button hidden" type="button">Delete for everyone</button><button id="cancelMessageAction" class="secondary" type="button">Cancel</button></div></dialog>
-<dialog id="conversationActionDialog" class="action-dialog"><h3 id="conversationActionTitle">Conversation options</h3><p id="conversationActionText"></p><div class="actions"><button id="deleteConversationMe" class="danger-button hidden" type="button">Delete conversation for me</button><button id="leaveGroupButton" class="danger-button hidden" type="button">Leave group</button><button id="deleteGroupButton" class="danger-button hidden" type="button">Delete group for everyone</button><button id="cancelConversationAction" class="secondary" type="button">Cancel</button></div></dialog>
+<dialog id="conversationActionDialog" class="action-dialog"><h3 id="conversationActionTitle">Conversation options</h3><p id="conversationActionText"></p><div class="actions"><button id="addMembersFromMenuButton" class="secondary hidden" type="button">Add members</button><button id="deleteConversationMe" class="danger-button hidden" type="button">Delete conversation for me</button><button id="leaveGroupButton" class="danger-button hidden" type="button">Leave group</button><button id="deleteGroupButton" class="danger-button hidden" type="button">Delete group for everyone</button><button id="cancelConversationAction" class="secondary" type="button">Cancel</button></div></dialog>
 <dialog id="incomingCallDialog" class="action-dialog"><div class="incoming-call-card"><div class="incoming-call-icon" id="incomingCallIcon">📹</div><h3 id="incomingCallTitle">Incoming call</h3><p id="incomingCallText">Someone is calling you.</p><div class="call-note">You can answer without opening the conversation.</div><div class="incoming-call-actions"><button id="declineIncomingCall" class="danger-button" type="button">Decline</button><button id="answerIncomingCall" class="primary" type="button">Answer</button></div></div></dialog>
 <dialog id="callDialog" class="call-dialog"><div style="display:flex;align-items:center;gap:12px"><h3 id="callTitle">VillFam call</h3><span style="flex:1"></span><button id="closeCallDialog" class="icon-btn" type="button" title="Leave call">×</button></div><div id="callGrid" class="call-grid"></div><div id="callStatus" class="call-status">Connecting…</div><div class="call-controls"><button id="muteCallButton" type="button">Mute mic</button><button id="toggleCameraButton" type="button">Turn camera off</button><button id="switchCallCameraButton" type="button">⇄ Switch camera</button><button id="hangupCallButton" class="hangup" type="button">Leave call</button></div></dialog>
+
+
+<dialog id="memberPickerDialog" class="picker-dialog">
+ <div class="picker-head"><h3 id="memberPickerTitle">Find VillFam members</h3><span class="spacer"></span><button id="closeMemberPicker" class="icon-btn" type="button" aria-label="Close">×</button></div>
+ <p id="memberPickerHint" class="muted small">Search by nickname or email. You can type the first letter too.</p>
+ <div id="groupNameField" class="field hidden"><label for="newGroupName">Group name</label><input id="newGroupName" class="inapp-input" maxlength="60" placeholder="e.g. Vill family"></div>
+ <input id="memberSearchInput" class="picker-search" type="search" autocomplete="off" placeholder="Type a nickname, email, or first letter…">
+ <div id="selectedMembers" class="selected-members"></div>
+ <div id="memberResults" class="picker-list"><div class="picker-empty">Start typing to find people.</div></div>
+ <div class="dialog-buttons"><button id="cancelMemberPicker" class="secondary" type="button">Cancel</button><button id="submitMemberPicker" class="primary" type="button">Continue</button></div>
+</dialog>
+<dialog id="confirmDialog" class="action-dialog"><h3 id="confirmTitle">Please confirm</h3><p id="confirmMessage"></p><div class="dialog-buttons"><button id="confirmCancel" class="secondary" type="button">Cancel</button><button id="confirmAccept" class="danger-button" type="button">Continue</button></div></dialog>
+<dialog id="profileEditDialog" class="action-dialog"><h3>Edit nickname</h3><p>Your family will see this name in chats.</p><input id="profileNicknameInput" class="inapp-input" maxlength="40" placeholder="Your nickname"><div class="dialog-buttons"><button id="profileEditCancel" class="secondary" type="button">Cancel</button><button id="profileEditSave" class="primary" type="button">Save nickname</button></div></dialog>
 
 <input id="avatarInput" type="file" accept="image/*" class="hidden">
 <div id="toast" class="toast"></div>
@@ -99,19 +133,78 @@
 'use strict';
 const SUPABASE_URL = 'https://zjuivpsvhuzceltszjut.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SA_OZCUkyHiWR6O7CwYYhQ_DpP9m3ah';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwy1VBKjQ6CXj78j0VfL3QuSrhFdIryT3aIbr6kA-ze5b1-J8-y4L2MfyQGyfGBY_YlDA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBgPwwjZylmH9wuMMvKmhqkctO4dK6vxFleB7PUScWKPoEtNPK8PAiAR3Jebk4PLfWPg/exec';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, currentCallId:null, incomingCall:null, liveKitRoom:null, liveKitSdk:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, currentCallId:null, incomingCall:null, liveKitRoom:null, liveKitSdk:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>el.classList.remove('show'),3300);}
-function errorText(err){return (err && err.message) ? err.message : String(err || 'Something went wrong.');}
+function errorText(err){const raw=(err && err.message) ? err.message : String(err || 'Something went wrong.');return raw.replace(/https?:\/\/[^\s]+/gi,'[link hidden]').replace(/\b(?:sb_secret|sb_publishable)_[A-Za-z0-9_-]+/g,'[key hidden]');}
 function setBusy(button,busy,label){if(!button)return;button.disabled=busy;if(busy){button.dataset.old=button.textContent;button.textContent=label||'Please wait…';}else if(button.dataset.old){button.textContent=button.dataset.old;delete button.dataset.old;}}
 function escapeName(value){return String(value||'').trim();}
 function initials(value){const s=String(value||'V').trim();return s.split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'V';}
 function avatarElement(profile, extra=''){const el=document.createElement('div');el.className='avatar '+extra;if(profile&&profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.appendChild(img);}else el.textContent=initials(profile&&profile.nickname);return el;}
 function replaceAvatar(id,profile,extra=''){const old=$(id);if(!old)return;const next=avatarElement(profile,extra);next.id=id;old.replaceWith(next);}
+
+function askConfirm(title,message,acceptLabel='Continue'){
+ return new Promise(resolve=>{state.confirmResolver=resolve;$('confirmTitle').textContent=title;$('confirmMessage').textContent=message;$('confirmAccept').textContent=acceptLabel;$('confirmDialog').showModal();});
+}
+function finishConfirm(value){if($('confirmDialog').open)$('confirmDialog').close();const resolver=state.confirmResolver;state.confirmResolver=null;if(resolver)resolver(value);}
+$('confirmCancel').addEventListener('click',()=>finishConfirm(false));
+$('confirmAccept').addEventListener('click',()=>finishConfirm(true));
+$('confirmDialog').addEventListener('cancel',e=>{e.preventDefault();finishConfirm(false);});
+function memberMatches(query){
+ const q=String(query||'').trim().toLocaleLowerCase();
+ const people=state.people.filter(p=>p.id!==state.user.id);
+ if(!q)return [];
+ const starts=[],contains=[];
+ for(const p of people){const nick=String(p.nickname||'').toLocaleLowerCase();const email=String(p.email||'').toLocaleLowerCase();const words=nick.split(/[\s._-]+/);const prefix=nick.startsWith(q)||email.startsWith(q)||words.some(w=>w.startsWith(q));
+  if(prefix)starts.push(p);else if(q.length>1&&(nick.includes(q)||email.includes(q)))contains.push(p);
+ }
+ return starts.concat(contains).slice(0,40);
+}
+function renderSelectedMembers(){
+ const wrap=$('selectedMembers');wrap.replaceChildren();
+ for(const id of state.selectedMemberIds){const p=state.people.find(x=>x.id===id);if(!p)continue;const chip=document.createElement('span');chip.className='member-chip';chip.append(document.createTextNode(p.nickname||p.email));const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Remove '+(p.nickname||p.email);remove.addEventListener('click',()=>{state.selectedMemberIds.delete(id);renderSelectedMembers();renderMemberResults();});chip.append(remove);wrap.append(chip);}
+}
+function renderMemberResults(){
+ const list=$('memberResults');list.replaceChildren();const q=$('memberSearchInput').value.trim();const matches=memberMatches(q);
+ if(!q){const e=document.createElement('div');e.className='picker-empty';e.textContent='Type a nickname, email, or first letter to find members.';list.append(e);return;}
+ if(!matches.length){const e=document.createElement('div');e.className='picker-empty';e.textContent='No VillFam members match that search.';list.append(e);return;}
+ matches.forEach(p=>{const selected=state.selectedMemberIds.has(p.id);const btn=document.createElement('button');btn.type='button';btn.className='member-option'+(selected?' selected':'');btn.append(avatarElement(p));const copy=document.createElement('div');copy.className='member-option-copy';const name=document.createElement('div');name.className='member-option-name';name.textContent=p.nickname||'VillFam member';const email=document.createElement('div');email.className='member-option-email';email.textContent=p.email||'';copy.append(name,email);btn.append(copy);const mark=document.createElement('span');mark.className='member-option-check';mark.textContent=selected?'✓':(state.memberPickerMode==='direct'?'›':'+');btn.append(mark);btn.addEventListener('click',()=>{if(state.memberPickerMode==='direct'){state.selectedMemberIds.clear();state.selectedMemberIds.add(p.id);}else if(selected)state.selectedMemberIds.delete(p.id);else state.selectedMemberIds.add(p.id);renderSelectedMembers();renderMemberResults();});list.append(btn);});
+}
+async function openMemberPicker(mode){
+ try{await loadPeople();}catch(e){toast('Could not refresh the member list: '+errorText(e));return;}
+ state.memberPickerMode=mode;state.selectedMemberIds=new Set();$('memberSearchInput').value='';$('newGroupName').value='';
+ const isGroup=mode==='group';const isAdd=mode==='add';
+ $('memberPickerTitle').textContent=isAdd?'Add members to group':isGroup?'Create a family group':'Start a new chat';
+ $('memberPickerHint').textContent=isAdd?'Search by nickname, email, or first letter. Select one or more people to add.':isGroup?'Choose the family members who should be in this group. Search by nickname, email, or first letter.':'Find the person you want to message by nickname, email, or first letter.';
+ $('groupNameField').classList.toggle('hidden',!isGroup);$('submitMemberPicker').textContent=isAdd?'Add selected members':isGroup?'Create group':'Start chat';$('memberPickerDialog').showModal();renderSelectedMembers();renderMemberResults();setTimeout(()=>$('memberSearchInput').focus(),30);
+}
+$('memberSearchInput').addEventListener('input',renderMemberResults);
+$('closeMemberPicker').addEventListener('click',()=>$('memberPickerDialog').close());
+$('cancelMemberPicker').addEventListener('click',()=>$('memberPickerDialog').close());
+$('memberPickerDialog').addEventListener('click',e=>{if(e.target===$('memberPickerDialog'))$('memberPickerDialog').close();});
+$('submitMemberPicker').addEventListener('click',async()=>{
+ const mode=state.memberPickerMode;const ids=[...state.selectedMemberIds];if(!ids.length){toast(mode==='direct'?'Choose a member first.':'Select at least one member.');return;}
+ const btn=$('submitMemberPicker');setBusy(btn,true,mode==='add'?'Adding…':mode==='group'?'Creating…':'Opening…');
+ try{
+  if(mode==='direct'){
+   const {data,error}=await state.client.rpc('create_conversation',{p_title:null,p_is_group:false,p_member_ids:ids});if(error)throw error;
+   $('memberPickerDialog').close();await loadConversations();await openConversation(data);
+  }else if(mode==='group'){
+   const title=$('newGroupName').value.trim();if(!title)throw new Error('Enter a name for your group.');
+   const {data,error}=await state.client.rpc('create_conversation',{p_title:title,p_is_group:true,p_member_ids:ids});if(error)throw error;
+   $('memberPickerDialog').close();await loadConversations();await openConversation(data);toast('Family group created.');
+  }else if(mode==='add'){
+   const conv=state.activeConversation;if(!conv)throw new Error('Open the group first.');
+   const {data:added,error}=await state.client.rpc('villfam_add_group_members',{p_conversation_id:conv.id,p_member_ids:ids});if(error)throw error;
+   $('memberPickerDialog').close();await loadConversations();const refreshed=state.conversations.find(c=>c.id===conv.id);if(refreshed)await openConversation(conv.id);toast(added?added+' member'+(added===1?'':'s')+' added to the group.':'Those people are already members of this group.');
+  }
+ }catch(err){toast('Could not complete this action: '+errorText(err));}
+ finally{setBusy(btn,false);}
+});
 
 // Apps Script is called by a normal HTML form POST into a hidden iframe. This avoids
 // browser CORS restrictions that affect fetch() calls to Google Apps Script web apps.
@@ -124,7 +217,7 @@ function appsScriptRequest(fields){
   const payload=Object.assign({},fields,{requestId});
   Object.keys(payload).forEach(key=>{const input=document.createElement('input');input.type='hidden';input.name=key;input.value=String(payload[key]??'');form.appendChild(input);});
   let finished=false;const cleanup=()=>{window.removeEventListener('message',onMessage);form.remove();frame.remove();};
-  const timer=setTimeout(()=>{if(finished)return;finished=true;cleanup();reject(new Error('Google Apps Script did not reply. Open its /exec URL and confirm it says the VillFam OTP service is online. Also redeploy Apps Script as a Web App accessible to Anyone.'));},25000);
+  const timer=setTimeout(()=>{if(finished)return;finished=true;cleanup();reject(new Error('VillFam could not reach its secure verification service. Please try again. If this continues, ask the app administrator to check the Apps Script deployment.'));},25000);
   const onMessage=event=>{
    const data=event.data;
    if(!data || data.channel!=='villfam-gas' || data.requestId!==requestId)return;
@@ -232,7 +325,7 @@ function renderConversations(){
 }
 $('searchChats').addEventListener('input',renderConversations);
 async function openConversation(id){
- const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';replaceAvatar('chatAvatar',conv.is_group?null:conv.otherProfile);renderConversations();
+ const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';$('addMembersButton').classList.toggle('hidden',!conv.is_group||conv.me?.role!=='admin');replaceAvatar('chatAvatar',conv.is_group?null:conv.otherProfile);renderConversations();
  if(state.messageChannel){await state.client.removeChannel(state.messageChannel);state.messageChannel=null;}
  await loadMessages();
  state.messageChannel=state.client.channel('villfam-chat-'+id).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'conversation_id=eq.'+id},async()=>{await loadMessages();loadConversations().catch(console.error);}).on('postgres_changes',{event:'*',schema:'public',table:'message_user_deletions'},async()=>loadMessages()).subscribe();
@@ -256,7 +349,7 @@ async function loadMessages(){
    else bubble.textContent='Attachment unavailable';
   }else bubble.textContent=msg.content||'';
   wrap.append(bubble);const time=document.createElement('div');time.className='msg-time';time.textContent=new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});wrap.append(time);
-  const actions=document.createElement('div');actions.className='msg-actions';const options=document.createElement('button');options.type='button';options.textContent='Message options';options.addEventListener('click',()=>openMessageActions(msg));actions.append(options);wrap.append(actions);
+  const actions=document.createElement('div');actions.className='msg-actions';const options=document.createElement('button');options.type='button';options.textContent='🗑 Delete';options.title='Delete this individual message';options.setAttribute('aria-label','Delete this individual message');options.addEventListener('click',()=>openMessageActions(msg));actions.append(options);wrap.append(actions);
   row.append(wrap);area.append(row);
  }
  area.scrollTop=area.scrollHeight;
@@ -264,39 +357,28 @@ async function loadMessages(){
 
 function subscribeInbox(){if(state.inboxChannel)state.client.removeChannel(state.inboxChannel);state.inboxChannel=state.client.channel('villfam-inbox').on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>loadConversations().catch(console.error)).subscribe();}
 async function openMessageActions(msg){
- state.pendingMessage=msg;$('messageActionLabel').textContent=msg.deleted_at?'This message was already deleted for everyone.':'Choose whether to hide this message only for you or remove it for everyone.';
- $('deleteMessageMe').classList.toggle('hidden',!!msg.deleted_at);$('deleteMessageEveryone').classList.toggle('hidden',msg.sender_id!==state.user.id||!!msg.deleted_at);if($('messageActionDialog').showModal)$('messageActionDialog').showModal();
+ state.pendingMessage=msg;$('messageActionLabel').textContent=msg.deleted_at?'This message was already removed for everyone. You can still hide this deletion notice for yourself.':'Choose whether to hide this message only for you or remove your message for everyone.';
+ $('deleteMessageMe').classList.remove('hidden');$('deleteMessageEveryone').classList.toggle('hidden',msg.sender_id!==state.user.id||!!msg.deleted_at);if($('messageActionDialog').showModal)$('messageActionDialog').showModal();
 }
 $('cancelMessageAction').addEventListener('click',()=>$('messageActionDialog').close());
 $('deleteMessageMe').addEventListener('click',async()=>{const msg=state.pendingMessage;if(!msg)return;try{const {error}=await state.client.from('message_user_deletions').insert({message_id:msg.id,user_id:state.user.id});if(error&&error.code!=='23505')throw error;$('messageActionDialog').close();await loadMessages();toast('Message deleted for you. Other chat members can still see it.');}catch(e){toast('Could not delete message: '+errorText(e));}});
-$('deleteMessageEveryone').addEventListener('click',async()=>{const msg=state.pendingMessage;if(!msg)return;if(!confirm('Delete this message for everyone in the conversation?'))return;try{const {data:path,error}=await state.client.rpc('villfam_delete_message_for_everyone',{p_message_id:msg.id});if(error)throw error;if(path){const {error:storageError}=await state.client.storage.from('chat-files').remove([path]);if(storageError)console.warn('Attachment cleanup warning:',storageError.message);}$('messageActionDialog').close();await loadMessages();await loadConversations();toast('Message deleted for everyone.');}catch(e){toast('Could not delete for everyone: '+errorText(e));}});
+$('deleteMessageEveryone').addEventListener('click',async()=>{const msg=state.pendingMessage;if(!msg)return;if(!await askConfirm('Delete for everyone?','This removes your message for every member of this conversation.','Delete for everyone'))return;try{const {data:path,error}=await state.client.rpc('villfam_delete_message_for_everyone',{p_message_id:msg.id});if(error)throw error;if(path){const {error:storageError}=await state.client.storage.from('chat-files').remove([path]);if(storageError)console.warn('Attachment cleanup warning:',storageError.message);}$('messageActionDialog').close();await loadMessages();await loadConversations();toast('Message deleted for everyone.');}catch(e){toast('Could not delete for everyone: '+errorText(e));}});
 
 $('chatActionsBtn').addEventListener('click',()=>{
  const c=state.activeConversation;if(!c)return;
- $('deleteConversationMe').classList.toggle('hidden',c.is_group);$('leaveGroupButton').classList.toggle('hidden',!c.is_group||c.created_by===state.user.id);$('deleteGroupButton').classList.toggle('hidden',!c.is_group||c.created_by!==state.user.id);
+ $('addMembersFromMenuButton').classList.toggle('hidden',!c.is_group||c.me?.role!=='admin');$('deleteConversationMe').classList.toggle('hidden',c.is_group);$('leaveGroupButton').classList.toggle('hidden',!c.is_group||c.created_by===state.user.id);$('deleteGroupButton').classList.toggle('hidden',!c.is_group||c.created_by!==state.user.id);
  $('conversationActionTitle').textContent=c.is_group?'Group options':'Conversation options';
  $('conversationActionText').textContent=c.is_group?(c.created_by===state.user.id?'You created this group. Only you can delete it for everyone.':'You can leave this group. Leaving removes it from your chat list; other members keep the conversation.'):'Deleting this conversation removes it from your chat list only. The other person keeps the messages, and you can see the conversation again if a new message arrives.';
  $('conversationActionDialog').showModal();
 });
+$('addMembersFromMenuButton').addEventListener('click',()=>{$('conversationActionDialog').close();openMemberPicker('add').catch(e=>toast(errorText(e)));});
+$('addMembersButton').addEventListener('click',()=>openMemberPicker('add').catch(e=>toast(errorText(e))));
 $('cancelConversationAction').addEventListener('click',()=>$('conversationActionDialog').close());
 $('deleteConversationMe').addEventListener('click',async()=>{const c=state.activeConversation;if(!c)return;try{const {error}=await state.client.rpc('villfam_hide_conversation_for_me',{p_conversation_id:c.id});if(error)throw error;$('conversationActionDialog').close();state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');await loadConversations();toast('Conversation deleted from your chat list. Other members still have the messages.');}catch(e){toast('Could not delete conversation: '+errorText(e));}});
-$('leaveGroupButton').addEventListener('click',async()=>{const c=state.activeConversation;if(!c)return;if(!confirm('Leave this group? You will no longer see its messages unless added again.'))return;try{const {error}=await state.client.rpc('villfam_leave_group',{p_conversation_id:c.id});if(error)throw error;$('conversationActionDialog').close();state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');await loadConversations();toast('You left the group.');}catch(e){toast('Could not leave group: '+errorText(e));}});
-$('deleteGroupButton').addEventListener('click',async()=>{const c=state.activeConversation;if(!c)return;if(!confirm('Permanently delete this group for EVERYONE, including its messages? This cannot be undone.'))return;try{const {error}=await state.client.rpc('villfam_delete_group_for_everyone',{p_conversation_id:c.id});if(error)throw error;$('conversationActionDialog').close();state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');await loadConversations();toast('Group deleted for everyone.');}catch(e){toast('Could not delete group: '+errorText(e));}});
+$('leaveGroupButton').addEventListener('click',async()=>{const c=state.activeConversation;if(!c)return;if(!await askConfirm('Leave this group?','You will stop seeing this group and its messages unless an admin adds you again.','Leave group'))return;try{const {error}=await state.client.rpc('villfam_leave_group',{p_conversation_id:c.id});if(error)throw error;$('conversationActionDialog').close();state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');await loadConversations();toast('You left the group.');}catch(e){toast('Could not leave group: '+errorText(e));}});
+$('deleteGroupButton').addEventListener('click',async()=>{const c=state.activeConversation;if(!c)return;if(!await askConfirm('Delete group for everyone?','This permanently deletes the group and its messages for all members. This cannot be undone.','Delete group'))return;try{const {error}=await state.client.rpc('villfam_delete_group_for_everyone',{p_conversation_id:c.id});if(error)throw error;$('conversationActionDialog').close();state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');await loadConversations();toast('Group deleted for everyone.');}catch(e){toast('Could not delete group: '+errorText(e));}});
 
-async function createConversation(isGroup){
- try{
-  let title=null,emails=[];
-  if(isGroup){title=prompt('Name your family group:');if(title===null)return;const raw=prompt('Enter the email addresses of members, separated by commas:');if(raw===null)return;emails=raw.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);}
-  else{const email=prompt('Enter the exact email address of the person you want to message:');if(email===null)return;emails=[email.trim().toLowerCase()];}
-  if(!emails.length){toast('Enter at least one email address.');return;}
-  const chosen=state.people.filter(p=>emails.includes(String(p.email||'').toLowerCase())&&p.id!==state.user.id);
-  const found=new Set(chosen.map(p=>String(p.email||'').toLowerCase()));const missing=emails.filter(e=>!found.has(e));
-  if(missing.length){toast('No VillFam account found for: '+missing.join(', '));return;}
-  if(!isGroup&&chosen.length!==1){toast('Choose one email address for a direct chat.');return;}
-  const {data,error}=await state.client.rpc('create_conversation',{p_title:title,p_is_group:isGroup,p_member_ids:chosen.map(p=>p.id)});if(error)throw error;
-  await loadConversations();await openConversation(data);
- }catch(err){toast('Could not create chat: '+errorText(err));}
-}
+function createConversation(isGroup){openMemberPicker(isGroup?'group':'direct').catch(e=>toast(errorText(e)));}
 $('newChatButton').addEventListener('click',()=>createConversation(false));$('newGroupButton').addEventListener('click',()=>createConversation(true));$('emptyNewChat').addEventListener('click',()=>createConversation(false));
 
 async function sendText(){const content=$('messageInput').value.trim();const conv=state.activeConversation;if(!content||!conv)return;const btn=$('sendButton');btn.disabled=true;try{const {error}=await state.client.from('messages').insert({conversation_id:conv.id,sender_id:state.user.id,content,message_type:'text'});if(error)throw error;$('messageInput').value='';await loadMessages();await loadConversations();}catch(err){toast('Message not sent: '+errorText(err));}finally{btn.disabled=false;$('messageInput').focus();}}
@@ -323,7 +405,9 @@ $('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEvent
 $('takePhoto').addEventListener('click',async()=>{const video=$('cameraVideo');if(!video.videoWidth){toast('Camera is not ready yet.');return;}const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);canvas.toBlob(async blob=>{if(blob){closeCamera();await sendAttachment(new File([blob],'villfam-photo.jpg',{type:'image/jpeg'}));}},'image/jpeg',.88);});
 
 $('profileButton').addEventListener('click',()=>$('avatarInput').click());$('avatarInput').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;e.target.value='';if(!file.type.startsWith('image/')){toast('Choose an image file.');return;}if(file.size>5*1024*1024){toast('Profile pictures must be 5 MB or smaller.');return;}try{const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path=state.user.id+'/'+Date.now()+'.'+ext;const {error:upErr}=await state.client.storage.from('avatars').upload(path,file,{contentType:file.type,upsert:true});if(upErr)throw upErr;const {data}=state.client.storage.from('avatars').getPublicUrl(path);const {error}=await state.client.from('profiles').update({avatar_url:data.publicUrl,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.avatar_url=data.publicUrl;updateProfileHeader();toast('Profile picture updated.');}catch(err){toast('Profile picture failed: '+errorText(err));}});
-$('editProfileButton').addEventListener('click',async()=>{const next=prompt('Enter your nickname:',state.profile?.nickname||'');if(next===null)return;const nickname=next.trim().slice(0,40);if(!nickname){toast('Nickname cannot be empty.');return;}try{const {error}=await state.client.from('profiles').update({nickname,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.nickname=nickname;updateProfileHeader();await loadPeople();await loadConversations();toast('Nickname updated.');}catch(err){toast('Could not update nickname: '+errorText(err));}});
+$('editProfileButton').addEventListener('click',()=>{$('profileNicknameInput').value=state.profile?.nickname||'';$('profileEditDialog').showModal();setTimeout(()=>$('profileNicknameInput').focus(),20);});
+$('profileEditCancel').addEventListener('click',()=>$('profileEditDialog').close());
+$('profileEditSave').addEventListener('click',async()=>{const nickname=$('profileNicknameInput').value.trim().slice(0,40);if(!nickname){toast('Nickname cannot be empty.');return;}const btn=$('profileEditSave');setBusy(btn,true,'Saving…');try{const {error}=await state.client.from('profiles').update({nickname,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.nickname=nickname;updateProfileHeader();await loadPeople();await loadConversations();$('profileEditDialog').close();toast('Nickname updated.');}catch(err){toast('Could not update nickname: '+errorText(err));}finally{setBusy(btn,false);}});
 $('logoutButton').addEventListener('click',async()=>{const {error}=await state.client.auth.signOut();if(error)toast(errorText(error));else showAuth();});
 
 // Calling uses a LiveKit SFU for one-to-one and group audio/video. A secure token
