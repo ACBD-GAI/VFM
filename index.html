@@ -147,12 +147,34 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
+
+#bootView{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 12%,#e7efff,transparent 36%),radial-gradient(circle at 90% 90%,#e5fff2,transparent 33%),var(--bg)}
+.boot-card{width:min(100%,390px);padding:30px 26px;border:1px solid var(--line);border-radius:25px;background:#fff;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.boot-card .brand{align-self:center}.boot-card p{margin:0;color:var(--muted);font-size:13px}
+.boot-spinner{width:27px;height:27px;border:3px solid #dfe7fa;border-top-color:var(--blue);border-radius:50%;animation:villfamBootSpin .8s linear infinite;margin-top:12px}
+@keyframes villfamBootSpin{to{transform:rotate(360deg)}}
+.invite-top-button{border:1px solid #d8e7df;background:#eefaf3;color:#147849;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:850;display:inline-flex;align-items:center;gap:7px}
+.invite-top-button span{min-width:19px;height:19px;display:grid;place-items:center;border-radius:999px;background:#159b65;color:#fff;font-size:10px}
+.group-invitation-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:15px;padding:12px;background:#fff}
+.group-invitation-copy{min-width:0;flex:1}.group-invitation-title{font-size:13px;font-weight:850;color:var(--ink)}
+.group-invitation-meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+.group-invitation-actions{display:flex;gap:6px;flex:none}.group-invitation-actions button{padding:8px 10px;border-radius:10px;font-size:11px;font-weight:800}
+.group-invitation-actions .accept-invite{border:0;background:#e5f8ed;color:#087747}.group-invitation-actions .decline-invite{border:1px solid #f0d7da;background:#fff8f8;color:#b43b48}
+@media(max-width:760px){.topbar{gap:7px}.invite-top-button{padding:7px 8px;font-size:10px}.group-invitation-item{align-items:flex-start;flex-wrap:wrap}.group-invitation-copy{min-width:calc(100% - 55px)}.group-invitation-actions{width:100%;justify-content:flex-end}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 <body>
-<section id="authView">
+<section id="bootView" aria-live="polite">
+  <div class="boot-card">
+    <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
+    <div class="boot-spinner" aria-hidden="true"></div>
+    <strong>Restoring your session…</strong>
+    <p>Checking your secure VillFam login.</p>
+  </div>
+</section>
+<section id="authView" style="display:none">
   <div class="auth-card">
     <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
     <h1 id="authHeading">Welcome back</h1>
@@ -194,6 +216,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
   <header class="topbar">
     <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
     <div class="spacer"></div><span class="online-dot">Connected</span>
+     <button id="groupInvitationsButton" class="invite-top-button hidden" type="button" title="Group invitations">Invitations <span id="groupInvitationCount">0</span></button>
     <div class="profile-area">
       <button id="profileButton" class="profile-button" type="button"><div id="topAvatar" class="avatar">V</div><span id="topNickname" class="profile-name">VillFam member</span></button>
       <button id="editProfileButton" class="icon-btn" title="Edit nickname">✎</button>
@@ -240,6 +263,12 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
  <div id="memberResults" class="picker-list"><div class="picker-empty">Start typing to find people.</div></div>
  <div class="dialog-buttons"><button id="cancelMemberPicker" class="secondary" type="button">Cancel</button><button id="submitMemberPicker" class="primary" type="button">Continue</button></div>
 </dialog>
+<dialog id="groupInvitationsDialog" class="picker-dialog">
+ <div class="picker-head"><h3>Group invitations</h3><span class="spacer"></span><button id="closeGroupInvitations" class="icon-btn" type="button" aria-label="Close">×</button></div>
+ <p class="muted small">Accept an invitation to join the group, or decline it.</p>
+ <div id="groupInvitationList" class="picker-list"><div class="picker-empty">No pending invitations.</div></div>
+ <div class="dialog-buttons"><button id="closeGroupInvitationsDone" class="secondary" type="button">Done</button></div>
+</dialog>
 <dialog id="confirmDialog" class="action-dialog"><h3 id="confirmTitle">Please confirm</h3><p id="confirmMessage"></p><div class="dialog-buttons"><button id="confirmCancel" class="secondary" type="button">Cancel</button><button id="confirmAccept" class="danger-button" type="button">Continue</button></div></dialog>
 <dialog id="profileEditDialog" class="action-dialog"><h3>Edit nickname</h3><p>Your family will see this name in chats.</p><input id="profileNicknameInput" class="inapp-input" maxlength="40" placeholder="Your nickname"><div class="dialog-buttons"><button id="profileEditCancel" class="secondary" type="button">Cancel</button><button id="profileEditSave" class="primary" type="button">Save nickname</button></div></dialog>
 
@@ -255,7 +284,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9W2vvnNOAJO9f
 const SESSION_DEVICE_KEY = 'villfam_single_device_session_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, groupInvitationChannel:null, groupInvitations:[], groupInvitationBusy:new Set(), callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
@@ -319,12 +348,72 @@ $('submitMemberPicker').addEventListener('click',async()=>{
    $('memberPickerDialog').close();await loadConversations();await openConversation(data);toast('Family group created.');
   }else if(mode==='add'){
    const conv=state.activeConversation;if(!conv)throw new Error('Open the group first.');
-   const {data:added,error}=await state.client.rpc('villfam_add_group_members',{p_conversation_id:conv.id,p_member_ids:ids});if(error)throw error;
-   $('memberPickerDialog').close();await loadConversations();const refreshed=state.conversations.find(c=>c.id===conv.id);if(refreshed)await openConversation(conv.id);toast(added?added+' member'+(added===1?'':'s')+' added to the group.':'Those people are already members of this group.');
+   const {data:invited,error}=await state.client.rpc('villfam_invite_group_members',{p_conversation_id:conv.id,p_member_ids:ids});if(error)throw error;
+   $('memberPickerDialog').close();await loadConversations();const refreshed=state.conversations.find(c=>c.id===conv.id);if(refreshed)await openConversation(conv.id);
+   toast(invited?invited+' group invitation'+(invited===1?'':'s')+' sent. Members must accept before joining.':'Those users are already members or already have a pending invitation.');
   }
  }catch(err){toast('Could not complete this action: '+errorText(err));}
  finally{setBusy(btn,false);}
 });
+
+
+function renderGroupInvitations(){
+ const list=$('groupInvitationList');list.replaceChildren();
+ const invitations=state.groupInvitations||[];
+ $('groupInvitationCount').textContent=String(invitations.length);
+ $('groupInvitationsButton').classList.toggle('hidden',invitations.length===0);
+ if(!invitations.length){const empty=document.createElement('div');empty.className='picker-empty';empty.textContent='No pending group invitations.';list.append(empty);return;}
+ for(const invite of invitations){
+  const card=document.createElement('div');card.className='group-invitation-item';
+  const icon=document.createElement('div');icon.className='avatar';icon.textContent='♧';
+  const copy=document.createElement('div');copy.className='group-invitation-copy';
+  const title=document.createElement('div');title.className='group-invitation-title';title.textContent=invite.group_title||'Family group';
+  const meta=document.createElement('div');meta.className='group-invitation-meta';meta.textContent='Invited by '+(invite.inviter_name||'a VillFam member')+' · '+new Date(invite.invited_at).toLocaleDateString();
+  copy.append(title,meta);
+  const actions=document.createElement('div');actions.className='group-invitation-actions';
+  const accept=document.createElement('button');accept.type='button';accept.className='accept-invite';accept.textContent='Accept';
+  const decline=document.createElement('button');decline.type='button';decline.className='decline-invite';decline.textContent='Decline';
+  accept.addEventListener('click',()=>respondGroupInvitation(invite,'accept',accept));
+  decline.addEventListener('click',()=>respondGroupInvitation(invite,'decline',decline));
+  actions.append(accept,decline);card.append(icon,copy,actions);list.append(card);
+ }
+}
+async function refreshGroupInvitations(silent=false){
+ if(!state.user||!state.client)return;
+ const {data,error}=await state.client.rpc('villfam_list_group_invitations');
+ if(error){if(!silent)toast('Group invitations need the latest Supabase update: '+errorText(error));console.warn('Group invitations:',error.message);return;}
+ state.groupInvitations=data||[];renderGroupInvitations();
+}
+function subscribeGroupInvitations(){
+ if(!state.user||!state.client||state.groupInvitationChannel)return;
+ const channel=state.client.channel('villfam-group-invitations-'+state.user.id);
+ channel.on('postgres_changes',{event:'*',schema:'public',table:'villfam_group_invitations',filter:'invitee_id=eq.'+state.user.id},()=>refreshGroupInvitations(true));
+ channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Group invitation Realtime:',status);});
+ state.groupInvitationChannel=channel;
+}
+async function respondGroupInvitation(invite,response,button){
+ if(state.groupInvitationBusy.has(invite.invitation_id))return;
+ state.groupInvitationBusy.add(invite.invitation_id);setBusy(button,true,response==='accept'?'Accepting…':'Declining…');
+ try{
+  const {error}=await state.client.rpc('villfam_respond_group_invitation',{p_invitation_id:invite.invitation_id,p_response:response});
+  if(error)throw error;
+  await refreshGroupInvitations(true);
+  if(response==='accept'){
+   await loadConversations();
+   toast('You joined '+(invite.group_title||'the family group')+'.');
+   const accepted=state.conversations.find(c=>c.id===invite.conversation_id);
+   if(accepted)await openConversation(accepted.id);
+  }else toast('Group invitation declined.');
+ }catch(err){toast('Could not '+(response==='accept'?'accept':'decline')+' invitation: '+errorText(err));}
+ finally{state.groupInvitationBusy.delete(invite.invitation_id);setBusy(button,false);}
+}
+$('groupInvitationsButton').addEventListener('click',async()=>{
+ await refreshGroupInvitations();
+ if(!$('groupInvitationsDialog').open)$('groupInvitationsDialog').showModal();
+});
+$('closeGroupInvitations').addEventListener('click',()=>$('groupInvitationsDialog').close());
+$('closeGroupInvitationsDone').addEventListener('click',()=>$('groupInvitationsDialog').close());
+$('groupInvitationsDialog').addEventListener('click',e=>{if(e.target===$('groupInvitationsDialog'))$('groupInvitationsDialog').close();});
 
 // Apps Script is called by a normal HTML form POST into a hidden iframe. This avoids
 // browser CORS restrictions that affect fetch() calls to Google Apps Script web apps.
@@ -451,11 +540,15 @@ $('authEmail').addEventListener('input',()=>{
 });
 
 function getSingleDeviceId(){
- let id='';try{id=localStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}
+ let id='';
+ try{id=localStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}
+ // sessionStorage is a same-tab fallback for browsers that block localStorage.
+ if(!/^[a-f0-9-]{32,64}$/i.test(id)){try{id=sessionStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}}
  if(!/^[a-f0-9-]{32,64}$/i.test(id)){
   id=(crypto.randomUUID?crypto.randomUUID():('xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);}))).replace(/[^a-f0-9-]/gi,'').toLowerCase();
-  try{localStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
  }
+ try{localStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
+ try{sessionStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
  return id;
 }
 async function currentAccessToken(){const {data,error}=await state.client.auth.getSession();if(error)throw error;if(!data.session?.access_token)throw new Error('Your sign-in has expired. Please sign in again.');return data.session.access_token;}
@@ -491,25 +584,41 @@ async function releaseSingleSession(){
  catch(err){console.warn('Could not release session immediately; it will expire automatically.',err);}
 }
 async function initSupabase(){
- if(!window.supabase || !window.supabase.createClient){notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
+ $('bootView').style.display='grid';$('authView').style.display='none';$('appView').style.display='none';
+ if(!window.supabase || !window.supabase.createClient){showAuth();notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
  state.client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
- const {data,error}=await state.client.auth.getSession();if(error)console.warn(error);
- if(data&&data.session){
-  try{await activateSingleSession(data.session);await enterApp();}
-  catch(err){await state.client.auth.signOut({scope:'local'});state.user=null;notice(errorText(err),'error');}
- }
+ // Register the auth listener before reading storage so refresh/token events are not missed.
  state.client.auth.onAuthStateChange((event,session)=>{
-  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;showAuth();}
+  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;if(state.user)showAuth();}
  });
+ try{
+  const {data,error}=await state.client.auth.getSession();if(error)throw error;
+  if(data?.session){await activateSingleSession(data.session);await enterApp();}
+  else showAuth();
+ }catch(err){
+  try{await state.client.auth.signOut({scope:'local'});}catch(_){}
+  state.user=null;showAuth();notice(errorText(err),'error');
+ }
 }
-function showAuth(){stopSingleSessionHeartbeat();if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
+function showAuth(){
+ stopSingleSessionHeartbeat();
+ if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}
+ if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}
+ state.user=null;state.profile=null;state.activeConversation=null;state.groupInvitations=[];
+ if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}
+ if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}
+ if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}
+ if(state.groupInvitationChannel){state.client.removeChannel(state.groupInvitationChannel);state.groupInvitationChannel=null;}
+ cleanupCall(false);$('bootView').style.display='none';$('appView').style.display='none';$('authView').style.display='grid';
+ $('groupInvitationsButton').classList.add('hidden');$('groupInvitationCount').textContent='0';$('authEmail').readOnly=false;setAuthMode('signin');
+}
 async function enterApp(){
  if(state.entering)return;state.entering=true;
- $('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
+ $('bootView').style.display='none';$('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
  try{
   const {data:profile,error}=await state.client.from('profiles').select('*').eq('id',state.user.id).maybeSingle();if(error)throw error;
   state.profile=profile||{id:state.user.id,email:state.user.email,nickname:(state.user.email||'VillFam').split('@')[0]};
-  updateProfileHeader();await loadPeople();await loadConversations();subscribeInbox();subscribeCallInbox();await refreshPendingCallInvites();if(state.callStateInterval)clearInterval(state.callStateInterval);state.callStateInterval=setInterval(()=>{if(state.user)loadConversations().catch(e=>console.warn('Conversation refresh:',e));},30000);
+  updateProfileHeader();await loadPeople();await loadConversations();subscribeInbox();subscribeCallInbox();subscribeGroupInvitations();await refreshGroupInvitations(true);await refreshPendingCallInvites();if(state.callStateInterval)clearInterval(state.callStateInterval);state.callStateInterval=setInterval(()=>{if(state.user)loadConversations().catch(e=>console.warn('Conversation refresh:',e));},30000);
  }catch(err){toast('App setup error: '+errorText(err));console.error(err);}
  finally{state.entering=false;}
 }
@@ -517,6 +626,10 @@ function updateProfileHeader(){$('topNickname').textContent=state.profile?.nickn
 async function loadPeople(){const {data,error}=await state.client.from('profiles').select('id,email,nickname,avatar_url').order('nickname');if(error)throw error;state.people=data||[];}
 async function loadConversations(){
  if(!state.user)return;
+ // Recover abandoned calls before reading active-call badges. A real participant's
+ // 15-second heartbeat keeps the room alive; an empty room is cleared promptly.
+ const {error:recoveryError}=await state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:null});
+ if(recoveryError)console.warn('Call cleanup check:',recoveryError.message);
  const {data:memberships,error:memberError}=await state.client.from('conversation_members').select('conversation_id,user_id,role').eq('user_id',state.user.id);if(memberError)throw memberError;
  const ids=(memberships||[]).map(x=>x.conversation_id);if(!ids.length){state.conversations=[];state.hiddenConversations.clear();renderConversations();return;}
  const [convRes,memberRes,msgRes,hideRes,callsRes]=await Promise.all([
@@ -671,29 +784,104 @@ $('voiceButton').addEventListener('click',async()=>{
  }catch(err){toast('Microphone permission failed: '+errorText(err));}
 });
 
+function cameraFacingFromTrack(track,fallback='environment'){
+ const settings=track?.getSettings?.()||{};
+ if(settings.facingMode==='user'||settings.facingMode==='environment')return settings.facingMode;
+ const id=settings.deviceId||'';
+ const labelSide=label=>/front|user|facetime|selfie/i.test(label||'')?'user':/back|rear|environment|world/i.test(label||'')?'environment':null;
+ return fallback||'environment';
+}
+const delayCameraMs=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function tryOpenFacingCamera(targetFacing,devices,currentId){
+ const constraints={width:{ideal:1280},height:{ideal:720}};
+ const sideOf=label=>/front|user|facetime|selfie/i.test(label||'')?'user':/back|rear|environment|world/i.test(label||'')?'environment':null;
+ const available=(devices||[]).filter(d=>d.kind==='videoinput'&&d.deviceId&&d.deviceId!==currentId);
+ const preferred=available.filter(d=>sideOf(d.label)===targetFacing);
+ const ordered=[...preferred,...available.filter(d=>!preferred.includes(d))];
+ let lastError=null;
+ for(const device of ordered){
+  try{return await navigator.mediaDevices.getUserMedia({audio:false,video:{deviceId:{exact:device.deviceId},...constraints}});}
+  catch(e){lastError=e;}
+ }
+ try{return await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{exact:targetFacing},...constraints}});}
+ catch(e){lastError=e;}
+ try{return await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:targetFacing},...constraints}});}
+ catch(e){lastError=e;}
+ throw lastError||new Error('No alternate camera is available.');
+}
 async function acquireFacingCameraStream(targetFacing,currentTrack){
- const constraints={width:{ideal:1280},height:{ideal:720}};let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){ }
- const currentId=currentTrack?.getSettings?.().deviceId||'';
- const sideOf=label=>/back|rear|environment|world/i.test(label||'')?'environment':/front|user|facetime|selfie/i.test(label||'')?'user':null;
- const preferred=devices.filter(d=>d.deviceId&&d.deviceId!==currentId).sort((a,b)=>Number(sideOf(b.label)===targetFacing)-Number(sideOf(a.label)===targetFacing));
- let fresh=null,lastError=null;
- for(const device of preferred){try{fresh=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:device.deviceId},...constraints},audio:false});break;}catch(e){lastError=e;}}
- if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
- if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
- if(!fresh)throw lastError||new Error('No alternate camera is available.');
- const track=fresh.getVideoTracks()[0];if(!track){fresh.getTracks().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
- const settings=track.getSettings?.()||{};const selectedDevice=devices.find(d=>d.deviceId&&d.deviceId===(settings.deviceId||preferred[0]?.deviceId));
- const actualFacing=settings.facingMode||sideOf(selectedDevice?.label)||targetFacing;
- if(currentId&&settings.deviceId&&currentId===settings.deviceId&&devices.some(d=>d.deviceId&&d.deviceId!==currentId)){fresh.getTracks().forEach(t=>t.stop());throw new Error('The browser selected the same camera. Allow camera access and try switching again.');}
- return {stream:fresh,track,facing:actualFacing};
+ if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera access is not available in this browser.');
+ const oldSettings=currentTrack?.getSettings?.()||{};
+ const oldDeviceId=oldSettings.deviceId||'';
+ const oldFacing=cameraFacingFromTrack(currentTrack,state.facingMode);
+ let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){}
+ let fresh=null,firstError=null,stoppedOld=false;
+ try{
+  fresh=await tryOpenFacingCamera(targetFacing,devices,oldDeviceId);
+ }catch(err){
+  firstError=err;
+  // Some phones cannot open the second camera while the first camera track is live.
+  // Release only the video track, retry, and restore the old camera if the switch fails.
+  if(currentTrack?.readyState==='live'){
+   try{currentTrack.stop();stoppedOld=true;}catch(_){}
+   await delayCameraMs(220);
+   try{
+    devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){}
+    fresh=await tryOpenFacingCamera(targetFacing,devices,oldDeviceId);
+   }catch(secondError){
+    let restored=null;
+    if(oldDeviceId){
+     try{restored=await navigator.mediaDevices.getUserMedia({audio:false,video:{deviceId:{exact:oldDeviceId},width:{ideal:1280},height:{ideal:720}}});}catch(_){}
+    }
+    if(!restored){
+     try{restored=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:oldFacing},width:{ideal:1280},height:{ideal:720}}});}catch(_){}
+    }
+    if(restored){
+     const restoredTrack=restored.getVideoTracks()[0];
+     if(restoredTrack)return {stream:restored,track:restoredTrack,facing:oldFacing,restored:true};
+     restored.getTracks().forEach(t=>t.stop());
+    }
+    const reason=secondError?.name==='NotAllowedError'?'Camera permission was denied.':secondError?.name==='NotFoundError'?'The requested camera was not found.':'The phone could not open the requested camera.';
+    throw new Error(reason+(stoppedOld?' The previous camera could not be restored automatically.':''));
+   }
+  }else{
+   if(err?.name==='NotAllowedError'||err?.name==='PermissionDeniedError')throw new Error('Allow camera access in your browser settings, then try again.');
+   if(err?.name==='NotFoundError')throw new Error('No alternate camera was found on this device.');
+   throw err;
+  }
+ }
+ const track=fresh?.getVideoTracks?.()[0];
+ if(!track){fresh?.getTracks?.().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
+ const settings=track.getSettings?.()||{};
+ // Do not report success if the browser silently returned the same physical lens.
+ if(oldDeviceId&&settings.deviceId&&settings.deviceId===oldDeviceId){
+  fresh.getTracks().forEach(t=>t.stop());
+  if(stoppedOld){
+   let restored=null;
+   try{restored=await navigator.mediaDevices.getUserMedia({audio:false,video:{deviceId:{exact:oldDeviceId},width:{ideal:1280},height:{ideal:720}}});}catch(_){}
+   const restoreTrack=restored?.getVideoTracks?.()[0];
+   if(restoreTrack)return {stream:restored,track:restoreTrack,facing:oldFacing,restored:true};
+  }
+  throw new Error('This device did not provide a different camera. Check that both front and rear cameras are available.');
+ }
+ let actualFacing=settings.facingMode;
+ if(actualFacing!=='user'&&actualFacing!=='environment'){
+  const selected=devices.find(d=>d.deviceId&&d.deviceId===settings.deviceId);
+  const label=selected?.label||'';
+  actualFacing=/front|user|facetime|selfie/i.test(label)?'user':/back|rear|environment|world/i.test(label)?'environment':targetFacing;
+ }
+ return {stream:fresh,track,facing:actualFacing,restored:false};
 }
 async function openCamera(){if(!navigator.mediaDevices?.getUserMedia){toast('Camera is not available in this browser.');return;}try{$('cameraDialog').showModal();await startCamera('environment');}catch(err){toast('Camera permission failed: '+errorText(err));$('cameraDialog').close();}}
 async function startCamera(facing){
  const current=state.cameraStream?.getVideoTracks?.()[0];
- if(current&&typeof current.applyConstraints==='function'){
-  try{await current.applyConstraints({facingMode:{exact:facing}});const actual=current.getSettings?.().facingMode;if(!actual||actual===facing){state.cameraFacing=actual||facing;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';return;}}catch(_){ }
- }
- const result=await acquireFacingCameraStream(facing,current);const previous=state.cameraStream;state.cameraStream=result.stream;state.cameraFacing=result.facing;$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});if(previous)previous.getTracks().forEach(t=>t.stop());$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
+ const result=await acquireFacingCameraStream(facing,current);
+ const previous=state.cameraStream;state.cameraStream=result.stream;state.cameraFacing=result.facing;
+ $('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');
+ await $('cameraVideo').play().catch(()=>{});
+ if(previous&&previous!==result.stream)previous.getTracks().forEach(t=>{if(t!==result.track&&t.readyState==='live')t.stop();});
+ $('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
+ if(result.restored)toast('The switch was unavailable. Your previous camera has been restored.');
 }
 function closeCamera(){if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null;}$('cameraVideo').srcObject=null;if($('cameraDialog').open)$('cameraDialog').close();}
 $('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEventListener('click',closeCamera);$('switchCamera').addEventListener('click',async()=>{if(state.cameraSwitchBusy)return;state.cameraSwitchBusy=true;setBusy($('switchCamera'),true,'Switching…');try{await startCamera(state.cameraFacing==='environment'?'user':'environment');}catch(err){toast('Could not switch camera: '+errorText(err));}finally{state.cameraSwitchBusy=false;setBusy($('switchCamera'),false);}});
@@ -956,33 +1144,41 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 $('muteCallButton').addEventListener('click',()=>{const track=state.localCallStream?.getAudioTracks()[0];if(!track)return;state.callMuted=!state.callMuted;track.enabled=!state.callMuted;$('muteCallButton').textContent=state.callMuted?'Unmute mic':'Mute mic';});
 $('toggleCameraButton').addEventListener('click',()=>{const track=state.localCallStream?.getVideoTracks()[0];if(!track)return;state.callCameraEnabled=!state.callCameraEnabled;track.enabled=state.callCameraEnabled;$('toggleCameraButton').textContent=state.callCameraEnabled?'Turn camera off':'Turn camera on';});
 async function switchCallCamera(){
- const oldTrack=state.localCallStream?.getVideoTracks()[0];if(!oldTrack)return toast('Camera is not active.');if(state.cameraSwitchBusy)return;
+ const oldTrack=state.localCallStream?.getVideoTracks()[0];
+ if(!oldTrack)return toast('Camera is not active.');
+ if(state.cameraSwitchBusy)return;
  state.cameraSwitchBusy=true;setBusy($('switchCallCameraButton'),true,'Switching…');
- const settings=oldTrack.getSettings?.()||{};const currentFacing=settings.facingMode||state.facingMode;const next=currentFacing==='user'?'environment':'user';
+ const oldFacing=cameraFacingFromTrack(oldTrack,state.facingMode);
+ const next=oldFacing==='user'?'environment':'user';
+ let result=null;
  try{
-  // Prefer changing the active track in place; this is more reliable on iOS,
-  // where opening a second camera while the first is active can fail.
-  let switchedInPlace=false;
-  if(typeof oldTrack.applyConstraints==='function'){
-   try{await oldTrack.applyConstraints({facingMode:{exact:next}});const actual=oldTrack.getSettings?.().facingMode;if(!actual||actual===next){switchedInPlace=true;state.facingMode=actual||next;}}
-   catch(_){switchedInPlace=false;}
+  result=await acquireFacingCameraStream(next,oldTrack);
+  const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
+  const changed=[];
+  try{
+   for(const pc of state.peerConnections.values()){
+    const sender=pc.getSenders().find(s=>s.track?.kind==='video');
+    if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
+   }
+  }catch(replaceError){
+   for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}
+   result.stream.getTracks().forEach(t=>t.stop());
+   throw replaceError;
   }
-  if(!switchedInPlace){
-   const result=await acquireFacingCameraStream(next,oldTrack);const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
-   const changed=[];
-   try{
-    for(const pc of state.peerConnections.values()){
-     const sender=pc.getSenders().find(s=>s.track?.kind==='video');
-     if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
-    }
-   }catch(replaceError){for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}result.stream.getTracks().forEach(t=>t.stop());throw replaceError;}
-   state.localCallStream.removeTrack(oldTrack);state.localCallStream.addTrack(newTrack);oldTrack.stop();state.facingMode=result.facing;
-  }
+  state.localCallStream.removeTrack(oldTrack);
+  state.localCallStream.addTrack(newTrack);
+  if(oldTrack.readyState==='live')oldTrack.stop();
+  state.facingMode=result.facing;
   showVideoOnTile(state.user.id,state.localCallStream,true);
   $('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';
-  toast(state.facingMode==='user'?'Front camera is on.':'Back camera is on.');
- }catch(e){toast('Could not switch camera: '+errorText(e));}
- finally{state.cameraSwitchBusy=false;setBusy($('switchCallCameraButton'),false);}
+  toast(result.restored?'Could not switch cameras. Your previous camera was restored.':state.facingMode==='user'?'Front camera is on.':'Back camera is on.');
+ }catch(e){
+  // If getUserMedia had to stop the previous track but the attempt failed, the
+  // helper restores it when possible. Keep the preview in sync with any restore.
+  const active=state.localCallStream?.getVideoTracks()[0];
+  if(active)showVideoOnTile(state.user.id,state.localCallStream,true);
+  toast('Could not switch camera: '+errorText(e));
+ }finally{state.cameraSwitchBusy=false;setBusy($('switchCallCameraButton'),false);}
 }
 $('switchCallCameraButton').addEventListener('click',switchCallCamera);
 
