@@ -164,6 +164,11 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 .group-roster-tag.pending{background:#fff5df;color:#94630b}
 .group-roster-row .danger-button{padding:7px 9px}
 @media(max-width:760px){.side-actions{gap:4px}.side-actions .icon-btn{width:34px;height:34px}.group-invite-card,.group-roster-row{padding:9px}.group-invite-actions button{padding:7px 8px}}
+
+/* Additive group editor and retained-session UI */
+.force-session-actions{display:grid;gap:8px;margin-top:10px}.force-session-actions .field{margin:8px 0}
+.group-photo-editor{display:flex;align-items:center;gap:13px;margin:12px 0 16px}.group-photo-preview{width:68px;height:68px;font-size:18px}.group-photo-copy{display:grid;gap:6px}.group-photo-copy .small{line-height:1.4}
+#editGroupDetailsDialog{border:0;border-radius:20px;padding:20px;width:min(92vw,430px);box-shadow:0 20px 70px #0004;color:var(--ink)}#editGroupDetailsDialog::backdrop{background:#0b183399}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -198,6 +203,20 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
         <button id="resetPasswordButton" class="primary hidden" type="button">Verify code & reset password</button>
         <button id="resendResetOtpButton" class="secondary hidden" type="button">Resend reset code</button>
       </div>
+      <div id="forceLogoutPanel" class="reset-panel hidden">
+        <p><strong>This account is already signed in elsewhere.</strong> Send a one-time approval code to the account's registered email to end the other session and continue here.</p>
+        <div class="small muted" id="forceLogoutEmailLine"></div>
+        <div class="force-session-actions">
+          <button id="sendForceLogoutOtpButton" class="primary" type="button">Send sign-in approval code</button>
+          <div id="forceLogoutOtpFields" class="hidden">
+            <div class="field"><label for="forceLogoutOtp">6-digit approval code</label><input id="forceLogoutOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
+            <button id="verifyForceLogoutOtpButton" class="primary" type="button">Verify code & sign out other device</button>
+            <button id="resendForceLogoutOtpButton" class="secondary" type="button">Resend code</button>
+          </div>
+          <button id="cancelForceLogoutButton" class="secondary" type="button">Cancel and sign out on this browser</button>
+        </div>
+      </div>
+      <button id="resumeSessionButton" class="secondary hidden" type="button" style="width:100%;margin-top:12px">Resume saved session</button>
       <div class="auth-link-row" id="forgotLinkRow"><button id="forgotPasswordLink" type="button">Forgot password?</button></div>
       <div class="auth-back-row hidden" id="forgotBackRow"><button id="forgotBackButton" class="auth-back" type="button">← Back to sign in</button></div>
     </form>
@@ -226,7 +245,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
    <section class="chat">
     <div id="chatEmpty" class="chat-empty"><div class="big">💬</div><h2>Your family, one chat away</h2><p>Choose a conversation or start a new chat. Your family messages stay private to their members.</p><button id="emptyNewChat" class="primary" type="button">Start a conversation</button></div>
     <div id="chatActive" class="hidden" style="display:flex;flex-direction:column;min-height:0;flex:1">
-      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div><span id="chatLiveBadge" class="chat-live-badge hidden"></span></div><div class="chat-tools"><button id="joinOngoingCallBtn" class="join-ongoing-call-btn hidden" type="button">Join live call</button><button id="manageGroupButton" class="icon-btn hidden" title="View group members and invitations" type="button">👥</button><button id="addMembersButton" class="icon-btn hidden" title="Invite group members" type="button">＋</button><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
+      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div><span id="chatLiveBadge" class="chat-live-badge hidden"></span></div><div class="chat-tools"><button id="joinOngoingCallBtn" class="join-ongoing-call-btn hidden" type="button">Join live call</button><button id="editGroupButton" class="icon-btn hidden" title="Edit group name and photo" type="button">✎</button><button id="manageGroupButton" class="icon-btn hidden" title="View group members and invitations" type="button">👥</button><button id="addMembersButton" class="icon-btn hidden" title="Invite group members" type="button">＋</button><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
       <div id="messages" class="messages"></div>
       <div class="hint">Enter to send · Shift + Enter for a new line</div>
       <form id="composer" class="composer">
@@ -243,7 +262,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 
 <dialog id="cameraDialog"><h3 style="margin:0 0 12px">Take a picture</h3><video id="cameraVideo" autoplay playsinline></video><div class="dialog-actions"><button id="closeCamera" class="secondary" type="button">Cancel</button><div style="display:flex;gap:8px"><button id="switchCamera" class="secondary" type="button">Switch camera</button><button id="takePhoto" class="primary" type="button">Capture</button></div></div></dialog>
 <dialog id="messageActionDialog" class="action-dialog"><h3>Message options</h3><p id="messageActionLabel">Choose what to do with this message.</p><div class="actions"><button id="deleteMessageMe" class="secondary" type="button">Delete for me</button><button id="deleteMessageEveryone" class="danger-button hidden" type="button">Delete for everyone</button><button id="cancelMessageAction" class="secondary" type="button">Cancel</button></div></dialog>
-<dialog id="conversationActionDialog" class="action-dialog"><h3 id="conversationActionTitle">Conversation options</h3><p id="conversationActionText"></p><div class="actions"><button id="manageGroupFromMenuButton" class="secondary hidden" type="button">Manage members & invitations</button><button id="addMembersFromMenuButton" class="secondary hidden" type="button">Invite members</button><button id="deleteConversationMe" class="danger-button hidden" type="button">Delete conversation for me</button><button id="leaveGroupButton" class="danger-button hidden" type="button">Leave group</button><button id="deleteGroupButton" class="danger-button hidden" type="button">Delete group for everyone</button><button id="cancelConversationAction" class="secondary" type="button">Cancel</button></div></dialog>
+<dialog id="conversationActionDialog" class="action-dialog"><h3 id="conversationActionTitle">Conversation options</h3><p id="conversationActionText"></p><div class="actions"><button id="editGroupFromMenuButton" class="secondary hidden" type="button">Edit group name & photo</button><button id="manageGroupFromMenuButton" class="secondary hidden" type="button">Manage members & invitations</button><button id="addMembersFromMenuButton" class="secondary hidden" type="button">Invite members</button><button id="deleteConversationMe" class="danger-button hidden" type="button">Delete conversation for me</button><button id="leaveGroupButton" class="danger-button hidden" type="button">Leave group</button><button id="deleteGroupButton" class="danger-button hidden" type="button">Delete group for everyone</button><button id="cancelConversationAction" class="secondary" type="button">Cancel</button></div></dialog>
 <dialog id="incomingCallDialog" class="action-dialog"><div class="incoming-call-card"><div class="incoming-call-icon" id="incomingCallIcon">📹</div><h3 id="incomingCallTitle">Incoming call</h3><p id="incomingCallText">Someone is calling you.</p><div class="call-note">You can answer without opening the conversation.</div><div class="incoming-call-actions"><button id="declineIncomingCall" class="danger-button" type="button">Decline</button><button id="answerIncomingCall" class="primary" type="button">Answer</button></div></div></dialog>
 <dialog id="callDialog" class="call-dialog"><div style="display:flex;align-items:center;gap:12px"><h3 id="callTitle">VillFam call</h3><span style="flex:1"></span><button id="closeCallDialog" class="icon-btn" type="button" title="Leave call">×</button></div><div id="callGrid" class="call-grid"></div><div id="callStatus" class="call-status">Connecting…</div><div class="call-controls"><button id="muteCallButton" type="button">Mute mic</button><button id="toggleCameraButton" type="button">Turn camera off</button><button id="switchCallCameraButton" type="button">⇄ Switch camera</button><button id="hangupCallButton" class="hangup" type="button">Leave call</button></div></dialog>
 
@@ -273,9 +292,18 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
  <div class="dialog-buttons"><button id="groupManageInvite" class="secondary" type="button">Invite members</button><button id="doneGroupManage" class="primary" type="button">Done</button></div>
 </dialog>
 <dialog id="confirmDialog" class="action-dialog"><h3 id="confirmTitle">Please confirm</h3><p id="confirmMessage"></p><div class="dialog-buttons"><button id="confirmCancel" class="secondary" type="button">Cancel</button><button id="confirmAccept" class="danger-button" type="button">Continue</button></div></dialog>
+<dialog id="editGroupDetailsDialog" class="action-dialog">
+ <h3>Edit group details</h3>
+ <div class="group-photo-editor">
+  <div id="groupPhotoPreview" class="avatar group-photo-preview">👥</div>
+  <div class="group-photo-copy"><button id="chooseGroupPhotoButton" class="secondary" type="button">Upload group photo</button><span class="small muted">JPG, PNG, WebP, or GIF · Up to 5 MB</span></div>
+ </div>
+ <div class="field"><label for="groupTitleInput">Group name</label><input id="groupTitleInput" class="inapp-input" maxlength="60" placeholder="Group name"></div>
+ <div class="dialog-buttons"><button id="cancelGroupDetails" class="secondary" type="button">Cancel</button><button id="saveGroupDetails" class="primary" type="button">Save changes</button></div>
+</dialog>
 <dialog id="profileEditDialog" class="action-dialog"><h3>Edit nickname</h3><p>Your family will see this name in chats.</p><input id="profileNicknameInput" class="inapp-input" maxlength="40" placeholder="Your nickname"><div class="dialog-buttons"><button id="profileEditCancel" class="secondary" type="button">Cancel</button><button id="profileEditSave" class="primary" type="button">Save nickname</button></div></dialog>
 
-<input id="avatarInput" type="file" accept="image/*" class="hidden">
+<input id="avatarInput" type="file" accept="image/*" class="hidden"><input id="groupPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
 <div id="toast" class="toast"></div>
 
 <script>
@@ -287,7 +315,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9W2vvnNOAJO9f
 const SESSION_DEVICE_KEY = 'villfam_single_device_session_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
@@ -298,6 +326,14 @@ function escapeName(value){return String(value||'').trim();}
 function initials(value){const s=String(value||'V').trim();return s.split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'V';}
 function avatarElement(profile, extra=''){const el=document.createElement('div');el.className='avatar '+extra;if(profile&&profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.appendChild(img);}else el.textContent=initials(profile&&profile.nickname);return el;}
 function replaceAvatar(id,profile,extra=''){const old=$(id);if(!old)return;const next=avatarElement(profile,extra);next.id=id;old.replaceWith(next);}
+function conversationAvatarElement(conv,extra=''){
+ const el=document.createElement('div');el.className='avatar '+extra;
+ if(conv?.is_group&&conv.group_avatar_url){const img=document.createElement('img');img.src=conv.group_avatar_url;img.alt='';el.append(img);}
+ else if(conv?.is_group){el.textContent=initials(conv.displayTitle||conv.title||'Family group');}
+ else {const profile=conv?.otherProfile||null;if(profile?.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.append(img);}else el.textContent=initials(profile?.nickname||profile?.email||'VillFam');}
+ return el;
+}
+function replaceConversationAvatar(id,conv){const old=$(id);if(!old)return;const next=conversationAvatarElement(conv);next.id=id;old.replaceWith(next);}
 
 function askConfirm(title,message,acceptLabel='Continue'){
  return new Promise(resolve=>{state.confirmResolver=resolve;$('confirmTitle').textContent=title;$('confirmMessage').textContent=message;$('confirmAccept').textContent=acceptLabel;$('confirmDialog').showModal();});
@@ -469,7 +505,7 @@ function appsScriptRequest(fields){
 }
 
 function setAuthMode(mode){
- state.authMode=mode;state.otpSent=false;state.otpEmail='';state.resetOtpSent=false;state.resetOtpEmail='';
+ state.authMode=mode;state.otpSent=false;state.otpEmail='';state.resetOtpSent=false;state.resetOtpEmail='';state.forceLogoutOtpSent=false;state.forceLogoutEmail='';$('forceLogoutPanel').classList.add('hidden');$('forceLogoutOtpFields').classList.add('hidden');$('resumeSessionButton').classList.add('hidden');$('forceLogoutOtp').value='';
  $('authEmail').readOnly=false;$('authPassword').value='';$('authPassword').disabled=(mode==='forgot');
  $('authPasswordField').classList.toggle('hidden',mode==='forgot');
  $('otpArea').classList.add('hidden');$('authOtp').value='';
@@ -553,13 +589,58 @@ $('resetPasswordButton').addEventListener('click',async()=>{
  finally{setBusy($('resetPasswordButton'),false);}
 });
 
+function showForceLogoutControls(session,email,message){
+ state.pendingSession=session;state.forceLogoutEmail=(email||session?.user?.email||'').toLowerCase();state.forceLogoutOtpSent=false;
+ $('authEmail').value=state.forceLogoutEmail;$('authEmail').readOnly=true;$('authPasswordField').classList.add('hidden');$('loginButton').classList.add('hidden');$('forgotLinkRow').classList.add('hidden');document.querySelector('.tabs').classList.add('hidden');
+ $('forceLogoutEmailLine').textContent='Code destination: '+state.forceLogoutEmail;$('forceLogoutOtp').value='';$('forceLogoutOtpFields').classList.add('hidden');$('sendForceLogoutOtpButton').classList.remove('hidden');$('forceLogoutPanel').classList.remove('hidden');$('resumeSessionButton').classList.add('hidden');
+ if(message)notice(message,'error');
+}
+function showResumeSessionControl(session,message){
+ state.pendingSession=session;$('authEmail').value=session?.user?.email||'';$('authEmail').readOnly=true;$('authPasswordField').classList.add('hidden');$('loginButton').classList.add('hidden');$('forgotLinkRow').classList.add('hidden');document.querySelector('.tabs').classList.add('hidden');
+ $('forceLogoutPanel').classList.add('hidden');$('resumeSessionButton').classList.remove('hidden');if(message)notice(message,'info');
+}
+async function resumeSavedSession(){
+ const btn=$('resumeSessionButton');setBusy(btn,true,'Checking session…');
+ try{const {data,error}=await state.client.auth.getSession();if(error)throw error;const session=data?.session||state.pendingSession;if(!session)throw new Error('No saved VillFam login was found. Sign in again.');await activateSingleSession(session);await enterApp();}
+ catch(err){const session=state.pendingSession;if(err.code==='SESSION_ACTIVE')showForceLogoutControls(session,session?.user?.email,'This account is still active on another device. Approve a takeover with an email code.');else showResumeSessionControl(session,'Your saved login is still on this browser, but VillFam could not confirm the device session. You have not been signed out. Try again.');}
+ finally{setBusy(btn,false);}
+}
+$('resumeSessionButton').addEventListener('click',resumeSavedSession);
+$('sendForceLogoutOtpButton').addEventListener('click',async()=>{
+ const session=state.pendingSession;if(!session?.user){notice('Please sign in again before requesting a takeover code.','error');return;}
+ const btn=$('sendForceLogoutOtpButton');setBusy(btn,true,'Sending code…');
+ try{const token=await currentAccessToken();const result=await appsScriptRequest({action:'sendForceLogoutOtp',email:state.forceLogoutEmail,accessToken:token,sessionId:getSingleDeviceId()});state.forceLogoutOtpSent=true;$('forceLogoutOtpFields').classList.remove('hidden');$('sendForceLogoutOtpButton').classList.add('hidden');$('forceLogoutOtp').focus();notice(result.message||'A sign-in approval code was sent.','success');}
+ catch(err){notice(errorText(err),'error');}
+ finally{setBusy(btn,false);}
+});
+$('cancelForceLogoutButton').addEventListener('click',async()=>{
+ try{const {error}=await state.client.auth.signOut({scope:'local'});if(error)throw error;showAuth();notice('This browser was signed out. The other active device was not changed.','success');}
+ catch(err){notice('Could not sign out this browser: '+errorText(err),'error');}
+});
+$('resendForceLogoutOtpButton').addEventListener('click',async()=>{
+ const session=state.pendingSession;if(!session?.user)return;const btn=$('resendForceLogoutOtpButton');setBusy(btn,true,'Sending…');
+ try{const token=await currentAccessToken();const result=await appsScriptRequest({action:'sendForceLogoutOtp',email:state.forceLogoutEmail,accessToken:token,sessionId:getSingleDeviceId()});notice(result.message||'A new approval code was sent.','success');}
+ catch(err){notice(errorText(err),'error');}
+ finally{setBusy(btn,false);}
+});
+$('verifyForceLogoutOtpButton').addEventListener('click',async()=>{
+ const session=state.pendingSession,email=state.forceLogoutEmail,otp=$('forceLogoutOtp').value.trim();if(!session?.user){notice('Please sign in again before approving this device.','error');return;}if(!state.forceLogoutOtpSent||!/^\d{6}$/.test(otp)){notice('Enter the 6-digit code sent to your registered email.','error');return;}
+ const btn=$('verifyForceLogoutOtpButton');setBusy(btn,true,'Verifying code…');
+ try{const token=await currentAccessToken();const result=await appsScriptRequest({action:'forceLogoutSession',email,otp,accessToken:token,sessionId:getSingleDeviceId()});state.singleSessionId=getSingleDeviceId();state.user=session.user;state.pendingSession=null;state.forceLogoutOtpSent=false;startSingleSessionHeartbeat();await enterApp();toast(result.message||'The other device has been signed out.');}
+ catch(err){notice(errorText(err),'error');}
+ finally{setBusy(btn,false);}
+});
+
 $('authForm').addEventListener('submit',async e=>{
  e.preventDefault();if(state.authMode!=='signin')return;
  const email=$('authEmail').value.trim().toLowerCase();const password=$('authPassword').value;
  if(!email||!password){notice('Enter your email and password.','error');return;}
  setBusy($('loginButton'),true,'Signing in…');clearNotice();
- try{const {data,error}=await state.client.auth.signInWithPassword({email,password});if(error)throw error;await activateSingleSession(data.session);await enterApp();}
- catch(err){notice(errorText(err),'error');}
+ try{
+  const {data,error}=await state.client.auth.signInWithPassword({email,password});if(error)throw error;
+  try{await activateSingleSession(data.session);await enterApp();}
+  catch(claimError){if(claimError.code==='SESSION_ACTIVE')showForceLogoutControls(data.session,email,'This account is already signed in on another device. Verify the code sent to your email to sign out that device.');else showResumeSessionControl(data.session,'Your password was accepted, and your login is saved. VillFam could not confirm the device session yet. Resume without signing in again.');}
+ }catch(err){notice(errorText(err),'error');}
  finally{setBusy($('loginButton'),false);}
 });
 $('authEmail').addEventListener('input',()=>{
@@ -569,11 +650,12 @@ $('authEmail').addEventListener('input',()=>{
 });
 
 function getSingleDeviceId(){
- let id='';try{id=localStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}
- if(!/^[a-f0-9-]{32,64}$/i.test(id)){
-  id=(crypto.randomUUID?crypto.randomUUID():('xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);}))).replace(/[^a-f0-9-]/gi,'').toLowerCase();
-  try{localStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
- }
+ const valid=id=>/^[a-f0-9-]{32,64}$/i.test(id||'');
+ try{const id=localStorage.getItem(SESSION_DEVICE_KEY)||'';if(valid(id))return id;}catch(_){}
+ try{const id=sessionStorage.getItem(SESSION_DEVICE_KEY)||'';if(valid(id))return id;}catch(_){}
+ const id=(crypto.randomUUID?crypto.randomUUID():('xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);}))).replace(/[^a-f0-9-]/gi,'').toLowerCase();
+ try{localStorage.setItem(SESSION_DEVICE_KEY,id);if(localStorage.getItem(SESSION_DEVICE_KEY)===id)return id;}catch(_){}
+ try{sessionStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
  return id;
 }
 async function currentAccessToken(){const {data,error}=await state.client.auth.getSession();if(error)throw error;if(!data.session?.access_token)throw new Error('Your sign-in has expired. Please sign in again.');return data.session.access_token;}
@@ -581,8 +663,13 @@ async function activateSingleSession(session){
  if(!session?.user||!session.access_token)throw new Error('Supabase did not return a valid login session.');
  const sid=getSingleDeviceId();
  try{await appsScriptRequest({action:'claimSession',accessToken:session.access_token,sessionId:sid});}
- catch(err){try{await state.client.auth.signOut({scope:'local'});}catch(_){}throw err;}
- state.singleSessionId=sid;state.user=session.user;startSingleSessionHeartbeat();
+ catch(err){
+  // An explicit conflict requires the emailed takeover code. A temporary Apps Script
+  // timeout/service error must never discard a valid Supabase login on page refresh.
+  if(['SESSION_ACTIVE','SESSION_AUTH_REQUIRED','SESSION_ID_INVALID'].includes(err.code))throw err;
+  console.warn('Session lease check is temporarily unavailable; keeping the saved Supabase login and retrying in the background.',err);
+ }
+ state.singleSessionId=sid;state.user=session.user;state.pendingSession=null;startSingleSessionHeartbeat();
 }
 function startSingleSessionHeartbeat(){
  if(state.sessionHeartbeatTimer)clearInterval(state.sessionHeartbeatTimer);
@@ -611,16 +698,17 @@ async function releaseSingleSession(){
 async function initSupabase(){
  if(!window.supabase || !window.supabase.createClient){notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
  state.client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
- const {data,error}=await state.client.auth.getSession();if(error)console.warn(error);
- if(data&&data.session){
-  try{await activateSingleSession(data.session);await enterApp();}
-  catch(err){await state.client.auth.signOut({scope:'local'});state.user=null;notice(errorText(err),'error');}
- }
  state.client.auth.onAuthStateChange((event,session)=>{
-  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;showAuth();}
+  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;state.pendingSession=null;showAuth();}
  });
+ let data=null;let error=null;try{const result=await state.client.auth.getSession();data=result.data;error=result.error;}catch(e){error=e;}
+ if(error)console.warn('Saved Supabase session could not be read yet:',error);
+ if(data?.session){
+  try{await activateSingleSession(data.session);await enterApp();}
+  catch(err){showAuth();state.pendingSession=data.session;$('authEmail').value=data.session.user?.email||'';if(err.code==='SESSION_ACTIVE')showForceLogoutControls(data.session,data.session.user?.email,'This account is active on another device. Verify an email code to sign out that device.');else showResumeSessionControl(data.session,'Your saved VillFam login is still present. The device session could not be checked right now; you have not been signed out.');}
+ }else if(error){notice('VillFam could not read the saved login yet. Refresh once your connection is stable; your account was not signed out.','error');}
 }
-function showAuth(){stopSingleSessionHeartbeat();if(state.inboxRefreshTimer){clearTimeout(state.inboxRefreshTimer);state.inboxRefreshTimer=null;}if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
+function showAuth(){state.pendingSession=null;state.forceLogoutOtpSent=false;state.forceLogoutEmail='';$('forceLogoutPanel').classList.add('hidden');$('resumeSessionButton').classList.add('hidden');stopSingleSessionHeartbeat();if(state.inboxRefreshTimer){clearTimeout(state.inboxRefreshTimer);state.inboxRefreshTimer=null;}if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
 async function enterApp(){
  if(state.entering)return;state.entering=true;
  $('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
@@ -632,6 +720,12 @@ async function enterApp(){
  finally{state.entering=false;}
 }
 function updateProfileHeader(){$('topNickname').textContent=state.profile?.nickname||'VillFam member';replaceAvatar('topAvatar',state.profile);}
+function updateChatConversationHeader(conv){
+ if(!conv)return;$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';
+ const canManage=!!conv.is_group&&(conv.me?.role==='admin'||conv.created_by===state.user?.id);
+ $('editGroupButton').classList.toggle('hidden',!canManage);$('addMembersButton').classList.toggle('hidden',!canManage);$('manageGroupButton').classList.toggle('hidden',!conv.is_group);
+ replaceConversationAvatar('chatAvatar',conv);updateChatCallState(conv);
+}
 async function loadPeople(){const {data,error}=await state.client.from('profiles').select('id,email,nickname,avatar_url').order('nickname');if(error)throw error;state.people=data||[];}
 async function loadConversations(){
  if(!state.user)return;
@@ -660,7 +754,7 @@ async function loadConversations(){
   const hiddenAt=state.hiddenConversations.get(c.id);const isHidden=hiddenAt&&(!last||new Date(last.created_at).getTime()<=new Date(hiddenAt).getTime());
   return {...c,members,me:members.find(m=>m.user_id===state.user.id),displayTitle:title,otherProfile:other,lastPreview:last?(last.deleted_at?'Message deleted':last.message_type==='text'?last.content:(last.attachment_name||'Attachment')):'Start the conversation',ongoingCall:ongoingCallByConversation.get(c.id)||null,isHidden};
  }).filter(c=>!c.isHidden);
- const active=state.activeConversation&&state.conversations.find(c=>c.id===state.activeConversation.id);if(active){state.activeConversation=active;updateChatCallState(active);}else if(state.activeConversation){closeActiveConversation('This group was removed or deleted.');}
+ const active=state.activeConversation&&state.conversations.find(c=>c.id===state.activeConversation.id);if(active){state.activeConversation=active;updateChatConversationHeader(active);}else if(state.activeConversation){closeActiveConversation('This group was removed or deleted.');}
  renderConversations();
 }
 function renderConversations(){
@@ -669,7 +763,7 @@ function renderConversations(){
  filtered.forEach(c=>{
   const call=c.ongoingCall;const activeCall=!!call&&call.status==='active';const ringingCall=!!call&&call.status==='ringing';
   const row=document.createElement('div');row.className='conv'+(state.activeConversation?.id===c.id?' active':'')+(activeCall?' call-ongoing':'')+(ringingCall?' call-ringing':'');row.dataset.id=c.id;
-  const profile=c.is_group?null:c.otherProfile;row.append(avatarElement(profile));
+  row.append(conversationAvatarElement(c));
   const copy=document.createElement('div');copy.className='conv-text';const heading=document.createElement('div');heading.className='conv-heading';
   const title=document.createElement('div');title.className='conv-title';title.textContent=c.displayTitle;heading.append(title);
   if(call){const badge=document.createElement('span');badge.className='call-live-badge '+(activeCall?'is-live':'is-ringing');badge.textContent=activeCall?(call.call_type==='video'?'LIVE VIDEO':'LIVE AUDIO'):'CALLING';heading.append(badge);}
@@ -688,7 +782,7 @@ function updateChatCallState(conv){
  join.textContent=state.currentCallId===call.id?'You are in this call':freshJoined?'Already joined':'Join '+(call.call_type==='video'?'video':'audio')+' call';
 }
 async function openConversation(id){
- const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';$('addMembersButton').classList.toggle('hidden',!conv.is_group||!(conv.me?.role==='admin'||conv.created_by===state.user.id));$('manageGroupButton').classList.toggle('hidden',!conv.is_group);replaceAvatar('chatAvatar',conv.is_group?null:conv.otherProfile);updateChatCallState(conv);renderConversations();
+ const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');updateChatConversationHeader(conv);renderConversations();
  if(state.messageChannel){await state.client.removeChannel(state.messageChannel);state.messageChannel=null;}
  await loadMessages();
  state.messageChannel=state.client.channel('villfam-chat-'+id).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'conversation_id=eq.'+id},async()=>{await loadMessages();loadConversations().catch(console.error);}).on('postgres_changes',{event:'*',schema:'public',table:'message_user_deletions'},async()=>loadMessages()).subscribe();
@@ -740,16 +834,50 @@ $('cancelMessageAction').addEventListener('click',()=>$('messageActionDialog').c
 $('deleteMessageMe').addEventListener('click',async()=>{const msg=state.pendingMessage;if(!msg)return;try{const {error}=await state.client.from('message_user_deletions').insert({message_id:msg.id,user_id:state.user.id});if(error&&error.code!=='23505')throw error;$('messageActionDialog').close();await loadMessages();toast('Message deleted for you. Other chat members can still see it.');}catch(e){toast('Could not delete message: '+errorText(e));}});
 $('deleteMessageEveryone').addEventListener('click',async()=>{const msg=state.pendingMessage;if(!msg)return;if(!await askConfirm('Delete for everyone?','This removes your message for every member of this conversation.','Delete for everyone'))return;try{const {data:path,error}=await state.client.rpc('villfam_delete_message_for_everyone',{p_message_id:msg.id});if(error)throw error;if(path){const {error:storageError}=await state.client.storage.from('chat-files').remove([path]);if(storageError)console.warn('Attachment cleanup warning:',storageError.message);}$('messageActionDialog').close();await loadMessages();await loadConversations();toast('Message deleted for everyone.');}catch(e){toast('Could not delete for everyone: '+errorText(e));}});
 
+function renderGroupPhotoPreview(url,title){
+ const preview=$('groupPhotoPreview');preview.replaceChildren();if(url){const img=document.createElement('img');img.src=url;img.alt='';preview.append(img);}else preview.textContent=initials(title||'Family group');
+}
+function openGroupDetailsEditor(){
+ const conv=state.activeConversation;if(!conv?.is_group)return;
+ if(!(conv.me?.role==='admin'||conv.created_by===state.user.id)){toast('Only group admins can edit group details.');return;}
+ state.groupPhotoFile=null;if(state.groupPhotoPreviewUrl){URL.revokeObjectURL(state.groupPhotoPreviewUrl);state.groupPhotoPreviewUrl=null;}
+ $('groupTitleInput').value=conv.displayTitle||conv.title||'';$('groupPhotoInput').value='';renderGroupPhotoPreview(conv.group_avatar_url,conv.displayTitle);
+ $('editGroupDetailsDialog').showModal();setTimeout(()=>$('groupTitleInput').focus(),20);
+}
+$('chooseGroupPhotoButton').addEventListener('click',()=>$('groupPhotoInput').click());
+$('groupPhotoInput').addEventListener('change',e=>{
+ const file=e.target.files?.[0];if(!file)return;const allowed=['image/jpeg','image/png','image/webp','image/gif'];
+ if(!allowed.includes(file.type)){e.target.value='';toast('Choose a JPG, PNG, WebP, or GIF image.');return;}
+ if(file.size>5*1024*1024){e.target.value='';toast('Group photos must be 5 MB or smaller.');return;}
+ state.groupPhotoFile=file;if(state.groupPhotoPreviewUrl)URL.revokeObjectURL(state.groupPhotoPreviewUrl);state.groupPhotoPreviewUrl=URL.createObjectURL(file);renderGroupPhotoPreview(state.groupPhotoPreviewUrl,$('groupTitleInput').value);
+});
+$('cancelGroupDetails').addEventListener('click',()=>{$('editGroupDetailsDialog').close();state.groupPhotoFile=null;if(state.groupPhotoPreviewUrl){URL.revokeObjectURL(state.groupPhotoPreviewUrl);state.groupPhotoPreviewUrl=null;}});
+$('saveGroupDetails').addEventListener('click',async()=>{
+ const conv=state.activeConversation;if(!conv?.is_group)return;const title=$('groupTitleInput').value.trim();if(!title){toast('Group name cannot be empty.');return;}if(title.length>60){toast('Group name must be 60 characters or fewer.');return;}
+ const btn=$('saveGroupDetails');setBusy(btn,true,'Saving…');let uploadedPath=null,detailsSaved=false;
+ try{
+  let avatarUrl=null;const file=state.groupPhotoFile;
+  if(file){const ext=file.type==='image/jpeg'?'jpg':file.type.split('/')[1];uploadedPath=state.user.id+'/groups/'+conv.id+'/'+Date.now()+'.'+ext;const {error:uploadError}=await state.client.storage.from('avatars').upload(uploadedPath,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;avatarUrl=state.client.storage.from('avatars').getPublicUrl(uploadedPath).data.publicUrl;}
+  const {error}=await state.client.rpc('villfam_update_group_details',{p_conversation_id:conv.id,p_title:title,p_group_avatar_url:avatarUrl});if(error)throw error;detailsSaved=true;
+  $('editGroupDetailsDialog').close();state.groupPhotoFile=null;if(state.groupPhotoPreviewUrl){URL.revokeObjectURL(state.groupPhotoPreviewUrl);state.groupPhotoPreviewUrl=null;}
+  try{await loadConversations();}catch(refreshError){console.warn('Group details were saved, but the chat list could not refresh:',refreshError);}
+  toast('Group details updated.');
+ }catch(err){if(uploadedPath&&!detailsSaved){const {error:cleanupError}=await state.client.storage.from('avatars').remove([uploadedPath]);if(cleanupError)console.warn('Could not clean up unused group photo:',cleanupError.message);}toast('Could not update group details: '+errorText(err));}
+ finally{setBusy(btn,false);}
+});
+
 $('chatActionsBtn').addEventListener('click',()=>{
  const c=state.activeConversation;if(!c)return;
- $('manageGroupFromMenuButton').classList.toggle('hidden',!c.is_group);$('addMembersFromMenuButton').classList.toggle('hidden',!c.is_group||!(c.me?.role==='admin'||c.created_by===state.user.id));$('deleteConversationMe').classList.toggle('hidden',c.is_group);$('leaveGroupButton').classList.toggle('hidden',!c.is_group||c.created_by===state.user.id);$('deleteGroupButton').classList.toggle('hidden',!c.is_group||c.created_by!==state.user.id);
+ $('editGroupFromMenuButton').classList.toggle('hidden',!c.is_group||!(c.me?.role==='admin'||c.created_by===state.user.id));$('manageGroupFromMenuButton').classList.toggle('hidden',!c.is_group);$('addMembersFromMenuButton').classList.toggle('hidden',!c.is_group||!(c.me?.role==='admin'||c.created_by===state.user.id));$('deleteConversationMe').classList.toggle('hidden',c.is_group);$('leaveGroupButton').classList.toggle('hidden',!c.is_group||c.created_by===state.user.id);$('deleteGroupButton').classList.toggle('hidden',!c.is_group||c.created_by!==state.user.id);
  $('conversationActionTitle').textContent=c.is_group?'Group options':'Conversation options';
  $('conversationActionText').textContent=c.is_group?(c.created_by===state.user.id?'You created this group. Only you can delete it for everyone.':'You can leave this group. Leaving removes it from your chat list; other members keep the conversation.'):'Deleting this conversation removes it from your chat list only. The other person keeps the messages, and you can see the conversation again if a new message arrives.';
  $('conversationActionDialog').showModal();
 });
+$('editGroupFromMenuButton').addEventListener('click',()=>{$('conversationActionDialog').close();openGroupDetailsEditor();});
 $('manageGroupFromMenuButton').addEventListener('click',()=>{$('conversationActionDialog').close();openGroupManagement().catch(e=>toast(errorText(e)));});
 $('addMembersFromMenuButton').addEventListener('click',()=>{$('conversationActionDialog').close();openMemberPicker('add').catch(e=>toast(errorText(e)));});
 $('addMembersButton').addEventListener('click',()=>openMemberPicker('add').catch(e=>toast(errorText(e))));
+$('editGroupButton').addEventListener('click',openGroupDetailsEditor);
 $('cancelConversationAction').addEventListener('click',()=>$('conversationActionDialog').close());
 $('deleteConversationMe').addEventListener('click',async()=>{const c=state.activeConversation;if(!c)return;try{const {error}=await state.client.rpc('villfam_hide_conversation_for_me',{p_conversation_id:c.id});if(error)throw error;$('conversationActionDialog').close();state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');await loadConversations();toast('Conversation deleted from your chat list. Other members still have the messages.');}catch(e){toast('Could not delete conversation: '+errorText(e));}});
 $('leaveGroupButton').addEventListener('click',async()=>{const c=state.activeConversation;if(!c)return;if(!await askConfirm('Leave this group?','You will stop seeing this group and its messages unless an admin adds you again.','Leave group'))return;try{const {error}=await state.client.rpc('villfam_leave_group',{p_conversation_id:c.id});if(error)throw error;$('conversationActionDialog').close();state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');await loadConversations();toast('You left the group.');}catch(e){toast('Could not leave group: '+errorText(e));}});
@@ -802,27 +930,58 @@ $('voiceButton').addEventListener('click',async()=>{
  }catch(err){toast('Microphone permission failed: '+errorText(err));}
 });
 
+function cameraSideFromLabel(label){return /back|rear|environment|world/i.test(label||'')?'environment':/front|user|facetime|selfie/i.test(label||'')?'user':null;}
 async function acquireFacingCameraStream(targetFacing,currentTrack){
- const constraints={width:{ideal:1280},height:{ideal:720}};let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){ }
- const currentId=currentTrack?.getSettings?.().deviceId||'';
- const sideOf=label=>/back|rear|environment|world/i.test(label||'')?'environment':/front|user|facetime|selfie/i.test(label||'')?'user':null;
- const preferred=devices.filter(d=>d.deviceId&&d.deviceId!==currentId).sort((a,b)=>Number(sideOf(b.label)===targetFacing)-Number(sideOf(a.label)===targetFacing));
- let fresh=null,lastError=null;
- for(const device of preferred){try{fresh=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:device.deviceId},...constraints},audio:false});break;}catch(e){lastError=e;}}
- if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
- if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
- if(!fresh)throw lastError||new Error('No alternate camera is available.');
- const track=fresh.getVideoTracks()[0];if(!track){fresh.getTracks().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
- const settings=track.getSettings?.()||{};const selectedDevice=devices.find(d=>d.deviceId&&d.deviceId===(settings.deviceId||preferred[0]?.deviceId));
- const actualFacing=settings.facingMode||sideOf(selectedDevice?.label)||targetFacing;
- if(currentId&&settings.deviceId&&currentId===settings.deviceId&&devices.some(d=>d.deviceId&&d.deviceId!==currentId)){fresh.getTracks().forEach(t=>t.stop());throw new Error('The browser selected the same camera. Allow camera access and try switching again.');}
- return {stream:fresh,track,facing:actualFacing};
+ const quality={width:{ideal:1280},height:{ideal:720}};let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);}catch(_){}
+ const currentSettings=currentTrack?.getSettings?.()||{};const currentId=currentSettings.deviceId||'';
+ const currentFacing=currentSettings.facingMode||state.cameraFacing;
+ let fresh=null,lastError=null,selectedDevice=null;
+ const acceptStream=(stream,device)=>{
+  const track=stream?.getVideoTracks?.()[0];if(!track){stream?.getTracks?.().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
+  const settings=track.getSettings?.()||{};const selected=device||devices.find(d=>d.deviceId===settings.deviceId);
+  const labelledSide=cameraSideFromLabel(selected?.label);const actualFacing=settings.facingMode||labelledSide||targetFacing;
+  if((settings.facingMode&&settings.facingMode!==targetFacing)||(labelledSide&&labelledSide!==targetFacing)){stream.getTracks().forEach(t=>t.stop());throw new Error('The browser selected the wrong camera. Please try switching again.');}
+  if(currentTrack&&currentId&&settings.deviceId===currentId&&settings.facingMode!==targetFacing){stream.getTracks().forEach(t=>t.stop());throw new Error('Only one usable camera was found, or the browser kept the same camera.');}
+  return {stream,track,facing:actualFacing,deviceId:settings.deviceId||selected?.deviceId||''};
+ };
+ // On first open, request the intended side directly (important on phones).
+ if(!currentTrack){
+  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...quality},audio:false});return acceptStream(fresh,null);}
+  catch(e){lastError=e;fresh=null;}
+  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...quality},audio:false});
+   const s=fresh.getVideoTracks()[0]?.getSettings?.();if(s?.facingMode&&s.facingMode!==targetFacing){fresh.getTracks().forEach(t=>t.stop());fresh=null;}else return acceptStream(fresh,null);
+  }catch(e){lastError=e;fresh=null;}
+ }
+ const candidates=devices.filter(d=>{
+  if(!d.deviceId||d.deviceId===currentId)return false;
+  const side=cameraSideFromLabel(d.label);return !side||side===targetFacing;
+ }).sort((a,b)=>{
+  const as=cameraSideFromLabel(a.label),bs=cameraSideFromLabel(b.label);
+  const targetDiff=Number(bs===targetFacing)-Number(as===targetFacing);if(targetDiff)return targetDiff;
+  return Number(!!b.label)-Number(!!a.label);
+ });
+ for(const device of candidates){
+  try{fresh=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:device.deviceId},...quality},audio:false});selectedDevice=device;return acceptStream(fresh,device);}
+  catch(e){lastError=e;fresh=null;}
+ }
+ if(currentTrack){
+  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...quality},audio:false});return acceptStream(fresh,null);}
+  catch(e){lastError=e;fresh=null;}
+  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...quality},audio:false});return acceptStream(fresh,null);}
+  catch(e){lastError=e;fresh=null;}
+ }
+ throw lastError||new Error('No alternate camera is available.');
+}
+async function applyCameraFacingIfSupported(track,targetFacing){
+ if(!track||typeof track.applyConstraints!=='function')return false;
+ try{const before=track.getSettings?.()||{};await track.applyConstraints({facingMode:{exact:targetFacing}});const after=track.getSettings?.()||{};return after.facingMode===targetFacing||!!(before.deviceId&&after.deviceId&&before.deviceId!==after.deviceId);}
+ catch(_){return false;}
 }
 async function openCamera(){if(!navigator.mediaDevices?.getUserMedia){toast('Camera is not available in this browser.');return;}try{$('cameraDialog').showModal();await startCamera('environment');}catch(err){toast('Camera permission failed: '+errorText(err));$('cameraDialog').close();}}
 async function startCamera(facing){
  const current=state.cameraStream?.getVideoTracks?.()[0];
- if(current&&typeof current.applyConstraints==='function'){
-  try{await current.applyConstraints({facingMode:{exact:facing}});const actual=current.getSettings?.().facingMode;if(!actual||actual===facing){state.cameraFacing=actual||facing;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';return;}}catch(_){ }
+ if(current&&await applyCameraFacingIfSupported(current,facing)){
+  state.cameraFacing=facing;$('cameraVideo').classList.toggle('mirror-camera',facing==='user');await $('cameraVideo').play().catch(()=>{});$('switchCamera').textContent=facing==='user'?'Switch to rear camera':'Switch to front camera';return;
  }
  const result=await acquireFacingCameraStream(facing,current);const previous=state.cameraStream;state.cameraStream=result.stream;state.cameraFacing=result.facing;$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});if(previous)previous.getTracks().forEach(t=>t.stop());$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
 }
@@ -1093,11 +1252,8 @@ async function switchCallCamera(){
  try{
   // Prefer changing the active track in place; this is more reliable on iOS,
   // where opening a second camera while the first is active can fail.
-  let switchedInPlace=false;
-  if(typeof oldTrack.applyConstraints==='function'){
-   try{await oldTrack.applyConstraints({facingMode:{exact:next}});const actual=oldTrack.getSettings?.().facingMode;if(!actual||actual===next){switchedInPlace=true;state.facingMode=actual||next;}}
-   catch(_){switchedInPlace=false;}
-  }
+  const switchedInPlace=await applyCameraFacingIfSupported(oldTrack,next);
+  if(switchedInPlace){state.facingMode=next;}
   if(!switchedInPlace){
    const result=await acquireFacingCameraStream(next,oldTrack);const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
    const changed=[];
