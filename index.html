@@ -47,6 +47,7 @@ html,body{background:radial-gradient(ellipse at 3% 0%,rgba(112,145,255,.11),tran
 button{transition:background .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
 button:active:not(:disabled){transform:scale(.97)}
 #authView{background:radial-gradient(circle at 12% 12%,rgba(91,135,255,.16),transparent 35%),radial-gradient(circle at 88% 85%,rgba(80,201,157,.13),transparent 33%),var(--bg)}
+html.villfam-session-restoring body::before{content:'Restoring your VillFam session…';position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:var(--bg);color:var(--ink);font:700 14px system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 .auth-card{border:1px solid rgba(220,228,243,.9);border-radius:28px;box-shadow:0 26px 90px rgba(38,57,101,.12);padding:34px}
 .brand-icon{box-shadow:0 7px 18px rgba(49,96,221,.24)}
 .auth-card h1{letter-spacing:-1.15px}
@@ -296,7 +297,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
  <h3>Edit group details</h3>
  <div class="group-photo-editor">
   <div id="groupPhotoPreview" class="avatar group-photo-preview">👥</div>
-  <div class="group-photo-copy"><button id="chooseGroupPhotoButton" class="secondary" type="button">Upload group photo</button><span class="small muted">JPG, PNG, WebP, or GIF · Up to 5 MB</span></div>
+  <div class="group-photo-copy"><button id="chooseGroupPhotoButton" class="secondary" type="button">Upload group photo</button><span class="small muted">JPG, PNG, WebP, or GIF image</span></div>
  </div>
  <div class="field"><label for="groupTitleInput">Group name</label><input id="groupTitleInput" class="inapp-input" maxlength="60" placeholder="Group name"></div>
  <div class="dialog-buttons"><button id="cancelGroupDetails" class="secondary" type="button">Cancel</button><button id="saveGroupDetails" class="primary" type="button">Save changes</button></div>
@@ -309,11 +310,13 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 <script>
 (() => {
 'use strict';
+document.documentElement.classList.add('villfam-session-restoring');
 const SUPABASE_URL = 'https://zjuivpsvhuzceltszjut.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SA_OZCUkyHiWR6O7CwYYhQ_DpP9m3ah';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9W2vvnNOAJO9fDJBqmOuLUFJHxMHpxOrnuSgAJpmjluCIUP66ObqWoOTCkT8vcv3q3Q/exec';
 const SESSION_DEVICE_KEY = 'villfam_single_device_session_v1';
 const SUPABASE_AUTH_STORAGE_KEY = 'sb-' + new URL(SUPABASE_URL).hostname.split('.')[0] + '-auth-token';
+const SUPABASE_RECOVERY_KEY = 'villfam_supabase_session_recovery_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
 const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null };
@@ -660,15 +663,31 @@ function getSingleDeviceId(){
  return id;
 }
 async function currentAccessToken(){const {data,error}=await state.client.auth.getSession();if(error)throw error;if(!data.session?.access_token)throw new Error('Your sign-in has expired. Please sign in again.');return data.session.access_token;}
-function readPersistedSupabaseSession(){
- // Read only this project's normal Supabase session key. This is a recovery path
- // for browser storage initialization races; Supabase remains the session owner.
+function saveSessionRecoveryCopy(session){
+ if(!session?.access_token||!session?.refresh_token)return;
+ const backup={access_token:session.access_token,refresh_token:session.refresh_token,saved_at:Date.now()};
+ const raw=JSON.stringify(backup);
  for(const storageName of ['localStorage','sessionStorage']){
-  try{
-   const storage=window[storageName];const raw=storage?.getItem(SUPABASE_AUTH_STORAGE_KEY);if(!raw)continue;
-   const parsed=JSON.parse(raw);const session=parsed?.currentSession||parsed?.session||parsed;
-   if(session?.access_token&&session?.refresh_token)return session;
-  }catch(err){console.warn('Could not inspect '+storageName+' for the saved VillFam session:',err);}
+  try{window[storageName]?.setItem(SUPABASE_RECOVERY_KEY,raw);}catch(err){console.warn('Could not save the VillFam session recovery copy in '+storageName+'.',err);}
+ }
+}
+function clearSessionRecoveryCopy(){
+ for(const storageName of ['localStorage','sessionStorage']){
+  try{window[storageName]?.removeItem(SUPABASE_RECOVERY_KEY);}catch(_){}
+ }
+}
+function readPersistedSupabaseSession(){
+ // First read Supabase's own project-derived key. The second key is a small
+ // recovery copy written only after Supabase confirms a signed-in session.
+ for(const storageName of ['localStorage','sessionStorage']){
+  let storage=null;try{storage=window[storageName];}catch(err){console.warn('Could not access '+storageName+' for the saved VillFam session:',err);continue;}
+  for(const key of [SUPABASE_AUTH_STORAGE_KEY,SUPABASE_RECOVERY_KEY]){
+   try{
+    const raw=storage?.getItem(key);if(!raw)continue;
+    const parsed=JSON.parse(raw);const session=parsed?.currentSession||parsed?.session||parsed;
+    if(session?.access_token&&session?.refresh_token)return session;
+   }catch(err){console.warn('Could not read '+key+' from '+storageName+'.',err);}
+  }
  }
  return null;
 }
@@ -720,57 +739,55 @@ async function releaseSingleSession(){
 }
 async function initSupabase(){
  if(!window.supabase || !window.supabase.createClient){notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
- // Preserve the SDK's original project-derived storage key. Do not override the
- // storage adapter/key: that can strand a session saved by an earlier app build.
+ // Keep Supabase's normal project-derived storage key so sessions from earlier
+ // VillFam builds continue to restore. The recovery copy is only a fallback.
  state.client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  let resolveInitialSession;let initialSessionReceived=false;
  const initialSessionEvent=new Promise(resolve=>{resolveInitialSession=resolve;});
  state.client.auth.onAuthStateChange((event,session)=>{
+  if(session?.access_token&&session?.refresh_token)saveSessionRecoveryCopy(session);
   if(event==='INITIAL_SESSION'&&!initialSessionReceived){initialSessionReceived=true;resolveInitialSession(session||null);}
-  // Ignore the initial empty auth event. A real sign-out after the app has opened
-  // still returns the user to the sign-in view.
-  if(event==='SIGNED_OUT'&&state.user){stopSingleSessionHeartbeat();state.singleSessionId=null;state.pendingSession=null;showAuth();}
+  if(event==='SIGNED_OUT'){
+   clearSessionRecoveryCopy();
+   if(state.user){stopSingleSessionHeartbeat();state.singleSessionId=null;state.pendingSession=null;showAuth();}
+  }
  });
  let data=null;let error=null;
  try{const result=await state.client.auth.getSession();data=result.data;error=result.error;}
  catch(e){error=e;}
  let savedSession=data?.session||null;
- // The auth client emits INITIAL_SESSION after its storage adapter has completed
- // restoring. Wait for that event if getSession raced the initialization.
+ // Wait for Supabase's initial storage event if getSession raced client setup.
  if(!savedSession){
-  const initial=await Promise.race([initialSessionEvent,new Promise(resolve=>setTimeout(()=>resolve(undefined),1500))]);
+  const initial=await Promise.race([initialSessionEvent,new Promise(resolve=>setTimeout(()=>resolve(undefined),4000))]);
   if(initial)savedSession=initial;
  }
- // Last-resort recovery: pass an existing stored refresh token back through the
- // Supabase SDK so it can refresh/validate it and normalize the saved session.
+ // Recover from either Supabase's normal key or VillFam's sign-in recovery copy.
  if(!savedSession){
   const stored=readPersistedSupabaseSession();
   if(stored?.access_token&&stored?.refresh_token){
-   try{const recovered=await state.client.auth.setSession({access_token:stored.access_token,refresh_token:stored.refresh_token});if(recovered.error)error=recovered.error;else savedSession=recovered.data?.session||null;}
-   catch(e){error=e;}
+   try{
+    const recovered=await state.client.auth.setSession({access_token:stored.access_token,refresh_token:stored.refresh_token});
+    if(recovered.error)error=recovered.error;
+    else savedSession=recovered.data?.session||null;
+   }catch(e){error=e;}
   }
  }
- if(error)console.warn('Saved Supabase session restoration:',error);
  if(savedSession){
+  saveSessionRecoveryCopy(savedSession);
   try{await activateSingleSession(savedSession);await enterApp();}
   catch(err){
-   // Do not clear Supabase's persisted session just because the device-lease
-   // service is temporarily unavailable. Only a confirmed different active
-   // device requires OTP takeover.
    state.pendingSession=savedSession;$('authEmail').value=savedSession.user?.email||'';
    if(err.code==='SESSION_ACTIVE')showForceLogoutControls(savedSession,savedSession.user?.email,'This account is active on another device. Verify an email code to sign out that device.');
    else if(err.code==='SESSION_ID_INVALID')showResumeSessionControl(savedSession,'Your saved login is still present, but this browser could not identify its device session. Try resuming the saved login.');
    else{
-    // Preserve app access when the lease endpoint is unavailable or on an older
-    // deployment. The heartbeat will continue retrying; an explicit replacement
-    // response still signs this device out.
+    // A temporary Apps Script lease outage must not erase the saved Supabase login.
     console.warn('Device-session claim could not be confirmed; keeping the saved Supabase login.',err);
     state.user=savedSession.user;state.pendingSession=null;state.singleSessionId=getSingleDeviceId();startSingleSessionHeartbeat();await enterApp();
    }
   }
  }else{
   $('appView').style.display='none';$('authView').style.display='grid';
-  if(error)notice('VillFam could not restore the saved login. Your existing browser session was not cleared. Please check the browser storage settings or sign in again.','error');
+  if(error)notice('VillFam could not restore the saved login. Your browser session was not cleared. Please sign in again or check browser storage settings.','error');
  }
 }
 function showAuth(){state.pendingSession=null;state.forceLogoutOtpSent=false;state.forceLogoutEmail='';$('forceLogoutPanel').classList.add('hidden');$('resumeSessionButton').classList.add('hidden');stopSingleSessionHeartbeat();if(state.inboxRefreshTimer){clearTimeout(state.inboxRefreshTimer);state.inboxRefreshTimer=null;}if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
@@ -899,6 +916,73 @@ $('cancelMessageAction').addEventListener('click',()=>$('messageActionDialog').c
 $('deleteMessageMe').addEventListener('click',async()=>{const msg=state.pendingMessage;if(!msg)return;try{const {error}=await state.client.from('message_user_deletions').insert({message_id:msg.id,user_id:state.user.id});if(error&&error.code!=='23505')throw error;$('messageActionDialog').close();await loadMessages();toast('Message deleted for you. Other chat members can still see it.');}catch(e){toast('Could not delete message: '+errorText(e));}});
 $('deleteMessageEveryone').addEventListener('click',async()=>{const msg=state.pendingMessage;if(!msg)return;if(!await askConfirm('Delete for everyone?','This removes your message for every member of this conversation.','Delete for everyone'))return;try{const {data:path,error}=await state.client.rpc('villfam_delete_message_for_everyone',{p_message_id:msg.id});if(error)throw error;if(path){const {error:storageError}=await state.client.storage.from('chat-files').remove([path]);if(storageError)console.warn('Attachment cleanup warning:',storageError.message);}$('messageActionDialog').close();await loadMessages();await loadConversations();toast('Message deleted for everyone.');}catch(e){toast('Could not delete for everyone: '+errorText(e));}});
 
+// Compress only profile and group avatar uploads. Other chat attachments and camera captures
+// continue using their existing upload path without any image conversion.
+const AVATAR_COMPRESSION_TARGET_BYTES = 180 * 1024;
+const AVATAR_COMPRESSION_MAX_DIMENSION = 512;
+async function compressAvatarImage(file){
+ if(!file||!file.type?.startsWith('image/'))throw new Error('Choose a valid image file.');
+ const safeOriginalTypes=['image/jpeg','image/png','image/webp','image/gif'];
+ let source=null,objectUrl=null;
+ try{
+  if(typeof createImageBitmap==='function'){
+   try{source=await createImageBitmap(file);}catch(bitmapError){console.warn('ImageBitmap decode fallback:',bitmapError);}
+  }
+  if(!source){
+   objectUrl=URL.createObjectURL(file);
+   const img=new Image();img.decoding='async';img.src=objectUrl;
+   if(typeof img.decode==='function')await img.decode();
+   else await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('This image could not be opened by the browser.'));});
+   source=img;
+  }
+  const originalWidth=source.width||source.naturalWidth;
+  const originalHeight=source.height||source.naturalHeight;
+  if(!originalWidth||!originalHeight)throw new Error('The selected image has no readable dimensions.');
+  if(file.size<=AVATAR_COMPRESSION_TARGET_BYTES&&Math.max(originalWidth,originalHeight)<=AVATAR_COMPRESSION_MAX_DIMENSION&&safeOriginalTypes.includes(file.type))return file;
+
+  const canvas=document.createElement('canvas');
+  const ctx=canvas.getContext('2d',{alpha:true});
+  if(!ctx)throw new Error('Image compression is not supported by this browser.');
+  let bestBlob=null;
+  const dimensions=[512,448,384,320,256];
+  const qualities=[0.84,0.77,0.70,0.64,0.58];
+  const seenDimensions=new Set();
+  for(const maxDimension of dimensions){
+   const scale=Math.min(1,maxDimension/Math.max(originalWidth,originalHeight));
+   const width=Math.max(1,Math.round(originalWidth*scale));
+   const height=Math.max(1,Math.round(originalHeight*scale));
+   const dimensionKey=width+'x'+height;
+   if(seenDimensions.has(dimensionKey))continue;
+   seenDimensions.add(dimensionKey);
+   canvas.width=width;canvas.height=height;
+   for(const quality of qualities){
+    ctx.clearRect(0,0,width,height);
+    ctx.drawImage(source,0,0,width,height);
+    let blob=await new Promise((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(new Error('The browser could not compress this image.')),'image/webp',quality));
+    if(blob.type!=='image/webp'){
+     // JPEG is the compatibility fallback when this browser cannot encode WebP.
+     ctx.save();ctx.globalCompositeOperation='destination-over';ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);ctx.restore();
+     blob=await new Promise((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(new Error('The browser could not compress this image.')),'image/jpeg',quality));
+    }
+    if(!bestBlob||blob.size<bestBlob.size)bestBlob=blob;
+    if(blob.size<=AVATAR_COMPRESSION_TARGET_BYTES){
+     const mime=blob.type==='image/webp'?'image/webp':'image/jpeg';
+     const ext=mime==='image/webp'?'webp':'jpg';
+     const base=(file.name||'avatar').replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'_').slice(0,60)||'avatar';
+     return new File([blob],base+'.'+ext,{type:mime,lastModified:file.lastModified||Date.now()});
+    }
+   }
+  }
+  if(!bestBlob)throw new Error('The selected image could not be compressed.');
+  const mime=bestBlob.type==='image/webp'?'image/webp':'image/jpeg';
+  const ext=mime==='image/webp'?'webp':'jpg';
+  const base=(file.name||'avatar').replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'_').slice(0,60)||'avatar';
+  return new File([bestBlob],base+'.'+ext,{type:mime,lastModified:file.lastModified||Date.now()});
+ }finally{
+  if(source&&typeof source.close==='function')source.close();
+  if(objectUrl)URL.revokeObjectURL(objectUrl);
+ }
+}
 function renderGroupPhotoPreview(url,title){
  const preview=$('groupPhotoPreview');preview.replaceChildren();if(url){const img=document.createElement('img');img.src=url;img.alt='';preview.append(img);}else preview.textContent=initials(title||'Family group');
 }
@@ -913,7 +997,6 @@ $('chooseGroupPhotoButton').addEventListener('click',()=>$('groupPhotoInput').cl
 $('groupPhotoInput').addEventListener('change',e=>{
  const file=e.target.files?.[0];if(!file)return;const allowed=['image/jpeg','image/png','image/webp','image/gif'];
  if(!allowed.includes(file.type)){e.target.value='';toast('Choose a JPG, PNG, WebP, or GIF image.');return;}
- if(file.size>5*1024*1024){e.target.value='';toast('Group photos must be 5 MB or smaller.');return;}
  state.groupPhotoFile=file;if(state.groupPhotoPreviewUrl)URL.revokeObjectURL(state.groupPhotoPreviewUrl);state.groupPhotoPreviewUrl=URL.createObjectURL(file);renderGroupPhotoPreview(state.groupPhotoPreviewUrl,$('groupTitleInput').value);
 });
 $('cancelGroupDetails').addEventListener('click',()=>{$('editGroupDetailsDialog').close();state.groupPhotoFile=null;if(state.groupPhotoPreviewUrl){URL.revokeObjectURL(state.groupPhotoPreviewUrl);state.groupPhotoPreviewUrl=null;}});
@@ -922,7 +1005,7 @@ $('saveGroupDetails').addEventListener('click',async()=>{
  const btn=$('saveGroupDetails');setBusy(btn,true,'Saving…');let uploadedPath=null,detailsSaved=false;
  try{
   let avatarUrl=null;const file=state.groupPhotoFile;
-  if(file){const ext=file.type==='image/jpeg'?'jpg':file.type.split('/')[1];uploadedPath=state.user.id+'/groups/'+conv.id+'/'+Date.now()+'.'+ext;const {error:uploadError}=await state.client.storage.from('avatars').upload(uploadedPath,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;avatarUrl=state.client.storage.from('avatars').getPublicUrl(uploadedPath).data.publicUrl;}
+  if(file){const compactFile=await compressAvatarImage(file);const ext=compactFile.type==='image/jpeg'?'jpg':'webp';uploadedPath=state.user.id+'/groups/'+conv.id+'/'+Date.now()+'.'+ext;const {error:uploadError}=await state.client.storage.from('avatars').upload(uploadedPath,compactFile,{contentType:compactFile.type,upsert:false});if(uploadError)throw uploadError;avatarUrl=state.client.storage.from('avatars').getPublicUrl(uploadedPath).data.publicUrl;}
   const {error}=await state.client.rpc('villfam_update_group_details',{p_conversation_id:conv.id,p_title:title,p_group_avatar_url:avatarUrl});if(error)throw error;detailsSaved=true;
   $('editGroupDetailsDialog').close();state.groupPhotoFile=null;if(state.groupPhotoPreviewUrl){URL.revokeObjectURL(state.groupPhotoPreviewUrl);state.groupPhotoPreviewUrl=null;}
   try{await loadConversations();}catch(refreshError){console.warn('Group details were saved, but the chat list could not refresh:',refreshError);}
@@ -1093,7 +1176,7 @@ function closeCamera(){if(state.cameraStream){state.cameraStream.getTracks().for
 $('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEventListener('click',closeCamera);$('switchCamera').addEventListener('click',async()=>{if(state.cameraSwitchBusy)return;state.cameraSwitchBusy=true;setBusy($('switchCamera'),true,'Switching…');try{await startCamera(state.cameraFacing==='environment'?'user':'environment');}catch(err){toast('Could not switch camera: '+errorText(err));}finally{state.cameraSwitchBusy=false;setBusy($('switchCamera'),false);}});
 $('takePhoto').addEventListener('click',async()=>{const video=$('cameraVideo');if(!video.videoWidth){toast('Camera is not ready yet.');return;}const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);canvas.toBlob(async blob=>{if(blob){closeCamera();await sendAttachment(new File([blob],'villfam-photo.jpg',{type:'image/jpeg'}));}},'image/jpeg',.88);});
 
-$('profileButton').addEventListener('click',()=>$('avatarInput').click());$('avatarInput').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;e.target.value='';if(!file.type.startsWith('image/')){toast('Choose an image file.');return;}if(file.size>5*1024*1024){toast('Profile pictures must be 5 MB or smaller.');return;}try{const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path=state.user.id+'/'+Date.now()+'.'+ext;const {error:upErr}=await state.client.storage.from('avatars').upload(path,file,{contentType:file.type,upsert:true});if(upErr)throw upErr;const {data}=state.client.storage.from('avatars').getPublicUrl(path);const {error}=await state.client.from('profiles').update({avatar_url:data.publicUrl,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.avatar_url=data.publicUrl;updateProfileHeader();toast('Profile picture updated.');}catch(err){toast('Profile picture failed: '+errorText(err));}});
+$('profileButton').addEventListener('click',()=>$('avatarInput').click());$('avatarInput').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;e.target.value='';if(!file.type.startsWith('image/')){toast('Choose an image file.');return;}try{const compactFile=await compressAvatarImage(file);const ext=compactFile.type==='image/jpeg'?'jpg':'webp';const path=state.user.id+'/'+Date.now()+'.'+ext;const {error:upErr}=await state.client.storage.from('avatars').upload(path,compactFile,{contentType:compactFile.type,upsert:true});if(upErr)throw upErr;const {data}=state.client.storage.from('avatars').getPublicUrl(path);const {error}=await state.client.from('profiles').update({avatar_url:data.publicUrl,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.avatar_url=data.publicUrl;updateProfileHeader();toast('Profile picture updated.');}catch(err){toast('Profile picture failed: '+errorText(err));}});
 $('editProfileButton').addEventListener('click',()=>{$('profileNicknameInput').value=state.profile?.nickname||'';$('profileEditDialog').showModal();setTimeout(()=>$('profileNicknameInput').focus(),20);});
 $('profileEditCancel').addEventListener('click',()=>$('profileEditDialog').close());
 $('profileEditSave').addEventListener('click',async()=>{const nickname=$('profileNicknameInput').value.trim().slice(0,40);if(!nickname){toast('Nickname cannot be empty.');return;}const btn=$('profileEditSave');setBusy(btn,true,'Saving…');try{const {error}=await state.client.from('profiles').update({nickname,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error)throw error;state.profile.nickname=nickname;updateProfileHeader();await loadPeople();await loadConversations();$('profileEditDialog').close();toast('Nickname updated.');}catch(err){toast('Could not update nickname: '+errorText(err));}finally{setBusy(btn,false);}});
@@ -1389,7 +1472,7 @@ async function switchCallCamera(){
 }
 $('switchCallCameraButton').addEventListener('click',switchCallCamera);
 
-initSupabase().catch(err=>notice('Could not initialize VillFam: '+errorText(err),'error'));
+initSupabase().catch(err=>{console.error('VillFam initialization failed:',err);$('appView').style.display='none';$('authView').style.display='grid';notice('Could not initialize VillFam: '+errorText(err),'error');}).finally(()=>document.documentElement.classList.remove('villfam-session-restoring'));
 })();
 </script>
 </body>
