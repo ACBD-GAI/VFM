@@ -313,6 +313,7 @@ const SUPABASE_URL = 'https://zjuivpsvhuzceltszjut.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SA_OZCUkyHiWR6O7CwYYhQ_DpP9m3ah';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9W2vvnNOAJO9fDJBqmOuLUFJHxMHpxOrnuSgAJpmjluCIUP66ObqWoOTCkT8vcv3q3Q/exec';
 const SESSION_DEVICE_KEY = 'villfam_single_device_session_v1';
+const SUPABASE_AUTH_STORAGE_KEY = 'sb-zjuivpsvhuzceltszjut-auth-token';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
 const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null };
@@ -662,12 +663,22 @@ async function currentAccessToken(){const {data,error}=await state.client.auth.g
 async function activateSingleSession(session){
  if(!session?.user||!session.access_token)throw new Error('Supabase did not return a valid login session.');
  const sid=getSingleDeviceId();
- try{await appsScriptRequest({action:'claimSession',accessToken:session.access_token,sessionId:sid});}
- catch(err){
-  // An explicit conflict requires the emailed takeover code. A temporary Apps Script
-  // timeout/service error must never discard a valid Supabase login on page refresh.
-  if(['SESSION_ACTIVE','SESSION_AUTH_REQUIRED','SESSION_ID_INVALID'].includes(err.code))throw err;
-  console.warn('Session lease check is temporarily unavailable; keeping the saved Supabase login and retrying in the background.',err);
+ try{
+  await appsScriptRequest({action:'claimSession',accessToken:session.access_token,sessionId:sid});
+ }catch(err){
+  // A token can be near expiry after a long idle period. Refresh it once before
+  // treating the saved login as invalid; never sign out merely because this check
+  // or the Apps Script service is temporarily unavailable.
+  if(err.code==='SESSION_AUTH_REQUIRED'){
+   const refreshed=await state.client.auth.refreshSession();
+   if(refreshed.error||!refreshed.data?.session?.access_token)throw err;
+   session=refreshed.data.session;
+   await appsScriptRequest({action:'claimSession',accessToken:session.access_token,sessionId:sid});
+  }else if(['SESSION_ACTIVE','SESSION_ID_INVALID'].includes(err.code)){
+   throw err;
+  }else{
+   console.warn('Session lease check is temporarily unavailable; keeping the saved Supabase login and retrying in the background.',err);
+  }
  }
  state.singleSessionId=sid;state.user=session.user;state.pendingSession=null;startSingleSessionHeartbeat();
 }
@@ -697,16 +708,30 @@ async function releaseSingleSession(){
 }
 async function initSupabase(){
  if(!window.supabase || !window.supabase.createClient){notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
- state.client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ // This is the same storage key Supabase derives from this project by default.
+ // Setting it explicitly prevents an accidental key change from hiding saved sessions.
+ state.client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:SUPABASE_AUTH_STORAGE_KEY}});
  state.client.auth.onAuthStateChange((event,session)=>{
-  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;state.pendingSession=null;showAuth();}
+  // Ignore any initial auth event that arrives before the saved session bootstrap
+  // has assigned state.user. Once signed in, real SIGNED_OUT events still return
+  // the user to the login screen as before.
+  if(event==='SIGNED_OUT'&&state.user){stopSingleSessionHeartbeat();state.singleSessionId=null;state.pendingSession=null;showAuth();}
  });
- let data=null;let error=null;try{const result=await state.client.auth.getSession();data=result.data;error=result.error;}catch(e){error=e;}
+ let data=null;let error=null;
+ // Supabase restores its persisted session asynchronously. Re-read briefly if the
+ // first read races that restoration; do not interpret an early empty result as logout.
+ for(let attempt=0;attempt<3;attempt++){
+  try{const result=await state.client.auth.getSession();data=result.data;error=result.error;}
+  catch(e){error=e;}
+  if(data?.session||attempt===2)break;
+  await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));
+ }
  if(error)console.warn('Saved Supabase session could not be read yet:',error);
  if(data?.session){
   try{await activateSingleSession(data.session);await enterApp();}
   catch(err){showAuth();state.pendingSession=data.session;$('authEmail').value=data.session.user?.email||'';if(err.code==='SESSION_ACTIVE')showForceLogoutControls(data.session,data.session.user?.email,'This account is active on another device. Verify an email code to sign out that device.');else showResumeSessionControl(data.session,'Your saved VillFam login is still present. The device session could not be checked right now; you have not been signed out.');}
- }else if(error){notice('VillFam could not read the saved login yet. Refresh once your connection is stable; your account was not signed out.','error');}
+ }else if(error){$('authView').style.display='grid';$('appView').style.display='none';notice('VillFam could not read the saved login yet. Refresh once your connection is stable; your account was not signed out.','error');}
+ else{$('authView').style.display='grid';$('appView').style.display='none';}
 }
 function showAuth(){state.pendingSession=null;state.forceLogoutOtpSent=false;state.forceLogoutEmail='';$('forceLogoutPanel').classList.add('hidden');$('resumeSessionButton').classList.add('hidden');stopSingleSessionHeartbeat();if(state.inboxRefreshTimer){clearTimeout(state.inboxRefreshTimer);state.inboxRefreshTimer=null;}if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
 async function enterApp(){
@@ -930,60 +955,82 @@ $('voiceButton').addEventListener('click',async()=>{
  }catch(err){toast('Microphone permission failed: '+errorText(err));}
 });
 
-function cameraSideFromLabel(label){return /back|rear|environment|world/i.test(label||'')?'environment':/front|user|facetime|selfie/i.test(label||'')?'user':null;}
+function cameraSideFromLabel(label){
+ const value=String(label||'').toLowerCase();
+ if(/\b(back|rear|environment|world)\b/.test(value)||/facing\s*back/.test(value))return 'environment';
+ if(/\b(front|user|facetime|selfie)\b/.test(value)||/facing\s*front/.test(value))return 'user';
+ return null;
+}
 async function acquireFacingCameraStream(targetFacing,currentTrack){
- const quality={width:{ideal:1280},height:{ideal:720}};let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);}catch(_){}
- const currentSettings=currentTrack?.getSettings?.()||{};const currentId=currentSettings.deviceId||'';
- const currentFacing=currentSettings.facingMode||state.cameraFacing;
- let fresh=null,lastError=null,selectedDevice=null;
- const acceptStream=(stream,device)=>{
-  const track=stream?.getVideoTracks?.()[0];if(!track){stream?.getTracks?.().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
-  const settings=track.getSettings?.()||{};const selected=device||devices.find(d=>d.deviceId===settings.deviceId);
-  const labelledSide=cameraSideFromLabel(selected?.label);const actualFacing=settings.facingMode||labelledSide||targetFacing;
-  if((settings.facingMode&&settings.facingMode!==targetFacing)||(labelledSide&&labelledSide!==targetFacing)){stream.getTracks().forEach(t=>t.stop());throw new Error('The browser selected the wrong camera. Please try switching again.');}
-  if(currentTrack&&currentId&&settings.deviceId===currentId&&settings.facingMode!==targetFacing){stream.getTracks().forEach(t=>t.stop());throw new Error('Only one usable camera was found, or the browser kept the same camera.');}
-  return {stream,track,facing:actualFacing,deviceId:settings.deviceId||selected?.deviceId||''};
+ const quality={width:{ideal:1280},height:{ideal:720}};
+ const currentSettings=currentTrack?.getSettings?.()||{};
+ const currentId=currentSettings.deviceId||'';
+ let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);}catch(_){}
+ let lastError=null;
+ const stopStream=stream=>stream?.getTracks?.().forEach(track=>track.stop());
+ const acceptStream=(stream,preferredDevice,strictFacing)=>{
+  const track=stream?.getVideoTracks?.()[0];
+  if(!track){stopStream(stream);throw new Error('The selected camera did not return a video track.');}
+  const settings=track.getSettings?.()||{};
+  const selected=preferredDevice||devices.find(device=>device.deviceId===settings.deviceId);
+  const selectedId=settings.deviceId||selected?.deviceId||'';
+  const labelledSide=cameraSideFromLabel(selected?.label);
+  const reportedSide=(settings.facingMode==='user'||settings.facingMode==='environment')?settings.facingMode:null;
+  const actualFacing=reportedSide||labelledSide||targetFacing;
+  if(currentTrack&&currentId&&selectedId&&selectedId===currentId){stopStream(stream);throw new Error('The browser kept the same camera. Choose another available camera or check camera permissions.');}
+  if(strictFacing&&actualFacing!==targetFacing){stopStream(stream);throw new Error('The browser did not select the requested '+(targetFacing==='user'?'front':'rear')+' camera.');}
+  return {stream,track,facing:actualFacing,deviceId:selectedId};
  };
- // On first open, request the intended side directly (important on phones).
- if(!currentTrack){
-  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...quality},audio:false});return acceptStream(fresh,null);}
-  catch(e){lastError=e;fresh=null;}
-  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...quality},audio:false});
-   const s=fresh.getVideoTracks()[0]?.getSettings?.();if(s?.facingMode&&s.facingMode!==targetFacing){fresh.getTracks().forEach(t=>t.stop());fresh=null;}else return acceptStream(fresh,null);
-  }catch(e){lastError=e;fresh=null;}
- }
- const candidates=devices.filter(d=>{
-  if(!d.deviceId||d.deviceId===currentId)return false;
-  const side=cameraSideFromLabel(d.label);return !side||side===targetFacing;
+ const attempt=async(videoConstraints,device,strictFacing=true)=>{
+  const stream=await navigator.mediaDevices.getUserMedia({video:{...videoConstraints,...quality},audio:false});
+  return acceptStream(stream,device,strictFacing);
+ };
+ // Ask the browser for the requested physical side first. Do not use
+ // applyConstraints() on the existing track: most browsers do not switch the
+ // physical camera with that call, even when it resolves successfully.
+ try{return await attempt({facingMode:{exact:targetFacing}},null,!!currentTrack);}
+ catch(error){lastError=error;}
+ // Fall back to the actual enumerated camera IDs. This handles desktop webcams
+ // and mobile browsers whose facingMode constraint is incomplete.
+ const candidates=devices.filter(device=>{
+  if(!device.deviceId||(currentId&&device.deviceId===currentId))return false;
+  const side=cameraSideFromLabel(device.label);
+  return side===null||side===targetFacing;
  }).sort((a,b)=>{
   const as=cameraSideFromLabel(a.label),bs=cameraSideFromLabel(b.label);
-  const targetDiff=Number(bs===targetFacing)-Number(as===targetFacing);if(targetDiff)return targetDiff;
-  return Number(!!b.label)-Number(!!a.label);
+  const rank=side=>side===targetFacing?0:side===null?1:2;
+  return rank(as)-rank(bs)||Number(!!b.label)-Number(!!a.label);
  });
  for(const device of candidates){
-  try{fresh=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:device.deviceId},...quality},audio:false});selectedDevice=device;return acceptStream(fresh,device);}
-  catch(e){lastError=e;fresh=null;}
+  try{return await attempt({deviceId:{exact:device.deviceId}},device,!!currentTrack);}
+  catch(error){lastError=error;}
  }
- if(currentTrack){
-  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...quality},audio:false});return acceptStream(fresh,null);}
-  catch(e){lastError=e;fresh=null;}
-  try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...quality},audio:false});return acceptStream(fresh,null);}
-  catch(e){lastError=e;fresh=null;}
+ // On first open only, permit the sole available webcam even when it does not
+ // advertise front/rear metadata. On a switch, never report success unless the
+ // browser selected a different device or confirmed the requested side.
+ if(!currentTrack){
+  try{return await attempt({facingMode:{ideal:targetFacing}},null,false);}
+  catch(error){lastError=error;}
  }
- throw lastError||new Error('No alternate camera is available.');
+ throw lastError||new Error('No alternate camera is available on this device.');
 }
-async function applyCameraFacingIfSupported(track,targetFacing){
- if(!track||typeof track.applyConstraints!=='function')return false;
- try{const before=track.getSettings?.()||{};await track.applyConstraints({facingMode:{exact:targetFacing}});const after=track.getSettings?.()||{};return after.facingMode===targetFacing||!!(before.deviceId&&after.deviceId&&before.deviceId!==after.deviceId);}
- catch(_){return false;}
-}
-async function openCamera(){if(!navigator.mediaDevices?.getUserMedia){toast('Camera is not available in this browser.');return;}try{$('cameraDialog').showModal();await startCamera('environment');}catch(err){toast('Camera permission failed: '+errorText(err));$('cameraDialog').close();}}
 async function startCamera(facing){
  const current=state.cameraStream?.getVideoTracks?.()[0];
- if(current&&await applyCameraFacingIfSupported(current,facing)){
-  state.cameraFacing=facing;$('cameraVideo').classList.toggle('mirror-camera',facing==='user');await $('cameraVideo').play().catch(()=>{});$('switchCamera').textContent=facing==='user'?'Switch to rear camera':'Switch to front camera';return;
- }
- const result=await acquireFacingCameraStream(facing,current);const previous=state.cameraStream;state.cameraStream=result.stream;state.cameraFacing=result.facing;$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});if(previous)previous.getTracks().forEach(t=>t.stop());$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
+ const result=await acquireFacingCameraStream(facing,current);
+ const previous=state.cameraStream;
+ state.cameraStream=result.stream;
+ state.cameraFacing=result.facing;
+ $('cameraVideo').srcObject=state.cameraStream;
+ $('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');
+ await $('cameraVideo').play().catch(()=>{});
+ // Stop the previous camera only after the new stream has been attached.
+ if(previous&&previous!==state.cameraStream)previous.getTracks().forEach(track=>track.stop());
+ $('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
+}
+async function openCamera(){
+ if(!navigator.mediaDevices?.getUserMedia){toast('Camera is not available in this browser.');return;}
+ try{$('cameraDialog').showModal();await startCamera('environment');}
+ catch(err){toast('Camera permission failed: '+errorText(err));if($('cameraDialog').open)$('cameraDialog').close();}
 }
 function closeCamera(){if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null;}$('cameraVideo').srcObject=null;if($('cameraDialog').open)$('cameraDialog').close();}
 $('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEventListener('click',closeCamera);$('switchCamera').addEventListener('click',async()=>{if(state.cameraSwitchBusy)return;state.cameraSwitchBusy=true;setBusy($('switchCamera'),true,'Switching…');try{await startCamera(state.cameraFacing==='environment'?'user':'environment');}catch(err){toast('Could not switch camera: '+errorText(err));}finally{state.cameraSwitchBusy=false;setBusy($('switchCamera'),false);}});
@@ -1250,21 +1297,21 @@ async function switchCallCamera(){
  state.cameraSwitchBusy=true;setBusy($('switchCallCameraButton'),true,'Switching…');
  const settings=oldTrack.getSettings?.()||{};const currentFacing=settings.facingMode||state.facingMode;const next=currentFacing==='user'?'environment':'user';
  try{
-  // Prefer changing the active track in place; this is more reliable on iOS,
-  // where opening a second camera while the first is active can fail.
-  const switchedInPlace=await applyCameraFacingIfSupported(oldTrack,next);
-  if(switchedInPlace){state.facingMode=next;}
-  if(!switchedInPlace){
-   const result=await acquireFacingCameraStream(next,oldTrack);const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
-   const changed=[];
-   try{
-    for(const pc of state.peerConnections.values()){
-     const sender=pc.getSenders().find(s=>s.track?.kind==='video');
-     if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
-    }
-   }catch(replaceError){for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}result.stream.getTracks().forEach(t=>t.stop());throw replaceError;}
-   state.localCallStream.removeTrack(oldTrack);state.localCallStream.addTrack(newTrack);oldTrack.stop();state.facingMode=result.facing;
+  // Always acquire a distinct camera track. applyConstraints(facingMode) can
+  // resolve while leaving the physical camera unchanged on Chrome and Safari.
+  const result=await acquireFacingCameraStream(next,oldTrack);const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
+  const changed=[];
+  try{
+   for(const pc of state.peerConnections.values()){
+    const sender=pc.getSenders().find(s=>s.track?.kind==='video');
+    if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
+   }
+  }catch(replaceError){
+   for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}
+   result.stream.getTracks().forEach(t=>t.stop());
+   throw replaceError;
   }
+  state.localCallStream.removeTrack(oldTrack);state.localCallStream.addTrack(newTrack);oldTrack.stop();state.facingMode=result.facing;
   showVideoOnTile(state.user.id,state.localCallStream,true);
   $('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';
   toast(state.facingMode==='user'?'Front camera is on.':'Back camera is on.');
