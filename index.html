@@ -148,33 +148,28 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
 
-#bootView{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 12%,#e7efff,transparent 36%),radial-gradient(circle at 90% 90%,#e5fff2,transparent 33%),var(--bg)}
-.boot-card{width:min(100%,390px);padding:30px 26px;border:1px solid var(--line);border-radius:25px;background:#fff;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
-.boot-card .brand{align-self:center}.boot-card p{margin:0;color:var(--muted);font-size:13px}
-.boot-spinner{width:27px;height:27px;border:3px solid #dfe7fa;border-top-color:var(--blue);border-radius:50%;animation:villfamBootSpin .8s linear infinite;margin-top:12px}
-@keyframes villfamBootSpin{to{transform:rotate(360deg)}}
-.invite-top-button{border:1px solid #d8e7df;background:#eefaf3;color:#147849;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:850;display:inline-flex;align-items:center;gap:7px}
-.invite-top-button span{min-width:19px;height:19px;display:grid;place-items:center;border-radius:999px;background:#159b65;color:#fff;font-size:10px}
-.group-invitation-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:15px;padding:12px;background:#fff}
-.group-invitation-copy{min-width:0;flex:1}.group-invitation-title{font-size:13px;font-weight:850;color:var(--ink)}
-.group-invitation-meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
-.group-invitation-actions{display:flex;gap:6px;flex:none}.group-invitation-actions button{padding:8px 10px;border-radius:10px;font-size:11px;font-weight:800}
-.group-invitation-actions .accept-invite{border:0;background:#e5f8ed;color:#087747}.group-invitation-actions .decline-invite{border:1px solid #f0d7da;background:#fff8f8;color:#b43b48}
-@media(max-width:760px){.topbar{gap:7px}.invite-top-button{padding:7px 8px;font-size:10px}.group-invitation-item{align-items:flex-start;flex-wrap:wrap}.group-invitation-copy{min-width:calc(100% - 55px)}.group-invitation-actions{width:100%;justify-content:flex-end}}
+/* Live group invitation inbox and membership management */
+.side-actions .invite-trigger{position:relative;overflow:visible}
+.invite-count{position:absolute;right:-5px;top:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:#e34b58;color:#fff;border:2px solid #fff;font-size:9px;font-weight:900;display:grid;place-items:center;line-height:1}
+.invite-count.hidden{display:none!important}
+.group-invite-card,.group-roster-row{display:flex;align-items:center;gap:10px;padding:11px;border:1px solid #e8edf5;border-radius:14px;background:#fff;margin:5px 0}
+.group-invite-copy,.group-roster-copy{min-width:0;flex:1}
+.group-invite-title,.group-roster-name{font-size:13px;font-weight:800;color:#26334a}
+.group-invite-meta,.group-roster-meta{font-size:11px;color:#8190a5;margin-top:3px;line-height:1.4;overflow-wrap:anywhere}
+.group-invite-actions{display:flex;gap:6px;flex:none}
+.group-invite-actions button,.group-roster-row button{padding:8px 10px;font-size:11px;border-radius:10px;white-space:nowrap}
+.group-manage-section{display:flex;align-items:center;justify-content:space-between;margin:12px 2px 5px}
+.group-roster-row .avatar{width:35px;height:35px}
+.group-roster-tag{font-size:9px;font-weight:850;border-radius:99px;padding:4px 7px;background:#edf3ff;color:#345bb0}
+.group-roster-tag.pending{background:#fff5df;color:#94630b}
+.group-roster-row .danger-button{padding:7px 9px}
+@media(max-width:760px){.side-actions{gap:4px}.side-actions .icon-btn{width:34px;height:34px}.group-invite-card,.group-roster-row{padding:9px}.group-invite-actions button{padding:7px 8px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 <body>
-<section id="bootView" aria-live="polite">
-  <div class="boot-card">
-    <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
-    <div class="boot-spinner" aria-hidden="true"></div>
-    <strong>Restoring your session…</strong>
-    <p>Checking your secure VillFam login.</p>
-  </div>
-</section>
-<section id="authView" style="display:none">
+<section id="authView">
   <div class="auth-card">
     <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
     <h1 id="authHeading">Welcome back</h1>
@@ -216,7 +211,6 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
   <header class="topbar">
     <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
     <div class="spacer"></div><span class="online-dot">Connected</span>
-     <button id="groupInvitationsButton" class="invite-top-button hidden" type="button" title="Group invitations">Invitations <span id="groupInvitationCount">0</span></button>
     <div class="profile-area">
       <button id="profileButton" class="profile-button" type="button"><div id="topAvatar" class="avatar">V</div><span id="topNickname" class="profile-name">VillFam member</span></button>
       <button id="editProfileButton" class="icon-btn" title="Edit nickname">✎</button>
@@ -225,14 +219,14 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
   </header>
   <main id="mainLayout" class="layout">
    <aside class="sidebar">
-    <div class="side-title"><h2>Chats</h2><div class="side-actions"><button id="newChatButton" class="icon-btn" title="New chat">＋</button><button id="newGroupButton" class="icon-btn" title="New group">♧</button></div></div>
+    <div class="side-title"><h2>Chats</h2><div class="side-actions"><button id="groupInvitationsButton" class="icon-btn invite-trigger" title="Group invitations">✉<span id="groupInvitationCount" class="invite-count hidden">0</span></button><button id="newChatButton" class="icon-btn" title="New chat">＋</button><button id="newGroupButton" class="icon-btn" title="New group">♧</button></div></div>
     <div class="search"><span>⌕</span><input id="searchChats" placeholder="Search conversations"></div>
     <div id="conversationList" class="conv-list"><div class="empty">Loading your chats…</div></div>
    </aside>
    <section class="chat">
     <div id="chatEmpty" class="chat-empty"><div class="big">💬</div><h2>Your family, one chat away</h2><p>Choose a conversation or start a new chat. Your family messages stay private to their members.</p><button id="emptyNewChat" class="primary" type="button">Start a conversation</button></div>
     <div id="chatActive" class="hidden" style="display:flex;flex-direction:column;min-height:0;flex:1">
-      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div><span id="chatLiveBadge" class="chat-live-badge hidden"></span></div><div class="chat-tools"><button id="joinOngoingCallBtn" class="join-ongoing-call-btn hidden" type="button">Join live call</button><button id="addMembersButton" class="icon-btn hidden" title="Add group members" type="button">♧</button><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
+      <header class="chat-head"><button id="backToChats" class="icon-btn mobile-back" type="button">‹</button><div id="chatAvatar" class="avatar">V</div><div class="chat-head-copy"><strong id="chatTitle">Conversation</strong><div id="chatSubtitle" class="muted"> </div><span id="chatLiveBadge" class="chat-live-badge hidden"></span></div><div class="chat-tools"><button id="joinOngoingCallBtn" class="join-ongoing-call-btn hidden" type="button">Join live call</button><button id="manageGroupButton" class="icon-btn hidden" title="View group members and invitations" type="button">👥</button><button id="addMembersButton" class="icon-btn hidden" title="Invite group members" type="button">＋</button><button id="callAudioBtn" class="icon-btn" title="Start audio call" type="button">☎</button><button id="callVideoBtn" class="icon-btn" title="Start video call" type="button">▣</button><button id="chatActionsBtn" class="icon-btn" title="Conversation options" type="button">⋯</button></div></header>
       <div id="messages" class="messages"></div>
       <div class="hint">Enter to send · Shift + Enter for a new line</div>
       <form id="composer" class="composer">
@@ -249,7 +243,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 
 <dialog id="cameraDialog"><h3 style="margin:0 0 12px">Take a picture</h3><video id="cameraVideo" autoplay playsinline></video><div class="dialog-actions"><button id="closeCamera" class="secondary" type="button">Cancel</button><div style="display:flex;gap:8px"><button id="switchCamera" class="secondary" type="button">Switch camera</button><button id="takePhoto" class="primary" type="button">Capture</button></div></div></dialog>
 <dialog id="messageActionDialog" class="action-dialog"><h3>Message options</h3><p id="messageActionLabel">Choose what to do with this message.</p><div class="actions"><button id="deleteMessageMe" class="secondary" type="button">Delete for me</button><button id="deleteMessageEveryone" class="danger-button hidden" type="button">Delete for everyone</button><button id="cancelMessageAction" class="secondary" type="button">Cancel</button></div></dialog>
-<dialog id="conversationActionDialog" class="action-dialog"><h3 id="conversationActionTitle">Conversation options</h3><p id="conversationActionText"></p><div class="actions"><button id="addMembersFromMenuButton" class="secondary hidden" type="button">Add members</button><button id="deleteConversationMe" class="danger-button hidden" type="button">Delete conversation for me</button><button id="leaveGroupButton" class="danger-button hidden" type="button">Leave group</button><button id="deleteGroupButton" class="danger-button hidden" type="button">Delete group for everyone</button><button id="cancelConversationAction" class="secondary" type="button">Cancel</button></div></dialog>
+<dialog id="conversationActionDialog" class="action-dialog"><h3 id="conversationActionTitle">Conversation options</h3><p id="conversationActionText"></p><div class="actions"><button id="manageGroupFromMenuButton" class="secondary hidden" type="button">Manage members & invitations</button><button id="addMembersFromMenuButton" class="secondary hidden" type="button">Invite members</button><button id="deleteConversationMe" class="danger-button hidden" type="button">Delete conversation for me</button><button id="leaveGroupButton" class="danger-button hidden" type="button">Leave group</button><button id="deleteGroupButton" class="danger-button hidden" type="button">Delete group for everyone</button><button id="cancelConversationAction" class="secondary" type="button">Cancel</button></div></dialog>
 <dialog id="incomingCallDialog" class="action-dialog"><div class="incoming-call-card"><div class="incoming-call-icon" id="incomingCallIcon">📹</div><h3 id="incomingCallTitle">Incoming call</h3><p id="incomingCallText">Someone is calling you.</p><div class="call-note">You can answer without opening the conversation.</div><div class="incoming-call-actions"><button id="declineIncomingCall" class="danger-button" type="button">Decline</button><button id="answerIncomingCall" class="primary" type="button">Answer</button></div></div></dialog>
 <dialog id="callDialog" class="call-dialog"><div style="display:flex;align-items:center;gap:12px"><h3 id="callTitle">VillFam call</h3><span style="flex:1"></span><button id="closeCallDialog" class="icon-btn" type="button" title="Leave call">×</button></div><div id="callGrid" class="call-grid"></div><div id="callStatus" class="call-status">Connecting…</div><div class="call-controls"><button id="muteCallButton" type="button">Mute mic</button><button id="toggleCameraButton" type="button">Turn camera off</button><button id="switchCallCameraButton" type="button">⇄ Switch camera</button><button id="hangupCallButton" class="hangup" type="button">Leave call</button></div></dialog>
 
@@ -265,9 +259,18 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 </dialog>
 <dialog id="groupInvitationsDialog" class="picker-dialog">
  <div class="picker-head"><h3>Group invitations</h3><span class="spacer"></span><button id="closeGroupInvitations" class="icon-btn" type="button" aria-label="Close">×</button></div>
- <p class="muted small">Accept an invitation to join the group, or decline it.</p>
- <div id="groupInvitationList" class="picker-list"><div class="picker-empty">No pending invitations.</div></div>
- <div class="dialog-buttons"><button id="closeGroupInvitationsDone" class="secondary" type="button">Done</button></div>
+ <p class="muted small">Accept an invitation to join a group. Declining keeps you out of the conversation.</p>
+ <div id="groupInvitationsList" class="picker-list"><div class="picker-empty">Loading invitations…</div></div>
+ <div class="dialog-buttons"><button id="refreshGroupInvitations" class="secondary" type="button">Refresh list</button><button id="doneGroupInvitations" class="primary" type="button">Done</button></div>
+</dialog>
+<dialog id="groupManageDialog" class="picker-dialog">
+ <div class="picker-head"><h3 id="groupManageTitle">Group members</h3><span class="spacer"></span><button id="closeGroupManage" class="icon-btn" type="button" aria-label="Close">×</button></div>
+ <p id="groupManageHint" class="muted small">Current members and pending invitations.</p>
+ <div class="group-manage-section"><strong>Members</strong><span id="groupMemberCount" class="muted small"></span></div>
+ <div id="groupMemberRoster" class="picker-list"><div class="picker-empty">Loading members…</div></div>
+ <div id="groupPendingSection" class="group-manage-section"><strong>Pending invitations</strong><span id="groupPendingCount" class="muted small"></span></div>
+ <div id="groupPendingRoster" class="picker-list"><div class="picker-empty">No pending invitations.</div></div>
+ <div class="dialog-buttons"><button id="groupManageInvite" class="secondary" type="button">Invite members</button><button id="doneGroupManage" class="primary" type="button">Done</button></div>
 </dialog>
 <dialog id="confirmDialog" class="action-dialog"><h3 id="confirmTitle">Please confirm</h3><p id="confirmMessage"></p><div class="dialog-buttons"><button id="confirmCancel" class="secondary" type="button">Cancel</button><button id="confirmAccept" class="danger-button" type="button">Continue</button></div></dialog>
 <dialog id="profileEditDialog" class="action-dialog"><h3>Edit nickname</h3><p>Your family will see this name in chats.</p><input id="profileNicknameInput" class="inapp-input" maxlength="40" placeholder="Your nickname"><div class="dialog-buttons"><button id="profileEditCancel" class="secondary" type="button">Cancel</button><button id="profileEditSave" class="primary" type="button">Save nickname</button></div></dialog>
@@ -284,7 +287,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9W2vvnNOAJO9f
 const SESSION_DEVICE_KEY = 'villfam_single_device_session_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, groupInvitationChannel:null, groupInvitations:[], groupInvitationBusy:new Set(), callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null };
 
 function notice(message, kind='info') { const el=$('authNotice'); el.textContent=message; el.className='notice show '+kind; }
 function clearNotice(){ $('authNotice').className='notice'; $('authNotice').textContent=''; }
@@ -327,9 +330,9 @@ async function openMemberPicker(mode){
  try{await loadPeople();}catch(e){toast('Could not refresh the member list: '+errorText(e));return;}
  state.memberPickerMode=mode;state.selectedMemberIds=new Set();$('memberSearchInput').value='';$('newGroupName').value='';
  const isGroup=mode==='group';const isAdd=mode==='add';
- $('memberPickerTitle').textContent=isAdd?'Add members to group':isGroup?'Create a family group':'Start a new chat';
- $('memberPickerHint').textContent=isAdd?'Search by nickname, email, or first letter. Select one or more people to add.':isGroup?'Choose the family members who should be in this group. Search by nickname, email, or first letter.':'Find the person you want to message by nickname, email, or first letter.';
- $('groupNameField').classList.toggle('hidden',!isGroup);$('submitMemberPicker').textContent=isAdd?'Add selected members':isGroup?'Create group':'Start chat';$('memberPickerDialog').showModal();renderSelectedMembers();renderMemberResults();setTimeout(()=>$('memberSearchInput').focus(),30);
+ $('memberPickerTitle').textContent=isAdd?'Invite members to group':isGroup?'Create a family group':'Start a new chat';
+ $('memberPickerHint').textContent=isAdd?'Search by nickname, email, or first letter. They will join only after accepting your invitation.':isGroup?'Choose whom to invite to this group. They will join only after accepting. Search by nickname, email, or first letter.':'Find the person you want to message by nickname, email, or first letter.';
+ $('groupNameField').classList.toggle('hidden',!isGroup);$('submitMemberPicker').textContent=isAdd?'Send invitations':isGroup?'Create group & invite':'Start chat';$('memberPickerDialog').showModal();renderSelectedMembers();renderMemberResults();setTimeout(()=>$('memberSearchInput').focus(),30);
 }
 $('memberSearchInput').addEventListener('input',renderMemberResults);
 $('closeMemberPicker').addEventListener('click',()=>$('memberPickerDialog').close());
@@ -337,83 +340,109 @@ $('cancelMemberPicker').addEventListener('click',()=>$('memberPickerDialog').clo
 $('memberPickerDialog').addEventListener('click',e=>{if(e.target===$('memberPickerDialog'))$('memberPickerDialog').close();});
 $('submitMemberPicker').addEventListener('click',async()=>{
  const mode=state.memberPickerMode;const ids=[...state.selectedMemberIds];if(!ids.length){toast(mode==='direct'?'Choose a member first.':'Select at least one member.');return;}
- const btn=$('submitMemberPicker');setBusy(btn,true,mode==='add'?'Adding…':mode==='group'?'Creating…':'Opening…');
+ const btn=$('submitMemberPicker');setBusy(btn,true,mode==='add'?'Inviting…':mode==='group'?'Creating…':'Opening…');
  try{
   if(mode==='direct'){
    const {data,error}=await state.client.rpc('create_conversation',{p_title:null,p_is_group:false,p_member_ids:ids});if(error)throw error;
    $('memberPickerDialog').close();await loadConversations();await openConversation(data);
   }else if(mode==='group'){
    const title=$('newGroupName').value.trim();if(!title)throw new Error('Enter a name for your group.');
-   const {data,error}=await state.client.rpc('create_conversation',{p_title:title,p_is_group:true,p_member_ids:ids});if(error)throw error;
-   $('memberPickerDialog').close();await loadConversations();await openConversation(data);toast('Family group created.');
+   const {data,error}=await state.client.rpc('villfam_create_group_with_invitations',{p_title:title,p_member_ids:ids});if(error)throw error;
+   $('memberPickerDialog').close();await loadConversations();await openConversation(data);await loadGroupInvitations();toast('Family group created. Invitations were sent; people join only after accepting.');
   }else if(mode==='add'){
    const conv=state.activeConversation;if(!conv)throw new Error('Open the group first.');
    const {data:invited,error}=await state.client.rpc('villfam_invite_group_members',{p_conversation_id:conv.id,p_member_ids:ids});if(error)throw error;
-   $('memberPickerDialog').close();await loadConversations();const refreshed=state.conversations.find(c=>c.id===conv.id);if(refreshed)await openConversation(conv.id);
-   toast(invited?invited+' group invitation'+(invited===1?'':'s')+' sent. Members must accept before joining.':'Those users are already members or already have a pending invitation.');
+   $('memberPickerDialog').close();await loadConversations();await renderGroupManagement();toast(invited?invited+' invitation'+(invited===1?' was':'s were')+' sent. They must accept before joining.':'Those people are already members or have pending invitations.');
   }
  }catch(err){toast('Could not complete this action: '+errorText(err));}
  finally{setBusy(btn,false);}
 });
 
-
+// Group invitations are separate from membership: accepting is the only action
+// that inserts a user into conversation_members. Supabase Realtime keeps all views live.
+async function loadGroupInvitations(){
+ if(!state.user)return;
+ const {data,error}=await state.client.rpc('villfam_list_group_invitations');
+ if(error)throw error;state.groupInvitations=data||[];renderGroupInvitations();
+}
 function renderGroupInvitations(){
- const list=$('groupInvitationList');list.replaceChildren();
- const invitations=state.groupInvitations||[];
- $('groupInvitationCount').textContent=String(invitations.length);
- $('groupInvitationsButton').classList.toggle('hidden',invitations.length===0);
- if(!invitations.length){const empty=document.createElement('div');empty.className='picker-empty';empty.textContent='No pending group invitations.';list.append(empty);return;}
- for(const invite of invitations){
-  const card=document.createElement('div');card.className='group-invitation-item';
-  const icon=document.createElement('div');icon.className='avatar';icon.textContent='♧';
-  const copy=document.createElement('div');copy.className='group-invitation-copy';
-  const title=document.createElement('div');title.className='group-invitation-title';title.textContent=invite.group_title||'Family group';
-  const meta=document.createElement('div');meta.className='group-invitation-meta';meta.textContent='Invited by '+(invite.inviter_name||'a VillFam member')+' · '+new Date(invite.invited_at).toLocaleDateString();
-  copy.append(title,meta);
-  const actions=document.createElement('div');actions.className='group-invitation-actions';
-  const accept=document.createElement('button');accept.type='button';accept.className='accept-invite';accept.textContent='Accept';
-  const decline=document.createElement('button');decline.type='button';decline.className='decline-invite';decline.textContent='Decline';
-  accept.addEventListener('click',()=>respondGroupInvitation(invite,'accept',accept));
-  decline.addEventListener('click',()=>respondGroupInvitation(invite,'decline',decline));
-  actions.append(accept,decline);card.append(icon,copy,actions);list.append(card);
+ const list=$('groupInvitationsList');if(!list)return;list.replaceChildren();
+ const count=state.groupInvitations.length;const badge=$('groupInvitationCount');badge.textContent=count>99?'99+':String(count);badge.classList.toggle('hidden',count===0);
+ if(!count){const empty=document.createElement('div');empty.className='picker-empty';empty.textContent='You have no pending group invitations.';list.append(empty);return;}
+ state.groupInvitations.forEach(inv=>{
+  const row=document.createElement('div');row.className='group-invite-card';
+  const icon=document.createElement('div');icon.className='avatar';icon.textContent='👥';
+  const copy=document.createElement('div');copy.className='group-invite-copy';
+  const title=document.createElement('div');title.className='group-invite-title';title.textContent=inv.group_title||'Family group';
+  const meta=document.createElement('div');meta.className='group-invite-meta';meta.textContent='Invited by '+(inv.inviter_name||'a VillFam member')+' · '+new Date(inv.invited_at).toLocaleString();copy.append(title,meta);
+  const actions=document.createElement('div');actions.className='group-invite-actions';
+  const decline=document.createElement('button');decline.type='button';decline.className='danger-button';decline.textContent='Decline';decline.addEventListener('click',()=>respondGroupInvitation(inv,'decline',decline));
+  const accept=document.createElement('button');accept.type='button';accept.className='primary';accept.textContent='Accept';accept.addEventListener('click',()=>respondGroupInvitation(inv,'accept',accept));
+  actions.append(decline,accept);row.append(icon,copy,actions);list.append(row);
+ });
+}
+async function respondGroupInvitation(inv,response,button){
+ if(!inv||!button)return;setBusy(button,true,response==='accept'?'Joining…':'Declining…');
+ try{const {error}=await state.client.rpc('villfam_respond_group_invitation',{p_invitation_id:inv.invitation_id,p_response:response});if(error)throw error;await Promise.all([loadGroupInvitations(),loadConversations()]);if(response==='accept'){toast('You joined '+(inv.group_title||'the group')+'.');const c=state.conversations.find(x=>x.id===inv.conversation_id);if(c)await openConversation(inv.conversation_id);}else toast('Group invitation declined.');}
+ catch(e){toast('Could not '+response+' invitation: '+errorText(e));}
+ finally{setBusy(button,false);}
+}
+$('groupInvitationsButton').addEventListener('click',async()=>{try{await loadGroupInvitations();$('groupInvitationsDialog').showModal();}catch(e){toast('Could not load invitations: '+errorText(e));}});
+$('closeGroupInvitations').addEventListener('click',()=>$('groupInvitationsDialog').close());
+$('doneGroupInvitations').addEventListener('click',()=>$('groupInvitationsDialog').close());
+$('refreshGroupInvitations').addEventListener('click',async()=>{setBusy($('refreshGroupInvitations'),true,'Refreshing…');try{await loadGroupInvitations();}catch(e){toast(errorText(e));}finally{setBusy($('refreshGroupInvitations'),false);}});
+async function openGroupManagement(){
+ const conv=state.activeConversation;if(!conv||!conv.is_group)return;state.groupManageConversationId=conv.id;
+ $('groupManageTitle').textContent=conv.displayTitle+' · Members';$('groupManageDialog').showModal();await renderGroupManagement();
+}
+async function renderGroupManagement(){
+ const id=state.groupManageConversationId;if(!id||!state.user)return;
+ const conv=state.conversations.find(c=>c.id===id);
+ if(!conv){if($('groupManageDialog').open)$('groupManageDialog').close();state.groupManageConversationId=null;return;}
+ const isAdmin=conv.me?.role==='admin'||conv.created_by===state.user.id;$('groupManageTitle').textContent=conv.displayTitle+' · Members';$('groupManageHint').textContent=isAdmin?'Invite people, review pending requests, or remove a member. Invitees join only after accepting.':'Group membership and invitation status.';$('groupManageInvite').classList.toggle('hidden',!isAdmin);
+ const {data,error}=await state.client.rpc('villfam_list_group_roster',{p_conversation_id:id});if(error)throw error;
+ const members=(data||[]).filter(x=>x.entry_status==='member');const pending=(data||[]).filter(x=>x.entry_status==='pending');
+ $('groupMemberCount').textContent=members.length+' member'+(members.length===1?'':'s');
+ const memberList=$('groupMemberRoster');memberList.replaceChildren();
+ if(!members.length){const e=document.createElement('div');e.className='picker-empty';e.textContent='No accepted members yet.';memberList.append(e);}
+ members.forEach(m=>{const row=document.createElement('div');row.className='group-roster-row';const profile=state.people.find(p=>p.id===m.user_id)||{nickname:m.nickname,email:m.email};row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='group-roster-copy';const name=document.createElement('div');name.className='group-roster-name';name.textContent=(m.nickname||m.email||'VillFam member')+(m.user_id===state.user.id?' (You)':'');const meta=document.createElement('div');meta.className='group-roster-meta';meta.textContent=m.email||'';copy.append(name,meta);row.append(copy);const tag=document.createElement('span');tag.className='group-roster-tag';tag.textContent=m.role==='admin'?'ADMIN':'MEMBER';row.append(tag);
+   const canKick=isAdmin&&m.user_id!==conv.created_by&&m.user_id!==state.user.id&&(conv.created_by===state.user.id||m.role!=='admin');
+   if(canKick){const kick=document.createElement('button');kick.type='button';kick.className='danger-button';kick.textContent='Remove';kick.addEventListener('click',()=>kickGroupMember(conv,m,kick));row.append(kick);}memberList.append(row);});
+ $('groupPendingCount').textContent=pending.length+' pending';const pendingList=$('groupPendingRoster');pendingList.replaceChildren();
+ if(!isAdmin||!pending.length){const e=document.createElement('div');e.className='picker-empty';e.textContent=!isAdmin?'Only group admins can view pending invitations.':'No pending invitations.';pendingList.append(e);}else pending.forEach(inv=>{const row=document.createElement('div');row.className='group-roster-row';const profile=state.people.find(p=>p.id===inv.user_id)||{nickname:inv.nickname,email:inv.email};row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='group-roster-copy';const name=document.createElement('div');name.className='group-roster-name';name.textContent=inv.nickname||inv.email||'VillFam member';const meta=document.createElement('div');meta.className='group-roster-meta';meta.textContent='Invited · '+new Date(inv.created_at).toLocaleString();copy.append(name,meta);row.append(copy);const tag=document.createElement('span');tag.className='group-roster-tag pending';tag.textContent='PENDING';row.append(tag);const cancel=document.createElement('button');cancel.type='button';cancel.className='danger-button';cancel.textContent='Cancel';cancel.addEventListener('click',()=>cancelGroupInvitation(inv,cancel));row.append(cancel);pendingList.append(row);});
+}
+async function kickGroupMember(conv,member,button){
+ const label=member.nickname||member.email||'this member';if(!await askConfirm('Remove group member?','Remove '+label+' from '+conv.displayTitle+'? They will immediately lose access to this group.','Remove member'))return;
+ setBusy(button,true,'Removing…');try{const {error}=await state.client.rpc('villfam_kick_group_member',{p_conversation_id:conv.id,p_member_id:member.user_id});if(error)throw error;await loadConversations();await renderGroupManagement();toast(label+' was removed from the group.');}catch(e){toast('Could not remove member: '+errorText(e));}finally{setBusy(button,false);}
+}
+async function cancelGroupInvitation(inv,button){
+ if(!await askConfirm('Cancel invitation?','This person will no longer be able to accept the pending group invitation.','Cancel invitation'))return;
+ setBusy(button,true,'Cancelling…');try{const {error}=await state.client.rpc('villfam_cancel_group_invitation',{p_invitation_id:inv.entry_id});if(error)throw error;await renderGroupManagement();toast('Group invitation cancelled.');}catch(e){toast('Could not cancel invitation: '+errorText(e));}finally{setBusy(button,false);}
+}
+$('manageGroupButton').addEventListener('click',()=>openGroupManagement().catch(e=>toast('Could not open group members: '+errorText(e))));
+$('closeGroupManage').addEventListener('click',()=>$('groupManageDialog').close());
+$('doneGroupManage').addEventListener('click',()=>$('groupManageDialog').close());
+$('groupManageInvite').addEventListener('click',()=>{if(!state.activeConversation||!state.activeConversation.is_group)return;$('groupManageDialog').close();openMemberPicker('add').catch(e=>toast(errorText(e)));});
+
+function closeActiveConversation(message){
+ if(state.messageChannel){state.client?.removeChannel(state.messageChannel);state.messageChannel=null;}
+ state.activeConversation=null;$('chatActive').classList.add('hidden');$('chatEmpty').classList.remove('hidden');$('mainLayout').classList.remove('chat-open');
+ if($('groupManageDialog').open)$('groupManageDialog').close();state.groupManageConversationId=null;if(message)toast(message);
+}
+function scheduleInboxRefresh(eventType){
+ if(state.inboxRefreshTimer)clearTimeout(state.inboxRefreshTimer);
+ state.inboxRefreshTimer=setTimeout(async()=>{state.inboxRefreshTimer=null;try{await Promise.all([loadConversations(),loadGroupInvitations()]);if($('groupManageDialog').open)await renderGroupManagement();}catch(e){console.warn('Live group update could not be refreshed:',e);}},180);
+}
+function handleVillFamUserEvent(row){
+ if(!row)return;const type=row.event_type;
+ if(type==='group_invitation'){scheduleInboxRefresh(type);toast('You received a new group invitation.');return;}
+ if(type==='group_invitation_updated'){scheduleInboxRefresh(type);return;}
+ if(type==='group_member_joined'||type==='group_member_removed'){scheduleInboxRefresh(type);return;}
+ if(type==='group_membership_removed'||type==='group_deleted'){
+  const target=row.conversation_id;const wasOpen=state.activeConversation?.id===target;scheduleInboxRefresh(type);
+  if(wasOpen){setTimeout(()=>{if(state.activeConversation?.id===target&&!state.conversations.some(c=>c.id===target))closeActiveConversation(type==='group_deleted'?'This group was deleted by its creator.':'You are no longer a member of this group.');},350);}
  }
 }
-async function refreshGroupInvitations(silent=false){
- if(!state.user||!state.client)return;
- const {data,error}=await state.client.rpc('villfam_list_group_invitations');
- if(error){if(!silent)toast('Group invitations need the latest Supabase update: '+errorText(error));console.warn('Group invitations:',error.message);return;}
- state.groupInvitations=data||[];renderGroupInvitations();
-}
-function subscribeGroupInvitations(){
- if(!state.user||!state.client||state.groupInvitationChannel)return;
- const channel=state.client.channel('villfam-group-invitations-'+state.user.id);
- channel.on('postgres_changes',{event:'*',schema:'public',table:'villfam_group_invitations',filter:'invitee_id=eq.'+state.user.id},()=>refreshGroupInvitations(true));
- channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Group invitation Realtime:',status);});
- state.groupInvitationChannel=channel;
-}
-async function respondGroupInvitation(invite,response,button){
- if(state.groupInvitationBusy.has(invite.invitation_id))return;
- state.groupInvitationBusy.add(invite.invitation_id);setBusy(button,true,response==='accept'?'Accepting…':'Declining…');
- try{
-  const {error}=await state.client.rpc('villfam_respond_group_invitation',{p_invitation_id:invite.invitation_id,p_response:response});
-  if(error)throw error;
-  await refreshGroupInvitations(true);
-  if(response==='accept'){
-   await loadConversations();
-   toast('You joined '+(invite.group_title||'the family group')+'.');
-   const accepted=state.conversations.find(c=>c.id===invite.conversation_id);
-   if(accepted)await openConversation(accepted.id);
-  }else toast('Group invitation declined.');
- }catch(err){toast('Could not '+(response==='accept'?'accept':'decline')+' invitation: '+errorText(err));}
- finally{state.groupInvitationBusy.delete(invite.invitation_id);setBusy(button,false);}
-}
-$('groupInvitationsButton').addEventListener('click',async()=>{
- await refreshGroupInvitations();
- if(!$('groupInvitationsDialog').open)$('groupInvitationsDialog').showModal();
-});
-$('closeGroupInvitations').addEventListener('click',()=>$('groupInvitationsDialog').close());
-$('closeGroupInvitationsDone').addEventListener('click',()=>$('groupInvitationsDialog').close());
-$('groupInvitationsDialog').addEventListener('click',e=>{if(e.target===$('groupInvitationsDialog'))$('groupInvitationsDialog').close();});
 
 // Apps Script is called by a normal HTML form POST into a hidden iframe. This avoids
 // browser CORS restrictions that affect fetch() calls to Google Apps Script web apps.
@@ -540,15 +569,11 @@ $('authEmail').addEventListener('input',()=>{
 });
 
 function getSingleDeviceId(){
- let id='';
- try{id=localStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}
- // sessionStorage is a same-tab fallback for browsers that block localStorage.
- if(!/^[a-f0-9-]{32,64}$/i.test(id)){try{id=sessionStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}}
+ let id='';try{id=localStorage.getItem(SESSION_DEVICE_KEY)||'';}catch(_){}
  if(!/^[a-f0-9-]{32,64}$/i.test(id)){
   id=(crypto.randomUUID?crypto.randomUUID():('xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);}))).replace(/[^a-f0-9-]/gi,'').toLowerCase();
+  try{localStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
  }
- try{localStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
- try{sessionStorage.setItem(SESSION_DEVICE_KEY,id);}catch(_){}
  return id;
 }
 async function currentAccessToken(){const {data,error}=await state.client.auth.getSession();if(error)throw error;if(!data.session?.access_token)throw new Error('Your sign-in has expired. Please sign in again.');return data.session.access_token;}
@@ -584,41 +609,25 @@ async function releaseSingleSession(){
  catch(err){console.warn('Could not release session immediately; it will expire automatically.',err);}
 }
 async function initSupabase(){
- $('bootView').style.display='grid';$('authView').style.display='none';$('appView').style.display='none';
- if(!window.supabase || !window.supabase.createClient){showAuth();notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
+ if(!window.supabase || !window.supabase.createClient){notice('The Supabase library did not load. Check your internet connection, then refresh.','error');return;}
  state.client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
- // Register the auth listener before reading storage so refresh/token events are not missed.
- state.client.auth.onAuthStateChange((event,session)=>{
-  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;if(state.user)showAuth();}
- });
- try{
-  const {data,error}=await state.client.auth.getSession();if(error)throw error;
-  if(data?.session){await activateSingleSession(data.session);await enterApp();}
-  else showAuth();
- }catch(err){
-  try{await state.client.auth.signOut({scope:'local'});}catch(_){}
-  state.user=null;showAuth();notice(errorText(err),'error');
+ const {data,error}=await state.client.auth.getSession();if(error)console.warn(error);
+ if(data&&data.session){
+  try{await activateSingleSession(data.session);await enterApp();}
+  catch(err){await state.client.auth.signOut({scope:'local'});state.user=null;notice(errorText(err),'error');}
  }
+ state.client.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'){stopSingleSessionHeartbeat();state.singleSessionId=null;showAuth();}
+ });
 }
-function showAuth(){
- stopSingleSessionHeartbeat();
- if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}
- if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}
- state.user=null;state.profile=null;state.activeConversation=null;state.groupInvitations=[];
- if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}
- if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}
- if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}
- if(state.groupInvitationChannel){state.client.removeChannel(state.groupInvitationChannel);state.groupInvitationChannel=null;}
- cleanupCall(false);$('bootView').style.display='none';$('appView').style.display='none';$('authView').style.display='grid';
- $('groupInvitationsButton').classList.add('hidden');$('groupInvitationCount').textContent='0';$('authEmail').readOnly=false;setAuthMode('signin');
-}
+function showAuth(){stopSingleSessionHeartbeat();if(state.inboxRefreshTimer){clearTimeout(state.inboxRefreshTimer);state.inboxRefreshTimer=null;}if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
 async function enterApp(){
  if(state.entering)return;state.entering=true;
- $('bootView').style.display='none';$('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
+ $('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
  try{
   const {data:profile,error}=await state.client.from('profiles').select('*').eq('id',state.user.id).maybeSingle();if(error)throw error;
   state.profile=profile||{id:state.user.id,email:state.user.email,nickname:(state.user.email||'VillFam').split('@')[0]};
-  updateProfileHeader();await loadPeople();await loadConversations();subscribeInbox();subscribeCallInbox();subscribeGroupInvitations();await refreshGroupInvitations(true);await refreshPendingCallInvites();if(state.callStateInterval)clearInterval(state.callStateInterval);state.callStateInterval=setInterval(()=>{if(state.user)loadConversations().catch(e=>console.warn('Conversation refresh:',e));},30000);
+  updateProfileHeader();await loadPeople();await loadConversations();try{await loadGroupInvitations();}catch(invErr){console.warn('Group invitations need the latest Supabase patch:',invErr); }subscribeInbox();subscribeCallInbox();await refreshPendingCallInvites();if(state.callStateInterval)clearInterval(state.callStateInterval);state.callStateInterval=setInterval(()=>{if(state.user)loadConversations().catch(e=>console.warn('Conversation refresh:',e));},30000);
  }catch(err){toast('App setup error: '+errorText(err));console.error(err);}
  finally{state.entering=false;}
 }
@@ -626,12 +635,8 @@ function updateProfileHeader(){$('topNickname').textContent=state.profile?.nickn
 async function loadPeople(){const {data,error}=await state.client.from('profiles').select('id,email,nickname,avatar_url').order('nickname');if(error)throw error;state.people=data||[];}
 async function loadConversations(){
  if(!state.user)return;
- // Recover abandoned calls before reading active-call badges. A real participant's
- // 15-second heartbeat keeps the room alive; an empty room is cleared promptly.
- const {error:recoveryError}=await state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:null});
- if(recoveryError)console.warn('Call cleanup check:',recoveryError.message);
  const {data:memberships,error:memberError}=await state.client.from('conversation_members').select('conversation_id,user_id,role').eq('user_id',state.user.id);if(memberError)throw memberError;
- const ids=(memberships||[]).map(x=>x.conversation_id);if(!ids.length){state.conversations=[];state.hiddenConversations.clear();renderConversations();return;}
+ const ids=(memberships||[]).map(x=>x.conversation_id);if(!ids.length){state.conversations=[];state.hiddenConversations.clear();if(state.activeConversation)closeActiveConversation('You no longer have access to this conversation.');renderConversations();return;}
  const [convRes,memberRes,msgRes,hideRes,callsRes]=await Promise.all([
   state.client.from('conversations').select('*').in('id',ids).order('updated_at',{ascending:false}),
   state.client.from('conversation_members').select('conversation_id,user_id,role').in('conversation_id',ids),
@@ -655,7 +660,7 @@ async function loadConversations(){
   const hiddenAt=state.hiddenConversations.get(c.id);const isHidden=hiddenAt&&(!last||new Date(last.created_at).getTime()<=new Date(hiddenAt).getTime());
   return {...c,members,me:members.find(m=>m.user_id===state.user.id),displayTitle:title,otherProfile:other,lastPreview:last?(last.deleted_at?'Message deleted':last.message_type==='text'?last.content:(last.attachment_name||'Attachment')):'Start the conversation',ongoingCall:ongoingCallByConversation.get(c.id)||null,isHidden};
  }).filter(c=>!c.isHidden);
- const active=state.activeConversation&&state.conversations.find(c=>c.id===state.activeConversation.id);if(active){state.activeConversation=active;updateChatCallState(active);}
+ const active=state.activeConversation&&state.conversations.find(c=>c.id===state.activeConversation.id);if(active){state.activeConversation=active;updateChatCallState(active);}else if(state.activeConversation){closeActiveConversation('This group was removed or deleted.');}
  renderConversations();
 }
 function renderConversations(){
@@ -683,7 +688,7 @@ function updateChatCallState(conv){
  join.textContent=state.currentCallId===call.id?'You are in this call':freshJoined?'Already joined':'Join '+(call.call_type==='video'?'video':'audio')+' call';
 }
 async function openConversation(id){
- const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';$('addMembersButton').classList.toggle('hidden',!conv.is_group||conv.me?.role!=='admin');replaceAvatar('chatAvatar',conv.is_group?null:conv.otherProfile);updateChatCallState(conv);renderConversations();
+ const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';$('addMembersButton').classList.toggle('hidden',!conv.is_group||!(conv.me?.role==='admin'||conv.created_by===state.user.id));$('manageGroupButton').classList.toggle('hidden',!conv.is_group);replaceAvatar('chatAvatar',conv.is_group?null:conv.otherProfile);updateChatCallState(conv);renderConversations();
  if(state.messageChannel){await state.client.removeChannel(state.messageChannel);state.messageChannel=null;}
  await loadMessages();
  state.messageChannel=state.client.channel('villfam-chat-'+id).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'conversation_id=eq.'+id},async()=>{await loadMessages();loadConversations().catch(console.error);}).on('postgres_changes',{event:'*',schema:'public',table:'message_user_deletions'},async()=>loadMessages()).subscribe();
@@ -713,7 +718,19 @@ async function loadMessages(){
  area.scrollTop=area.scrollHeight;
 }
 
-function subscribeInbox(){if(state.inboxChannel)state.client.removeChannel(state.inboxChannel);state.inboxChannel=state.client.channel('villfam-inbox').on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>loadConversations().catch(console.error)).subscribe();}
+function subscribeInbox(){
+ if(state.inboxChannel)state.client.removeChannel(state.inboxChannel);
+ const channel=state.client.channel('villfam-inbox-'+state.user.id);
+ channel.on('postgres_changes',{event:'*',schema:'public',table:'messages'},async payload=>{
+  try{await loadConversations();if(state.activeConversation&&payload.new?.conversation_id===state.activeConversation.id)await loadMessages();}catch(e){console.warn('Live message update:',e);}
+ });
+ channel.on('postgres_changes',{event:'*',schema:'public',table:'villfam_group_invitations'},()=>scheduleInboxRefresh('group_invitation_table'));
+ channel.on('postgres_changes',{event:'*',schema:'public',table:'conversation_members'},()=>scheduleInboxRefresh('group_membership_table'));
+ channel.on('postgres_changes',{event:'*',schema:'public',table:'conversations'},()=>scheduleInboxRefresh('conversation_table'));
+ channel.on('postgres_changes',{event:'INSERT',schema:'public',table:'villfam_user_events',filter:'recipient_id=eq.'+state.user.id},payload=>handleVillFamUserEvent(payload.new));
+ channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){console.warn('VillFam live updates:',status);toast('Live updates temporarily disconnected. VillFam will reconnect automatically.');}});
+ state.inboxChannel=channel;
+}
 function refreshConversationCallState(){if(state.callRefreshTimer)clearTimeout(state.callRefreshTimer);state.callRefreshTimer=setTimeout(()=>{state.callRefreshTimer=null;loadConversations().catch(e=>console.warn('Call status refresh:',e));},500);}
 async function openMessageActions(msg){
  state.pendingMessage=msg;$('messageActionLabel').textContent=msg.deleted_at?'This message was already removed for everyone. You can still hide this deletion notice for yourself.':'Choose whether to hide this message only for you or remove your message for everyone.';
@@ -725,11 +742,12 @@ $('deleteMessageEveryone').addEventListener('click',async()=>{const msg=state.pe
 
 $('chatActionsBtn').addEventListener('click',()=>{
  const c=state.activeConversation;if(!c)return;
- $('addMembersFromMenuButton').classList.toggle('hidden',!c.is_group||c.me?.role!=='admin');$('deleteConversationMe').classList.toggle('hidden',c.is_group);$('leaveGroupButton').classList.toggle('hidden',!c.is_group||c.created_by===state.user.id);$('deleteGroupButton').classList.toggle('hidden',!c.is_group||c.created_by!==state.user.id);
+ $('manageGroupFromMenuButton').classList.toggle('hidden',!c.is_group);$('addMembersFromMenuButton').classList.toggle('hidden',!c.is_group||!(c.me?.role==='admin'||c.created_by===state.user.id));$('deleteConversationMe').classList.toggle('hidden',c.is_group);$('leaveGroupButton').classList.toggle('hidden',!c.is_group||c.created_by===state.user.id);$('deleteGroupButton').classList.toggle('hidden',!c.is_group||c.created_by!==state.user.id);
  $('conversationActionTitle').textContent=c.is_group?'Group options':'Conversation options';
  $('conversationActionText').textContent=c.is_group?(c.created_by===state.user.id?'You created this group. Only you can delete it for everyone.':'You can leave this group. Leaving removes it from your chat list; other members keep the conversation.'):'Deleting this conversation removes it from your chat list only. The other person keeps the messages, and you can see the conversation again if a new message arrives.';
  $('conversationActionDialog').showModal();
 });
+$('manageGroupFromMenuButton').addEventListener('click',()=>{$('conversationActionDialog').close();openGroupManagement().catch(e=>toast(errorText(e)));});
 $('addMembersFromMenuButton').addEventListener('click',()=>{$('conversationActionDialog').close();openMemberPicker('add').catch(e=>toast(errorText(e)));});
 $('addMembersButton').addEventListener('click',()=>openMemberPicker('add').catch(e=>toast(errorText(e))));
 $('cancelConversationAction').addEventListener('click',()=>$('conversationActionDialog').close());
@@ -784,104 +802,29 @@ $('voiceButton').addEventListener('click',async()=>{
  }catch(err){toast('Microphone permission failed: '+errorText(err));}
 });
 
-function cameraFacingFromTrack(track,fallback='environment'){
- const settings=track?.getSettings?.()||{};
- if(settings.facingMode==='user'||settings.facingMode==='environment')return settings.facingMode;
- const id=settings.deviceId||'';
- const labelSide=label=>/front|user|facetime|selfie/i.test(label||'')?'user':/back|rear|environment|world/i.test(label||'')?'environment':null;
- return fallback||'environment';
-}
-const delayCameraMs=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function tryOpenFacingCamera(targetFacing,devices,currentId){
- const constraints={width:{ideal:1280},height:{ideal:720}};
- const sideOf=label=>/front|user|facetime|selfie/i.test(label||'')?'user':/back|rear|environment|world/i.test(label||'')?'environment':null;
- const available=(devices||[]).filter(d=>d.kind==='videoinput'&&d.deviceId&&d.deviceId!==currentId);
- const preferred=available.filter(d=>sideOf(d.label)===targetFacing);
- const ordered=[...preferred,...available.filter(d=>!preferred.includes(d))];
- let lastError=null;
- for(const device of ordered){
-  try{return await navigator.mediaDevices.getUserMedia({audio:false,video:{deviceId:{exact:device.deviceId},...constraints}});}
-  catch(e){lastError=e;}
- }
- try{return await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{exact:targetFacing},...constraints}});}
- catch(e){lastError=e;}
- try{return await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:targetFacing},...constraints}});}
- catch(e){lastError=e;}
- throw lastError||new Error('No alternate camera is available.');
-}
 async function acquireFacingCameraStream(targetFacing,currentTrack){
- if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera access is not available in this browser.');
- const oldSettings=currentTrack?.getSettings?.()||{};
- const oldDeviceId=oldSettings.deviceId||'';
- const oldFacing=cameraFacingFromTrack(currentTrack,state.facingMode);
- let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){}
- let fresh=null,firstError=null,stoppedOld=false;
- try{
-  fresh=await tryOpenFacingCamera(targetFacing,devices,oldDeviceId);
- }catch(err){
-  firstError=err;
-  // Some phones cannot open the second camera while the first camera track is live.
-  // Release only the video track, retry, and restore the old camera if the switch fails.
-  if(currentTrack?.readyState==='live'){
-   try{currentTrack.stop();stoppedOld=true;}catch(_){}
-   await delayCameraMs(220);
-   try{
-    devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){}
-    fresh=await tryOpenFacingCamera(targetFacing,devices,oldDeviceId);
-   }catch(secondError){
-    let restored=null;
-    if(oldDeviceId){
-     try{restored=await navigator.mediaDevices.getUserMedia({audio:false,video:{deviceId:{exact:oldDeviceId},width:{ideal:1280},height:{ideal:720}}});}catch(_){}
-    }
-    if(!restored){
-     try{restored=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:oldFacing},width:{ideal:1280},height:{ideal:720}}});}catch(_){}
-    }
-    if(restored){
-     const restoredTrack=restored.getVideoTracks()[0];
-     if(restoredTrack)return {stream:restored,track:restoredTrack,facing:oldFacing,restored:true};
-     restored.getTracks().forEach(t=>t.stop());
-    }
-    const reason=secondError?.name==='NotAllowedError'?'Camera permission was denied.':secondError?.name==='NotFoundError'?'The requested camera was not found.':'The phone could not open the requested camera.';
-    throw new Error(reason+(stoppedOld?' The previous camera could not be restored automatically.':''));
-   }
-  }else{
-   if(err?.name==='NotAllowedError'||err?.name==='PermissionDeniedError')throw new Error('Allow camera access in your browser settings, then try again.');
-   if(err?.name==='NotFoundError')throw new Error('No alternate camera was found on this device.');
-   throw err;
-  }
- }
- const track=fresh?.getVideoTracks?.()[0];
- if(!track){fresh?.getTracks?.().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
- const settings=track.getSettings?.()||{};
- // Do not report success if the browser silently returned the same physical lens.
- if(oldDeviceId&&settings.deviceId&&settings.deviceId===oldDeviceId){
-  fresh.getTracks().forEach(t=>t.stop());
-  if(stoppedOld){
-   let restored=null;
-   try{restored=await navigator.mediaDevices.getUserMedia({audio:false,video:{deviceId:{exact:oldDeviceId},width:{ideal:1280},height:{ideal:720}}});}catch(_){}
-   const restoreTrack=restored?.getVideoTracks?.()[0];
-   if(restoreTrack)return {stream:restored,track:restoreTrack,facing:oldFacing,restored:true};
-  }
-  throw new Error('This device did not provide a different camera. Check that both front and rear cameras are available.');
- }
- let actualFacing=settings.facingMode;
- if(actualFacing!=='user'&&actualFacing!=='environment'){
-  const selected=devices.find(d=>d.deviceId&&d.deviceId===settings.deviceId);
-  const label=selected?.label||'';
-  actualFacing=/front|user|facetime|selfie/i.test(label)?'user':/back|rear|environment|world/i.test(label)?'environment':targetFacing;
- }
- return {stream:fresh,track,facing:actualFacing,restored:false};
+ const constraints={width:{ideal:1280},height:{ideal:720}};let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');}catch(_){ }
+ const currentId=currentTrack?.getSettings?.().deviceId||'';
+ const sideOf=label=>/back|rear|environment|world/i.test(label||'')?'environment':/front|user|facetime|selfie/i.test(label||'')?'user':null;
+ const preferred=devices.filter(d=>d.deviceId&&d.deviceId!==currentId).sort((a,b)=>Number(sideOf(b.label)===targetFacing)-Number(sideOf(a.label)===targetFacing));
+ let fresh=null,lastError=null;
+ for(const device of preferred){try{fresh=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:device.deviceId},...constraints},audio:false});break;}catch(e){lastError=e;}}
+ if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
+ if(!fresh){try{fresh=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:targetFacing},...constraints},audio:false});}catch(e){lastError=e;}}
+ if(!fresh)throw lastError||new Error('No alternate camera is available.');
+ const track=fresh.getVideoTracks()[0];if(!track){fresh.getTracks().forEach(t=>t.stop());throw new Error('The selected camera did not return a video track.');}
+ const settings=track.getSettings?.()||{};const selectedDevice=devices.find(d=>d.deviceId&&d.deviceId===(settings.deviceId||preferred[0]?.deviceId));
+ const actualFacing=settings.facingMode||sideOf(selectedDevice?.label)||targetFacing;
+ if(currentId&&settings.deviceId&&currentId===settings.deviceId&&devices.some(d=>d.deviceId&&d.deviceId!==currentId)){fresh.getTracks().forEach(t=>t.stop());throw new Error('The browser selected the same camera. Allow camera access and try switching again.');}
+ return {stream:fresh,track,facing:actualFacing};
 }
 async function openCamera(){if(!navigator.mediaDevices?.getUserMedia){toast('Camera is not available in this browser.');return;}try{$('cameraDialog').showModal();await startCamera('environment');}catch(err){toast('Camera permission failed: '+errorText(err));$('cameraDialog').close();}}
 async function startCamera(facing){
  const current=state.cameraStream?.getVideoTracks?.()[0];
- const result=await acquireFacingCameraStream(facing,current);
- const previous=state.cameraStream;state.cameraStream=result.stream;state.cameraFacing=result.facing;
- $('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');
- await $('cameraVideo').play().catch(()=>{});
- if(previous&&previous!==result.stream)previous.getTracks().forEach(t=>{if(t!==result.track&&t.readyState==='live')t.stop();});
- $('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
- if(result.restored)toast('The switch was unavailable. Your previous camera has been restored.');
+ if(current&&typeof current.applyConstraints==='function'){
+  try{await current.applyConstraints({facingMode:{exact:facing}});const actual=current.getSettings?.().facingMode;if(!actual||actual===facing){state.cameraFacing=actual||facing;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';return;}}catch(_){ }
+ }
+ const result=await acquireFacingCameraStream(facing,current);const previous=state.cameraStream;state.cameraStream=result.stream;state.cameraFacing=result.facing;$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');await $('cameraVideo').play().catch(()=>{});if(previous)previous.getTracks().forEach(t=>t.stop());$('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
 }
 function closeCamera(){if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null;}$('cameraVideo').srcObject=null;if($('cameraDialog').open)$('cameraDialog').close();}
 $('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEventListener('click',closeCamera);$('switchCamera').addEventListener('click',async()=>{if(state.cameraSwitchBusy)return;state.cameraSwitchBusy=true;setBusy($('switchCamera'),true,'Switching…');try{await startCamera(state.cameraFacing==='environment'?'user':'environment');}catch(err){toast('Could not switch camera: '+errorText(err));}finally{state.cameraSwitchBusy=false;setBusy($('switchCamera'),false);}});
@@ -1144,41 +1087,33 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 $('muteCallButton').addEventListener('click',()=>{const track=state.localCallStream?.getAudioTracks()[0];if(!track)return;state.callMuted=!state.callMuted;track.enabled=!state.callMuted;$('muteCallButton').textContent=state.callMuted?'Unmute mic':'Mute mic';});
 $('toggleCameraButton').addEventListener('click',()=>{const track=state.localCallStream?.getVideoTracks()[0];if(!track)return;state.callCameraEnabled=!state.callCameraEnabled;track.enabled=state.callCameraEnabled;$('toggleCameraButton').textContent=state.callCameraEnabled?'Turn camera off':'Turn camera on';});
 async function switchCallCamera(){
- const oldTrack=state.localCallStream?.getVideoTracks()[0];
- if(!oldTrack)return toast('Camera is not active.');
- if(state.cameraSwitchBusy)return;
+ const oldTrack=state.localCallStream?.getVideoTracks()[0];if(!oldTrack)return toast('Camera is not active.');if(state.cameraSwitchBusy)return;
  state.cameraSwitchBusy=true;setBusy($('switchCallCameraButton'),true,'Switching…');
- const oldFacing=cameraFacingFromTrack(oldTrack,state.facingMode);
- const next=oldFacing==='user'?'environment':'user';
- let result=null;
+ const settings=oldTrack.getSettings?.()||{};const currentFacing=settings.facingMode||state.facingMode;const next=currentFacing==='user'?'environment':'user';
  try{
-  result=await acquireFacingCameraStream(next,oldTrack);
-  const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
-  const changed=[];
-  try{
-   for(const pc of state.peerConnections.values()){
-    const sender=pc.getSenders().find(s=>s.track?.kind==='video');
-    if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
-   }
-  }catch(replaceError){
-   for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}
-   result.stream.getTracks().forEach(t=>t.stop());
-   throw replaceError;
+  // Prefer changing the active track in place; this is more reliable on iOS,
+  // where opening a second camera while the first is active can fail.
+  let switchedInPlace=false;
+  if(typeof oldTrack.applyConstraints==='function'){
+   try{await oldTrack.applyConstraints({facingMode:{exact:next}});const actual=oldTrack.getSettings?.().facingMode;if(!actual||actual===next){switchedInPlace=true;state.facingMode=actual||next;}}
+   catch(_){switchedInPlace=false;}
   }
-  state.localCallStream.removeTrack(oldTrack);
-  state.localCallStream.addTrack(newTrack);
-  if(oldTrack.readyState==='live')oldTrack.stop();
-  state.facingMode=result.facing;
+  if(!switchedInPlace){
+   const result=await acquireFacingCameraStream(next,oldTrack);const newTrack=result.track;newTrack.enabled=oldTrack.enabled;
+   const changed=[];
+   try{
+    for(const pc of state.peerConnections.values()){
+     const sender=pc.getSenders().find(s=>s.track?.kind==='video');
+     if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
+    }
+   }catch(replaceError){for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}result.stream.getTracks().forEach(t=>t.stop());throw replaceError;}
+   state.localCallStream.removeTrack(oldTrack);state.localCallStream.addTrack(newTrack);oldTrack.stop();state.facingMode=result.facing;
+  }
   showVideoOnTile(state.user.id,state.localCallStream,true);
   $('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';
-  toast(result.restored?'Could not switch cameras. Your previous camera was restored.':state.facingMode==='user'?'Front camera is on.':'Back camera is on.');
- }catch(e){
-  // If getUserMedia had to stop the previous track but the attempt failed, the
-  // helper restores it when possible. Keep the preview in sync with any restore.
-  const active=state.localCallStream?.getVideoTracks()[0];
-  if(active)showVideoOnTile(state.user.id,state.localCallStream,true);
-  toast('Could not switch camera: '+errorText(e));
- }finally{state.cameraSwitchBusy=false;setBusy($('switchCallCameraButton'),false);}
+  toast(state.facingMode==='user'?'Front camera is on.':'Back camera is on.');
+ }catch(e){toast('Could not switch camera: '+errorText(e));}
+ finally{state.cameraSwitchBusy=false;setBusy($('switchCallCameraButton'),false);}
 }
 $('switchCallCameraButton').addEventListener('click',switchCallCamera);
 
