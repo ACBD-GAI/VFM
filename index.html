@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f4f6fb">
+<meta name="theme-color" content="#f5f7fc">
 <title>VillFam Messenger</title>
 <style>
 :root{--blue:#3478f6;--blue-dark:#2364df;--ink:#172033;--muted:#7d899e;--line:#e8edf5;--bg:#f4f6fb;--panel:#fff;--green:#169b68;--red:#c43d48;--shadow:0 18px 55px #24385a12}
@@ -170,14 +170,194 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 .force-session-actions{display:grid;gap:8px;margin-top:10px}.force-session-actions .field{margin:8px 0}
 .group-photo-editor{display:flex;align-items:center;gap:13px;margin:12px 0 16px}.group-photo-preview{width:68px;height:68px;font-size:18px}.group-photo-copy{display:grid;gap:6px}.group-photo-copy .small{line-height:1.4}
 #editGroupDetailsDialog{border:0;border-radius:20px;padding:20px;width:min(92vw,430px);box-shadow:0 20px 70px #0004;color:var(--ink)}#editGroupDetailsDialog::backdrop{background:#0b183399}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
+/* VillFam refresh — responsive layout, clearer hierarchy, and a lighter visual surface. */
+:root{
+  --blue:#4569ed;--blue-dark:#3155d3;--ink:#18243a;--muted:#74829a;
+  --line:#e7ebf3;--bg:#f5f7fc;--panel:#fff;--green:#15996b;
+  --red:#c94350;--shadow:0 18px 55px rgba(26,43,78,.09);
+  --brand-start:#4569ed;--brand-end:#149b83;
+}
+html,body{background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+body{overflow:hidden}
+button,input,textarea{font-family:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid rgba(69,105,237,.2);outline-offset:2px}
+.brand{gap:10px;color:#1c2941;letter-spacing:-.55px}
+.brand-icon{
+  width:44px;height:44px;flex:none;border-radius:15px;
+  background:linear-gradient(145deg,var(--brand-start),var(--brand-end));
+  color:#fff;display:grid;place-items:center;
+  box-shadow:0 7px 18px rgba(58,102,201,.2),inset 0 1px 0 rgba(255,255,255,.22)
+}
+.brand-mark{display:block;width:27px;height:27px}
+#authView{
+  min-height:100svh;padding:24px;
+  background:radial-gradient(ellipse at 12% 12%,rgba(86,126,245,.13),transparent 34%),
+             radial-gradient(ellipse at 88% 88%,rgba(37,178,139,.10),transparent 32%),#f5f7fc
+}
+.auth-card{
+  position:relative;width:min(100%,440px);padding:36px 36px 30px;
+  border:1px solid rgba(223,230,242,.95);border-radius:26px;
+  background:rgba(255,255,255,.97);box-shadow:0 24px 70px rgba(27,45,83,.11);
+  backdrop-filter:none
+}
+.auth-card:before{content:"";position:absolute;left:28px;right:28px;top:0;height:3px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#4569ed,#19a889)}
+.auth-card h1{margin-top:30px;font-size:28px;line-height:1.16;letter-spacing:-1.1px;color:#1b2942}
+.auth-card>p{max-width:34em;font-size:13.5px;color:#77849b}
+.tabs{border:1px solid #edf0f6;background:#f5f7fb;padding:4px}
+.tabs button{min-height:40px}
+.tabs button.active{color:#294fc6;box-shadow:0 2px 8px rgba(31,48,85,.08)}
+.field label{color:#596780}
+.field input,.inapp-input,.picker-search{
+  min-height:45px;border:1px solid #e0e6f0;border-radius:12px;
+  background:#fafbfe;color:#1d2b43
+}
+.field input:focus,.inapp-input:focus,.picker-search:focus{border-color:#91a8f7;box-shadow:0 0 0 3px rgba(69,105,237,.11)}
+.primary{min-height:44px;border-radius:12px;background:linear-gradient(135deg,#5278f2,#3c60df);box-shadow:0 5px 14px rgba(65,101,224,.16)}
+.primary:hover{background:linear-gradient(135deg,#456de9,#3155d2)}
+.secondary{border-color:#e5eaf2;border-radius:12px}
+.auth-foot{color:#8793a7}
+#appView{height:100svh;min-height:560px;padding:18px 22px 20px;background:transparent}
+.app-shell{width:100%;max-width:1500px;height:100%;margin:0 auto}
+.topbar{height:66px;padding:0 7px 12px;gap:14px}
+.topbar .brand{font-size:19px;font-weight:850}
+.online-dot{font-size:10px;letter-spacing:.2px;color:#18835f}
+.profile-area{gap:7px}
+.profile-button{padding:4px 11px 4px 4px;border-color:#e7ebf3;background:#fff}
+.profile-name{font-size:12px;color:#53617a}
+.layout{
+  grid-template-columns:328px minmax(0,1fr);
+  border:1px solid #e5eaf2;border-radius:24px;overflow:hidden;
+  background:#fff;box-shadow:0 20px 65px rgba(27,45,82,.09)
+}
+.sidebar{background:#fff;border-right:1px solid #edf0f5}
+.side-title{padding:20px 17px 13px}
+.side-title h2{font-size:21px;letter-spacing:-.75px;color:#202e47}
+.side-actions{gap:6px}
+.icon-btn{width:37px;height:37px;border:1px solid #edf0f5;border-radius:12px;background:#f7f8fc;color:#64728b}
+.icon-btn:hover{background:#eef2ff;border-color:#dfe6ff;color:#385fdf}
+.search{margin:0 14px 13px;border:1px solid #edf0f5;border-radius:12px;background:#f7f8fc}
+.search:focus-within{border-color:#c9d5fa;background:#fff;box-shadow:0 0 0 3px rgba(69,105,237,.07)}
+.search input{font-size:12.5px;color:#25334b}
+.conv-list{padding:0 8px 12px}
+.conv{margin:3px 2px;padding:11px 10px;border:1px solid transparent;border-radius:13px}
+.conv:hover{background:#f6f8fd;border-color:#eef1f7;transform:none}
+.conv.active{background:#f0f4ff;border-color:#e3eaff;box-shadow:inset 3px 0 0 #5072e9}
+.conv-title{color:#25334b;font-size:13px}
+.conv-preview{color:#8491a6}
+.chat{background:#fff}
+.chat-head{height:70px;padding:0 20px;border-bottom:1px solid #edf0f5;background:#fff;backdrop-filter:none}
+.chat-head strong{font-size:14px;color:#202e47}
+.chat-head .muted{color:#8995a8}
+.chat-tools{gap:5px}
+.chat-tools .icon-btn{width:37px;height:37px;background:#f7f8fc}
+.join-ongoing-call-btn{border-radius:11px}
+.messages{
+  padding:24px clamp(18px,4vw,50px);
+  background:linear-gradient(180deg,#fbfcff 0%,#fff 36%,#fff 100%)
+}
+.msg-row{max-width:min(82%,780px);margin-bottom:15px;gap:8px}
+.bubble{padding:11px 14px;border:1px solid #edf0f5;border-radius:17px 17px 17px 6px;background:#f1f4f9;color:#334158;font-size:13px;line-height:1.52;box-shadow:none}
+.mine .bubble{border-color:transparent;border-radius:17px 17px 6px 17px;background:linear-gradient(135deg,#5579f0,#3d61df);color:#fff;box-shadow:0 4px 12px rgba(65,101,224,.12)}
+.msg-time{color:#929db0}
+.msg-actions button{opacity:.58}
+.composer{padding:12px 18px max(12px,env(safe-area-inset-bottom));border-top:1px solid #edf0f5;background:#fff;backdrop-filter:none}
+.compose-input{min-height:43px;border-color:#e5eaf2;border-radius:14px;background:#f8f9fc;color:#1d2b43}
+.compose-input:focus{border-color:#9badf3;box-shadow:0 0 0 3px rgba(69,105,237,.08)}
+.send-btn{height:43px;min-width:46px;border-radius:13px;background:linear-gradient(135deg,#5278f2,#3c60df);box-shadow:0 4px 12px rgba(65,101,224,.16)}
+.hint{color:#96a1b2}
+.chat-empty .big{font-size:44px}
+.chat-empty h2{color:#24324b;letter-spacing:-.55px}
+.chat-empty p{color:#7b889e}
+.action-dialog,.picker-dialog,#editGroupDetailsDialog,#cameraDialog{
+  border:1px solid #e4e9f2;border-radius:20px;background:#fff;
+  box-shadow:0 24px 72px rgba(17,31,59,.22)
+}
+.action-dialog::backdrop,.picker-dialog::backdrop,#editGroupDetailsDialog::backdrop,#cameraDialog::backdrop{background:rgba(14,25,47,.48)}
+.picker-search{margin:8px 0 10px}
+.call-dialog{border-radius:22px}
+.toast{max-width:min(92vw,520px);line-height:1.4}
+@media(min-width:761px) and (max-width:1050px){
+  #appView{padding:14px}
+  .layout{grid-template-columns:286px minmax(0,1fr)}
+  .chat-head{padding:0 13px}
+  .chat-tools{gap:3px}
+  .chat-tools .icon-btn{width:34px;height:35px}
+}
+@media(max-width:760px){
+  html,body{height:100%;overflow:hidden}
+  #appView{height:100dvh;min-height:0;padding:0;background:#fff}
+  .app-shell{height:100%;max-width:none;display:flex;flex-direction:column}
+  .topbar{
+    height:auto;min-height:62px;flex:none;gap:8px;padding: max(7px,env(safe-area-inset-top)) 12px 8px;
+    border-bottom:1px solid #edf0f5;background:#fff
+  }
+  .topbar .brand{font-size:16px;gap:8px;letter-spacing:-.4px}
+  .topbar .brand-icon{width:38px;height:38px;border-radius:13px}
+  .topbar .brand-mark{width:24px;height:24px}
+  .online-dot{display:none}
+  .profile-area{gap:4px;margin-left:auto}
+  .profile-button{padding:3px;border:0;background:transparent}
+  .profile-name{display:none}
+  .profile-area>.icon-btn{width:34px;height:34px}
+  .layout{height:auto;min-height:0;flex:1;grid-template-columns:minmax(0,1fr);border:0;border-radius:0;box-shadow:none}
+  .sidebar{min-height:0;border:0;background:#fff}
+  .side-title{padding:16px 14px 11px}
+  .side-title h2{font-size:21px}
+  .side-actions{gap:5px}
+  .side-actions .icon-btn{width:35px;height:35px}
+  .search{margin:0 13px 10px;min-height:40px}
+  .conv-list{padding:0 7px max(12px,env(safe-area-inset-bottom))}
+  .conv{margin:3px 2px;padding:11px 9px}
+  .chat{min-height:0}
+  .chat-head{height:auto;min-height:66px;padding:8px 8px;gap:7px;flex-wrap:nowrap}
+  .chat-head-copy{min-width:0;flex:1}
+  .chat-head strong{font-size:13px;max-width:100%;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chat-head .muted{font-size:10px}
+  .chat-tools{margin-left:auto;gap:3px;flex-wrap:wrap;justify-content:flex-end}
+  .chat-tools .icon-btn{width:32px;height:33px;border-radius:10px;font-size:14px}
+  .join-ongoing-call-btn{padding:7px 8px;font-size:9px}
+  .messages{padding:15px 10px;background:#fbfcff}
+  .msg-row{max-width:94%;margin-bottom:13px}
+  .bubble{font-size:13px;padding:10px 12px}
+  .composer{gap:6px;padding:8px 8px max(9px,env(safe-area-inset-bottom));}
+  .compose-tools{gap:3px}
+  .compose-tools .icon-btn{width:34px;height:36px}
+  .compose-input{min-height:40px;padding:10px 11px;font-size:13px}
+  .send-btn{height:40px;min-width:40px}
+  .hint{padding:0 12px 6px}
+  .call-dialog{width:100vw;max-width:none;max-height:94dvh;margin:auto 0 0;border-radius:22px 22px 0 0;padding:12px}
+  .call-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:58dvh;gap:8px}
+  .call-tile,.call-tile video{min-height:130px}
+  .call-controls{gap:7px}
+  .call-controls button{padding:10px 12px;font-size:12px}
+  .auth-card{padding:28px 22px 24px;border-radius:23px}
+  #authView{padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
+}
+@media(max-width:390px){
+  .topbar .brand{font-size:14px;gap:7px}
+  .topbar .brand-icon{width:35px;height:35px}
+  .profile-area>.icon-btn{width:31px;height:33px}
+  .chat-head{gap:5px}
+  .chat-tools{gap:2px}
+  .chat-tools .icon-btn{width:30px;height:32px;font-size:13px}
+  .compose-tools .icon-btn{width:31px}
+}
+@media(prefers-reduced-motion:reduce){
+  button,*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+
+</style>
+
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" as="script">
 </head>
 <body>
 <section id="authView">
   <div class="auth-card">
-    <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
+    <div class="brand"><div class="brand-icon" aria-hidden="true"><svg class="brand-mark" viewBox="0 0 40 40" width="27" height="27" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 8.5h17a4.5 4.5 0 0 1 4.5 4.5v9a4.5 4.5 0 0 1-4.5 4.5H22l-7 5v-5h-3.5A4.5 4.5 0 0 1 7 22v-9a4.5 4.5 0 0 1 4.5-4.5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M14 16h12M14 20.5h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M29.5 7.5h1" stroke="#BDF7E5" stroke-width="3" stroke-linecap="round"/></svg></div><span>VillFam Messenger</span></div>
     <h1 id="authHeading">Welcome back</h1>
     <p id="authSubheading">Sign in to your family's private messenger.</p>
     <div class="tabs"><button id="signInTab" class="active" type="button">Sign in</button><button id="signUpTab" type="button">Create account</button></div>
@@ -229,7 +409,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 <section id="appView">
  <div class="app-shell">
   <header class="topbar">
-    <div class="brand"><div class="brand-icon">✦</div><span>VillFam Messenger</span></div>
+    <div class="brand"><div class="brand-icon" aria-hidden="true"><svg class="brand-mark" viewBox="0 0 40 40" width="27" height="27" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 8.5h17a4.5 4.5 0 0 1 4.5 4.5v9a4.5 4.5 0 0 1-4.5 4.5H22l-7 5v-5h-3.5A4.5 4.5 0 0 1 7 22v-9a4.5 4.5 0 0 1 4.5-4.5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M14 16h12M14 20.5h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M29.5 7.5h1" stroke="#BDF7E5" stroke-width="3" stroke-linecap="round"/></svg></div><span>VillFam Messenger</span></div>
     <div class="spacer"></div><span class="online-dot">Connected</span>
     <div class="profile-area">
       <button id="profileButton" class="profile-button" type="button"><div id="topAvatar" class="avatar">V</div><span id="topNickname" class="profile-name">VillFam member</span></button>
@@ -307,6 +487,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 <input id="avatarInput" type="file" accept="image/*" class="hidden"><input id="groupPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
 <div id="toast" class="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
 'use strict';
