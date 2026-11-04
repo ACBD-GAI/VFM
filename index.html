@@ -975,10 +975,28 @@ function showAuth(){state.pendingSession=null;state.forceLogoutOtpSent=false;sta
 async function enterApp(){
  if(state.entering)return;state.entering=true;
  $('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
+ // Reveal the authenticated app shell immediately. The previous startup flow
+ // kept a full-screen restore layer visible while every secondary query finished.
+ document.documentElement.classList.remove('villfam-session-restoring');
+ state.profile={id:state.user.id,email:state.user.email,nickname:(state.user.email||'VillFam').split('@')[0]};
+ updateProfileHeader();
  try{
-  const {data:profile,error}=await state.client.from('profiles').select('*').eq('id',state.user.id).maybeSingle();if(error)throw error;
-  state.profile=profile||{id:state.user.id,email:state.user.email,nickname:(state.user.email||'VillFam').split('@')[0]};
-  updateProfileHeader();await loadPeople();await loadConversations();try{await loadGroupInvitations();}catch(invErr){console.warn('Group invitations need the latest Supabase patch:',invErr); }subscribeInbox();subscribeCallInbox();await refreshPendingCallInvites();if(state.callStateInterval)clearInterval(state.callStateInterval);state.callStateInterval=setInterval(()=>{if(state.user)loadConversations().catch(e=>console.warn('Conversation refresh:',e));},30000);
+  // These profile reads do not depend on each other; run them together to save
+  // one full network round trip on every restored login.
+  const [profileResult]=await Promise.all([
+   state.client.from('profiles').select('*').eq('id',state.user.id).maybeSingle(),
+   loadPeople()
+  ]);
+  const {data:profile,error}=profileResult;if(error)throw error;
+  state.profile=profile||state.profile;updateProfileHeader();
+  await loadConversations();
+  subscribeInbox();subscribeCallInbox();
+  // Invitations and incoming-call checks are secondary startup work. Do not
+  // hold the chat list behind them; each keeps its own error handling.
+  loadGroupInvitations().catch(invErr=>console.warn('Group invitations need the latest Supabase patch:',invErr));
+  refreshPendingCallInvites().catch(callErr=>console.warn('Pending call invitations could not be refreshed:',callErr));
+  if(state.callStateInterval)clearInterval(state.callStateInterval);
+  state.callStateInterval=setInterval(()=>{if(state.user)loadConversations().catch(e=>console.warn('Conversation refresh:',e));},30000);
  }catch(err){toast('App setup error: '+errorText(err));console.error(err);}
  finally{state.entering=false;}
 }
