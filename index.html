@@ -379,6 +379,22 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 
 
 
+
+/* Friends dialog: separate searchable tabs for incoming, sent, and accepted friends */
+.friend-request-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:4px 0 12px}
+.friend-request-tab{min-width:0;min-height:42px;padding:8px 7px;border:1px solid #dce5ef;border-radius:11px;background:#f7f9fc;color:#52647d;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;white-space:normal;line-height:1.2}
+.friend-request-tab.is-active{background:linear-gradient(135deg,#e8f7ff,#fff4e6);border-color:#78c9e8;color:#174f73;box-shadow:inset 0 0 0 1px rgba(83,217,255,.12)}
+.friend-tab-count{min-width:18px;height:18px;padding:0 5px;border-radius:20px;background:#e6edf5;color:#52647d;font-size:10px;display:inline-grid;place-items:center}
+.friend-request-tab.is-active .friend-tab-count{background:#1d739f;color:white}
+.friend-request-search{display:flex;align-items:center;gap:8px;height:40px;margin:0 0 8px;padding:0 11px;border:1px solid #e2e9f1;border-radius:11px;background:#f8faff;color:#8290a4}
+.friend-request-search>span{font-size:19px;line-height:1}
+.friend-request-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:12px;color:#263a55}
+.friend-requests-results{min-height:130px;max-height:min(43vh,360px);overflow:auto}
+.friend-requests-results .friend-list-row{gap:8px}
+.friend-requests-results .friend-list-copy strong{font-size:12px}
+.friend-member-open{border:0;background:transparent;padding:0;display:flex;align-items:center;gap:9px;flex:1;min-width:0;cursor:pointer;text-align:left;color:inherit}.friend-member-open:hover .friend-list-copy strong{color:#1d739f;text-decoration:underline}.friend-member-open:focus-visible{outline:2px solid #53bde5;outline-offset:3px;border-radius:9px}
+@media(max-width:760px){.friend-request-tabs{gap:5px}.friend-request-tab{font-size:10px;padding:7px 4px;gap:4px;min-height:44px}.friend-request-search{height:38px}.friend-requests-results{max-height:43dvh}}
+
 /* VILLFAM NEON FAMILY BRAND SYSTEM — logo-matched controls and dialogs */
 :root{--blue:#2b82bd;--blue-dark:#19577f;--brand-navy:#111e35;--brand-navy-2:#1b3353;--brand-cyan:#53d9ff;--brand-amber:#ffba63;--brand-border:#dce7f2;--brand-glow:0 0 0 1px rgba(83,217,255,.18),0 12px 34px rgba(14,35,65,.16)}
 .brand{color:#172b48}.brand-icon{width:46px;height:46px;border-radius:15px;overflow:hidden;border:1px solid rgba(71,130,176,.25);background:#142a48;box-shadow:0 0 0 2px rgba(83,217,255,.13),0 0 18px rgba(83,217,255,.16),0 6px 18px rgba(7,18,35,.18)}
@@ -850,8 +866,14 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 </dialog>
 <dialog id="friendRequestsDialog" class="picker-dialog friend-requests-dialog">
  <div class="picker-head"><h3>Friends & requests</h3><span class="spacer"></span><button id="closeFriendRequests" class="icon-btn" type="button" aria-label="Close">×</button></div>
- <p class="muted small">Accept a friend request before starting a private chat.</p>
- <div id="friendRequestsList" class="picker-list"><div class="picker-empty">Loading friends…</div></div>
+ <p class="muted small">Choose a section below. Search by member name or email.</p>
+ <div id="friendRequestTabs" class="friend-request-tabs" role="tablist" aria-label="Friends and requests">
+  <button type="button" class="friend-request-tab is-active" data-friend-tab="incoming" role="tab" aria-selected="true">Friend requests <span id="incomingFriendTabCount" class="friend-tab-count">0</span></button>
+  <button type="button" class="friend-request-tab" data-friend-tab="outgoing" role="tab" aria-selected="false">Sent requests <span id="outgoingFriendTabCount" class="friend-tab-count">0</span></button>
+  <button type="button" class="friend-request-tab" data-friend-tab="friends" role="tab" aria-selected="false">Your friends <span id="yourFriendsTabCount" class="friend-tab-count">0</span></button>
+ </div>
+ <label class="friend-request-search" for="friendRequestsSearch"><span aria-hidden="true">⌕</span><input id="friendRequestsSearch" type="search" autocomplete="off" placeholder="Search this list…"></label>
+ <div id="friendRequestsList" class="picker-list friend-requests-results"><div class="picker-empty">Loading friends…</div></div>
  <div class="dialog-buttons"><button id="refreshFriendRequests" class="secondary" type="button">Refresh</button><button id="doneFriendRequests" class="primary" type="button">Done</button></div>
 </dialog>
 
@@ -871,7 +893,7 @@ const SUPABASE_AUTH_STORAGE_KEY = 'sb-' + new URL(SUPABASE_URL).hostname.split('
 const SUPABASE_RECOVERY_KEY = 'villfam_supabase_session_recovery_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, presenceChannel:null, onlineUserIds:new Set(), presenceReady:false, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null, faceLandmarkerPromise:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], friendListTab:'incoming', viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, presenceChannel:null, onlineUserIds:new Set(), presenceReady:false, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null, faceLandmarkerPromise:null };
 
 const VILLFAM_LOOKS = {
  original:{label:'Original',type:'none',css:'none',needsFace:false},
@@ -1214,15 +1236,39 @@ function friendSetupMessage(error){
  return 'Friend feature error: '+errorText(error);
 }
 function makeFriendRow(profile,meta,actions){
- const row=document.createElement('div');row.className='friend-list-row';row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='friend-list-copy';const name=document.createElement('strong');name.textContent=profile.nickname||'VillFam member';const detail=document.createElement('span');const online=isUserOnline(profile?.id);detail.className='presence-copy-state '+(online?'is-online':'is-offline');detail.textContent=(meta?meta+' · ':'')+(online?'Online':'Offline');copy.append(name,detail);row.append(copy);actions.forEach(button=>row.append(button));return row;
+ const row=document.createElement('div');row.className='friend-list-row';const open=document.createElement('button');open.type='button';open.className='friend-member-open';open.setAttribute('aria-label','View '+(profile.nickname||'VillFam member')+' profile');open.append(avatarElement(profile));const copy=document.createElement('div');copy.className='friend-list-copy';const name=document.createElement('strong');name.textContent=profile.nickname||'VillFam member';const detail=document.createElement('span');const online=isUserOnline(profile?.id);detail.className='presence-copy-state '+(online?'is-online':'is-offline');detail.textContent=(meta?meta+' · ':'')+(online?'Online':'Offline');copy.append(name,detail);open.append(copy);open.addEventListener('click',()=>showMemberProfile(profile).catch(e=>toast(errorText(e))));row.append(open);actions.forEach(button=>row.append(button));return row;
 }
 function renderFriendRequests(){
- const list=$('friendRequestsList');if(!list)return;list.replaceChildren();const incoming=state.friendRequests.filter(r=>r.status==='pending'&&r.recipient_id===state.user?.id),outgoing=state.friendRequests.filter(r=>r.status==='pending'&&r.requester_id===state.user?.id),friends=state.friendRequests.filter(r=>r.status==='accepted');
- const addSection=(title,rows,empty,render)=>{const h=document.createElement('div');h.className='friend-section-title';h.textContent=title;list.append(h);if(!rows.length){const e=document.createElement('div');e.className='picker-empty';e.textContent=empty;list.append(e);}else rows.forEach(render);};
- addSection('Friend requests',incoming,'No incoming friend requests.',r=>{const p=state.people.find(x=>x.id===r.requester_id)||{id:r.requester_id,nickname:'VillFam member'};const accept=document.createElement('button');accept.className='primary friend-small-action';accept.textContent='Accept';accept.addEventListener('click',()=>respondFriendRequest(r,'accept',accept));const decline=document.createElement('button');decline.className='secondary friend-small-action';decline.textContent='Decline';decline.addEventListener('click',()=>respondFriendRequest(r,'decline',decline));list.append(makeFriendRow(p,'Wants to connect',[accept,decline]));});
- addSection('Sent requests',outgoing,'No pending sent requests.',r=>{const p=state.people.find(x=>x.id===r.recipient_id)||{id:r.recipient_id,nickname:'VillFam member'};const cancel=document.createElement('button');cancel.className='secondary friend-small-action';cancel.textContent='Cancel';cancel.addEventListener('click',()=>cancelFriendRequest(r,cancel));list.append(makeFriendRow(p,'Waiting for acceptance',[cancel]));});
- addSection('Your friends',friends,'No friends yet. Find people with New chat.',r=>{const id=r.requester_id===state.user.id?r.recipient_id:r.requester_id;const p=state.people.find(x=>x.id===id)||{id,nickname:'VillFam member'};const view=document.createElement('button');view.className='secondary friend-small-action';view.textContent='Profile';view.addEventListener('click',()=>showMemberProfile(p).catch(e=>toast(errorText(e))));const unfriend=document.createElement('button');unfriend.className='danger-button friend-small-action';unfriend.textContent='Remove';unfriend.addEventListener('click',()=>removeFriend(id,unfriend));list.append(makeFriendRow(p,'Friend',[view,unfriend]));});
- const pendingCount=incoming.length;const badge=$('friendRequestCount');badge.textContent=pendingCount>99?'99+':String(pendingCount);badge.classList.toggle('hidden',pendingCount===0);
+ const list=$('friendRequestsList');if(!list)return;list.replaceChildren();
+ const incoming=state.friendRequests.filter(r=>r.status==='pending'&&r.recipient_id===state.user?.id);
+ const outgoing=state.friendRequests.filter(r=>r.status==='pending'&&r.requester_id===state.user?.id);
+ const friends=state.friendRequests.filter(r=>r.status==='accepted');
+ const counts={incoming,outgoing,friends};
+ const countIds={incoming:'incomingFriendTabCount',outgoing:'outgoingFriendTabCount',friends:'yourFriendsTabCount'};
+ Object.entries(counts).forEach(([key,rows])=>{const el=$(countIds[key]);if(el)el.textContent=rows.length>99?'99+':String(rows.length);});
+ const incomingBadge=$('friendRequestCount');if(incomingBadge){incomingBadge.textContent=incoming.length>99?'99+':String(incoming.length);incomingBadge.classList.toggle('hidden',incoming.length===0);}
+ document.querySelectorAll('[data-friend-tab]').forEach(tab=>{const active=tab.dataset.friendTab===(state.friendListTab||'incoming');tab.classList.toggle('is-active',active);tab.setAttribute('aria-selected',active?'true':'false');});
+ const q=String($('friendRequestsSearch')?.value||'').trim().toLocaleLowerCase();
+ const matchesSearch=p=>!q||String(p.nickname||'').toLocaleLowerCase().includes(q)||String(p.email||'').toLocaleLowerCase().includes(q);
+ const tab=state.friendListTab||'incoming';const rows=counts[tab]||[];
+ const rowData=rows.map(r=>{
+  const id=tab==='incoming'?r.requester_id:tab==='outgoing'?r.recipient_id:(r.requester_id===state.user.id?r.recipient_id:r.requester_id);
+  const p=state.people.find(x=>x.id===id)||{id,nickname:'VillFam member'};return {record:r,profile:p,id};
+ }).filter(x=>matchesSearch(x.profile));
+ if(!rowData.length){const e=document.createElement('div');e.className='picker-empty';e.textContent=q?'No members match your search.':tab==='incoming'?'No incoming friend requests.':tab==='outgoing'?'You have no pending sent requests.':'You have no friends yet. Find people with New chat.';list.append(e);return;}
+ rowData.forEach(({record:r,profile:p,id})=>{
+  if(tab==='incoming'){
+   const accept=document.createElement('button');accept.className='primary friend-small-action';accept.textContent='Accept';accept.addEventListener('click',()=>respondFriendRequest(r,'accept',accept));
+   const decline=document.createElement('button');decline.className='secondary friend-small-action';decline.textContent='Decline';decline.addEventListener('click',()=>respondFriendRequest(r,'decline',decline));
+   list.append(makeFriendRow(p,'Wants to connect',[accept,decline]));
+  }else if(tab==='outgoing'){
+   const cancel=document.createElement('button');cancel.className='secondary friend-small-action';cancel.textContent='Cancel';cancel.addEventListener('click',()=>cancelFriendRequest(r,cancel));
+   list.append(makeFriendRow(p,'Waiting for acceptance',[cancel]));
+  }else{
+   const unfriend=document.createElement('button');unfriend.className='danger-button friend-small-action';unfriend.textContent='Remove';unfriend.addEventListener('click',()=>removeFriend(id,unfriend));
+   list.append(makeFriendRow(p,'Friend',[unfriend]));
+  }
+ });
 }
 async function respondFriendRequest(row,response,button){setBusy(button,true,response==='accept'?'Accepting…':'Declining…');try{const {error}=await state.client.rpc('villfam_respond_friend_request',{p_request_id:row.id,p_response:response});if(error)throw error;await loadFriendRequests();if(response==='accept'){await loadPeople();toast('Friend request accepted. You can now chat.');}else toast('Friend request declined.');if(state.viewedProfile)updateMemberProfileActions();}catch(e){toast('Could not respond to request: '+errorText(e));}finally{setBusy(button,false);}}
 async function cancelFriendRequest(row,button){setBusy(button,true,'Cancelling…');try{const {error}=await state.client.rpc('villfam_cancel_friend_request',{p_request_id:row.id});if(error)throw error;await loadFriendRequests();toast('Friend request cancelled.');}catch(e){toast('Could not cancel request: '+errorText(e));}finally{setBusy(button,false);}}
@@ -1237,7 +1283,7 @@ function updateMemberProfileActions(){
  else{status.textContent='Add this person as a friend to start a private chat.';primary.textContent='Add friend';primary.onclick=async()=>{setBusy(primary,true,'Sending…');try{const {data,error}=await state.client.rpc('villfam_send_friend_request',{p_user_id:p.id});if(error)throw error;await loadFriendRequests();const message=data==='incoming'?'They already sent you a request. Accept it to become friends.':data==='accepted'?'You are already friends.':'Friend request sent.';toast(message);updateMemberProfileActions();}catch(e){toast('Could not send friend request: '+friendSetupMessage(e));}finally{setBusy(primary,false);}};}
 }
 async function showMemberProfile(profile){
- if(!profile||profile.id===state.user?.id)return;state.returnToMemberPicker=$('memberPickerDialog').open;if(state.returnToMemberPicker)$('memberPickerDialog').close();
+ if(!profile||profile.id===state.user?.id)return;state.returnToMemberPicker=$('memberPickerDialog').open;if(state.returnToMemberPicker)$('memberPickerDialog').close();if($('friendRequestsDialog').open)$('friendRequestsDialog').close();
  state.viewedProfile=state.people.find(x=>x.id===profile.id)||profile;
  let friendLoadError=null;
  try{await loadFriendRequests();}catch(e){friendLoadError=e;state.friendRequests=[];renderFriendRequests();}
@@ -1247,11 +1293,13 @@ async function showMemberProfile(profile){
 }
 async function startPrivateChatWith(profile){
  if(friendStateFor(profile.id).kind!=='friends'){toast('You need to be friends before you can message.');return;}
- setBusy($('memberProfilePrimaryAction'),true,'Opening chat…');try{const {data,error}=await state.client.rpc('create_conversation',{p_title:null,p_is_group:false,p_member_ids:[profile.id]});if(error)throw error;$('memberProfileDialog').close();if($('memberPickerDialog').open)$('memberPickerDialog').close();await loadConversations();await openConversation(data);}catch(e){toast('Could not open private chat: '+errorText(e));}finally{setBusy($('memberProfilePrimaryAction'),false);}
+ setBusy($('memberProfilePrimaryAction'),true,'Opening chat…');try{const {data,error}=await state.client.rpc('create_conversation',{p_title:null,p_is_group:false,p_member_ids:[profile.id]});if(error)throw error;state.returnToMemberPicker=false;if($('friendRequestsDialog').open)$('friendRequestsDialog').close();if($('memberProfileDialog').open)$('memberProfileDialog').close();if($('memberPickerDialog').open)$('memberPickerDialog').close();await loadConversations();await openConversation(data);}catch(e){toast('Could not open private chat: '+errorText(e));}finally{setBusy($('memberProfilePrimaryAction'),false);}
 }
 $('closeMemberProfile').addEventListener('click',()=>$('memberProfileDialog').close());
 $('memberProfileDialog').addEventListener('close',()=>{state.viewedProfile=null;if(state.returnToMemberPicker){state.returnToMemberPicker=false;state.memberPickerMode='direct';$('submitMemberPicker').classList.add('hidden');$('memberPickerDialog').showModal();renderMemberResults();}});
-$('friendRequestsButton').addEventListener('click',async()=>{try{await Promise.all([loadPeople(),loadFriendRequests()]);$('friendRequestsDialog').showModal();}catch(e){toast(friendSetupMessage(e));}});
+$('friendRequestsButton').addEventListener('click',async()=>{try{await Promise.all([loadPeople(),loadFriendRequests()]);if(!$('friendRequestsSearch').value)$('friendRequestsSearch').value='';state.friendListTab=state.friendListTab||'incoming';renderFriendRequests();$('friendRequestsDialog').showModal();}catch(e){toast(friendSetupMessage(e));}});
+document.querySelectorAll('[data-friend-tab]').forEach(tab=>tab.addEventListener('click',()=>{state.friendListTab=tab.dataset.friendTab;renderFriendRequests();}));
+$('friendRequestsSearch').addEventListener('input',renderFriendRequests);
 $('closeFriendRequests').addEventListener('click',()=>$('friendRequestsDialog').close());$('doneFriendRequests').addEventListener('click',()=>$('friendRequestsDialog').close());
 $('refreshFriendRequests').addEventListener('click',async()=>{setBusy($('refreshFriendRequests'),true,'Refreshing…');try{await Promise.all([loadPeople(),loadFriendRequests()]);}catch(e){toast(friendSetupMessage(e));}finally{setBusy($('refreshFriendRequests'),false);}});
 function subscribeFriendRequests(){if(state.friendChannel)state.client.removeChannel(state.friendChannel);state.friendChannel=state.client.channel('villfam-friends-'+state.user.id).on('postgres_changes',{event:'*',schema:'public',table:'villfam_friend_requests'},async()=>{try{await loadFriendRequests();if(state.viewedProfile)updateMemberProfileActions();}catch(e){console.warn('Friend request refresh:',e);}}).subscribe();}
