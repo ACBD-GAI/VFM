@@ -497,70 +497,92 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 }
 @media(max-width:390px){.profile-area>.icon-btn{min-width:31px;width:31px}.villfam-refresh-button{font-size:20px}}
 
-
-/* VillFam alignment polish — consistent button labels, symbols and dialog actions. */
-button:not(.member-option):not(.villfam-filter-chip){
- text-align:center;
- vertical-align:middle;
- line-height:1.2;
-}
-.primary,.secondary,.danger-button,.link,.send-btn,
-.dialog-buttons button,.action-dialog .actions button,
-.incoming-call-actions button,.call-controls button,
-.villfam-camera-actions button,.profile-media-actions button,
-.friend-small-action,.msg-actions button{
- display:inline-flex;
- align-items:center;
- justify-content:center;
- gap:8px;
- text-align:center;
- line-height:1.2;
-}
-.icon-btn{
- display:inline-grid;
- place-items:center;
- align-content:center;
- justify-content:center;
- padding:0;
- text-align:center;
- line-height:1;
-}
-.member-option{display:flex;align-items:center;justify-content:flex-start;text-align:left}
-.member-option-copy{text-align:left}
-.member-option-check{display:grid;place-items:center;flex:none}
-.dialog-buttons,.incoming-call-actions,.villfam-camera-actions{
- display:flex;
- align-items:center;
- justify-content:center;
- flex-wrap:wrap;
- gap:10px;
-}
-.dialog-buttons button,.incoming-call-actions button{min-width:min(132px,100%)}
-.action-dialog .actions{display:grid;justify-items:stretch;gap:9px}
-.action-dialog .actions button{width:100%;min-height:46px}
-.villfam-dialog-heading{align-items:center}
-.villfam-dialog-heading h3,.picker-head h3,.action-dialog>h3{text-align:center}
-.villfam-filter-chip{display:grid;justify-items:center;align-content:center;text-align:center;line-height:1.15}
-.villfam-filter-chip>span:last-child{display:block;width:100%;text-align:center}
-.villfam-camera-actions button{min-width:148px}
-.profile-media-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px}
-.profile-media-actions button{min-height:42px}
-@media(max-width:760px){
- .dialog-buttons,.incoming-call-actions,.villfam-camera-actions{gap:8px}
- .dialog-buttons button,.incoming-call-actions button{flex:1 1 128px;min-width:0}
- .villfam-camera-actions button{flex:1 1 140px;min-width:0}
- .action-dialog .actions button{min-height:46px}
-}
-@media(max-width:390px){
- .dialog-buttons button,.incoming-call-actions button{font-size:12px;padding-inline:10px}
- .villfam-camera-actions button{font-size:12px;padding-inline:10px}
-}
-
 </style>
 
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" as="script">
+<style>
+/* Responsive video-call fit: keep the close control visible and remove nested scrolling. */
+#callDialog.villfam-call-dialog{
+  box-sizing:border-box; width:min(96vw,1100px); max-width:1100px;
+  height:min(94dvh,900px); max-height:94dvh; min-height:0;
+  margin:auto; padding:12px; overflow:hidden;
+  display:none; grid-template-rows:auto minmax(0,1fr) auto auto auto;
+  gap:8px; align-content:stretch;
+}
+#callDialog.villfam-call-dialog[open]{display:grid;}
+#callDialog .villfam-call-heading{
+  display:flex; align-items:center; gap:10px; min-width:0; min-height:48px;
+  margin:0; padding:0 2px 8px; border-bottom:1px solid rgba(174,210,237,.15);
+}
+#callDialog .villfam-call-heading>div{min-width:0;}
+#callDialog .villfam-call-heading h3{line-height:1.2;}
+#callDialog #closeCallDialog.villfam-close{
+  box-sizing:border-box; flex:0 0 40px; width:40px; height:40px; min-width:40px;
+  margin:0 0 0 auto; padding:0; display:grid; place-items:center;
+  line-height:1; font-family:Arial,sans-serif; font-size:22px; font-weight:600;
+  text-align:center; vertical-align:middle; border-radius:12px;
+}
+#callDialog .call-grid{
+  min-height:0; height:100%; max-height:none; overflow:hidden;
+  margin:0; gap:8px; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));
+  grid-auto-rows:minmax(0,1fr); align-content:stretch;
+}
+#callDialog .call-tile,#callDialog .call-tile video{min-height:0;height:100%;}
+#callDialog .villfam-call-filter-panel{
+  min-width:0; margin:0; padding:8px 10px; border-radius:14px;
+}
+#callDialog .villfam-filter-heading{margin:0 0 7px; align-items:center;}
+#callDialog .villfam-filter-strip{
+  display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px;
+  padding:0; overflow:visible; overscroll-behavior:initial;
+}
+#callDialog .villfam-filter-chip{
+  box-sizing:border-box; width:100%; min-width:0; min-height:66px; height:auto;
+  flex:none; padding:5px 2px; gap:3px; border-radius:11px; white-space:normal;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; line-height:1.1; font-size:clamp(9px,1vw,11px);
+}
+#callDialog .villfam-filter-swatch{width:clamp(29px,4vw,38px);height:clamp(29px,4vw,38px);flex:none;border-radius:10px;font-size:19px;}
+#callDialog .call-status{margin:0; min-height:15px; line-height:15px;}
+#callDialog .call-controls{gap:7px; flex-wrap:nowrap; justify-content:center;}
+#callDialog .call-controls button{min-height:38px; padding:8px 12px; line-height:1.15; white-space:nowrap;}
+@media(max-width:760px){
+ #callDialog.villfam-call-dialog{
+  width:100vw; max-width:none; height:100dvh; max-height:100dvh; min-height:0;
+  margin:0; padding: max(8px,env(safe-area-inset-top)) 9px max(8px,env(safe-area-inset-bottom));
+  border-radius:0; gap:6px;
+ }
+ #callDialog .villfam-call-heading{min-height:42px;padding-bottom:6px;}
+ #callDialog #closeCallDialog.villfam-close{width:38px;height:38px;flex-basis:38px;min-width:38px;}
+ #callDialog .call-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:6px;}
+ #callDialog .villfam-call-filter-panel{padding:7px 6px;}
+ #callDialog .villfam-filter-heading{margin-bottom:5px;gap:5px;}
+ #callDialog .villfam-filter-heading strong{font-size:11px;}
+ #callDialog .villfam-filter-heading>span{font-size:9px;max-width:52%;}
+ #callDialog .villfam-filter-strip{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;}
+ #callDialog .villfam-filter-chip{min-height:48px;padding:3px 1px;gap:2px;font-size:9px;border-radius:9px;}
+ #callDialog .villfam-filter-swatch{width:27px;height:27px;border-radius:8px;font-size:16px;}
+ #callDialog .call-controls{gap:5px;}
+ #callDialog .call-controls button{min-height:35px;padding:7px 8px;font-size:10px;border-radius:10px;}
+ #callDialog .call-status{font-size:10px;}
+}
+@media(max-width:380px){
+ #callDialog.villfam-call-dialog{padding-left:6px;padding-right:6px;}
+ #callDialog .call-controls button{padding:6px 6px;font-size:9px;}
+ #callDialog .villfam-filter-chip{font-size:8px;}
+}
+@media(max-height:620px){
+ #callDialog.villfam-call-dialog{gap:5px;padding-top:7px;padding-bottom:7px;}
+ #callDialog .villfam-call-heading{min-height:36px;padding-bottom:4px;}
+ #callDialog .villfam-call-filter-panel{padding:5px 8px;}
+ #callDialog .villfam-filter-chip{min-height:52px;}
+ #callDialog .villfam-filter-swatch{width:30px;height:30px;}
+ #callDialog .call-controls button{min-height:32px;padding:6px 9px;}
+}
+
+</style>
 </head>
 <body>
 <section id="authView">
@@ -876,32 +898,17 @@ function drawFaceSticker(ctx,landmarks,width,height,type){
    drawFloppyEar(ctx,rightRoot.x,rightRoot.y,earW,earH,headAngle+.08,'#9a633c','#e8a17e',true);
    drawNoseSticker(ctx,nose,eyeSpan*.34);
   }else{
-   // Cat-ear roots come from the upper face-oval/head contour, well above
-   // the eyebrows: 67/297 are the upper-left/upper-right forehead outline.
-   // Pull each root slightly inward and downward so the ear base overlaps
-   // the detected head outline instead of floating over the eyes.
-   let upperL=facePoint(landmarks,67,width,height);
-   let upperR=facePoint(landmarks,297,width,height);
-   const minimumRise=eyeSpan*.18;
-   if(!upperL||upperL.y>cy-minimumRise)upperL=facePoint(landmarks,109,width,height);
-   if(!upperR||upperR.y>cy-minimumRise)upperR=facePoint(landmarks,338,width,height);
-   if(!upperL||!upperR||upperL.y>cy-minimumRise||upperR.y>cy-minimumRise){
-    const acrossX=Math.cos(angle),acrossY=Math.sin(angle),upX=Math.sin(angle),upY=-Math.cos(angle);
-    upperL={x:cx-acrossX*eyeSpan*.62+upX*eyeSpan*.55,y:cy-acrossY*eyeSpan*.62+upY*eyeSpan*.55};
-    upperR={x:cx+acrossX*eyeSpan*.62+upX*eyeSpan*.55,y:cy+acrossY*eyeSpan*.62+upY*eyeSpan*.55};
-   }
-   if(upperL.x>upperR.x){const swap=upperL;upperL=upperR;upperR=swap;}
-   const catLineAngle=Math.atan2(upperR.y-upperL.y,upperR.x-upperL.x);
-   const catAcrossX=Math.cos(catLineAngle),catAcrossY=Math.sin(catLineAngle);
-   const catDownX=-Math.sin(catLineAngle),catDownY=Math.cos(catLineAngle);
-   const rootOverlap=eyeSpan*.075,rootInset=eyeSpan*.025;
-   const leftRootCat={x:upperL.x+catAcrossX*rootInset+catDownX*rootOverlap,
-                      y:upperL.y+catAcrossY*rootInset+catDownY*rootOverlap};
-   const rightRootCat={x:upperR.x-catAcrossX*rootInset+catDownX*rootOverlap,
-                       y:upperR.y-catAcrossY*rootInset+catDownY*rootOverlap};
-   const catEarW=eyeSpan*.58,catEarH=eyeSpan*.72;
-   drawCatEar(ctx,leftRootCat.x,leftRootCat.y,catEarW,catEarH,catLineAngle-.11,false);
-   drawCatEar(ctx,rightRootCat.x,rightRootCat.y,catEarW,catEarH,catLineAngle+.11,true);
+   // Cat ears use the outer-eye/temple line as their attachment, not the
+   // upper face-oval points. This keeps the ear bases at the brow/temple line
+   // and brings the triangles down so they visibly join the head.
+   const downX=-Math.sin(angle),downY=Math.cos(angle);
+   const leftRootCat={x:leftEye.x-Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
+                      y:leftEye.y-Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
+   const rightRootCat={x:rightEye.x+Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
+                       y:rightEye.y+Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
+   const catEarW=eyeSpan*.48,catEarH=eyeSpan*.57;
+   drawCatEar(ctx,leftRootCat.x,leftRootCat.y,catEarW,catEarH,angle-.10,false);
+   drawCatEar(ctx,rightRootCat.x,rightRootCat.y,catEarW,catEarH,angle+.10,true);
    ctx.save();ctx.fillStyle='rgba(255,122,156,.25)';
    if(cheekL){ctx.beginPath();ctx.ellipse(cheekL.x,cheekL.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
    if(cheekR){ctx.beginPath();ctx.ellipse(cheekR.x,cheekR.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
