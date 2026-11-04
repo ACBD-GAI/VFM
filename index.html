@@ -30,7 +30,7 @@
 .picker-list{max-height:38dvh;overflow:auto;display:grid;gap:5px;margin:8px 0}
 .member-option{display:flex;align-items:center;gap:10px;width:100%;padding:9px;border:1px solid transparent;border-radius:12px;background:#fff;text-align:left}
 .member-option:hover,.member-option.selected{background:#edf3ff;border-color:#cbdcff}
-.member-option-copy{min-width:0;flex:1}.member-option-name{font-size:13px;font-weight:800}.member-option-email{font-size:11px;color:var(--muted);overflow-wrap:anywhere;margin-top:2px}
+.member-option-copy{min-width:0;flex:1}.member-option-name{font-size:13px;font-weight:800}.member-option-meta{font-size:11px;color:var(--muted);overflow-wrap:anywhere;margin-top:2px}
 .member-option-check{font-weight:900;color:var(--blue)}
 .selected-members{display:flex;gap:6px;flex-wrap:wrap;min-height:4px;margin:5px 0}
 .member-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#edf3ff;color:#2458b0;font-size:11px;font-weight:750}
@@ -815,9 +815,9 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 
 <dialog id="memberPickerDialog" class="picker-dialog">
  <div class="picker-head"><h3 id="memberPickerTitle">Find VillFam members</h3><span class="spacer"></span><button id="closeMemberPicker" class="icon-btn" type="button" aria-label="Close">×</button></div>
- <p id="memberPickerHint" class="muted small">Search by nickname or email. You can type the first letter too.</p>
+ <p id="memberPickerHint" class="muted small">Search by name or email. Email addresses are never displayed.</p>
  <div id="groupNameField" class="field hidden"><label for="newGroupName">Group name</label><input id="newGroupName" class="inapp-input" maxlength="60" placeholder="e.g. Vill family"></div>
- <input id="memberSearchInput" class="picker-search" type="search" autocomplete="off" placeholder="Type a nickname, email, or first letter…">
+ <input id="memberSearchInput" class="picker-search" type="search" autocomplete="off" placeholder="Search by name or email…">
  <div id="selectedMembers" class="selected-members"></div>
  <div id="memberResults" class="picker-list"><div class="picker-empty">Start typing to find people.</div></div>
  <div class="dialog-buttons"><button id="cancelMemberPicker" class="secondary" type="button">Cancel</button><button id="submitMemberPicker" class="primary" type="button">Continue</button></div>
@@ -866,13 +866,13 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 </dialog>
 <dialog id="friendRequestsDialog" class="picker-dialog friend-requests-dialog">
  <div class="picker-head"><h3>Friends & requests</h3><span class="spacer"></span><button id="closeFriendRequests" class="icon-btn" type="button" aria-label="Close">×</button></div>
- <p class="muted small">Choose a section below. Search by member name or email.</p>
+ <p class="muted small">Choose a section below. Search by name or email; email addresses stay private.</p>
  <div id="friendRequestTabs" class="friend-request-tabs" role="tablist" aria-label="Friends and requests">
   <button type="button" class="friend-request-tab is-active" data-friend-tab="incoming" role="tab" aria-selected="true">Friend requests <span id="incomingFriendTabCount" class="friend-tab-count">0</span></button>
   <button type="button" class="friend-request-tab" data-friend-tab="outgoing" role="tab" aria-selected="false">Sent requests <span id="outgoingFriendTabCount" class="friend-tab-count">0</span></button>
   <button type="button" class="friend-request-tab" data-friend-tab="friends" role="tab" aria-selected="false">Your friends <span id="yourFriendsTabCount" class="friend-tab-count">0</span></button>
  </div>
- <label class="friend-request-search" for="friendRequestsSearch"><span aria-hidden="true">⌕</span><input id="friendRequestsSearch" type="search" autocomplete="off" placeholder="Search this list…"></label>
+ <label class="friend-request-search" for="friendRequestsSearch"><span aria-hidden="true">⌕</span><input id="friendRequestsSearch" type="search" autocomplete="off" placeholder="Search by name or email…"></label>
  <div id="friendRequestsList" class="picker-list friend-requests-results"><div class="picker-empty">Loading friends…</div></div>
  <div class="dialog-buttons"><button id="refreshFriendRequests" class="secondary" type="button">Refresh</button><button id="doneFriendRequests" class="primary" type="button">Done</button></div>
 </dialog>
@@ -1189,7 +1189,7 @@ function conversationAvatarElement(conv,extra=''){
  const el=document.createElement('div');el.className='avatar '+extra;
  if(conv?.is_group&&conv.group_avatar_url){const img=document.createElement('img');img.src=conv.group_avatar_url;img.alt='';el.append(img);}
  else if(conv?.is_group){el.textContent=initials(conv.displayTitle||conv.title||'Family group');}
- else {const profile=conv?.otherProfile||null;if(profile?.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.append(img);}else el.textContent=initials(profile?.nickname||profile?.email||'VillFam');setAvatarPresence(el,profile?.id);}
+ else {const profile=conv?.otherProfile||null;if(profile?.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.append(img);}else el.textContent=initials(profile?.nickname||'VillFam member');setAvatarPresence(el,profile?.id);}
  return el;
 }
 function replaceConversationAvatar(id,conv){const old=$(id);if(!old)return;const next=conversationAvatarElement(conv);next.id=id;old.replaceWith(next);}
@@ -1213,13 +1213,13 @@ function memberMatches(query){
 }
 function renderSelectedMembers(){
  const wrap=$('selectedMembers');wrap.replaceChildren();
- for(const id of state.selectedMemberIds){const p=state.people.find(x=>x.id===id);if(!p)continue;const chip=document.createElement('span');chip.className='member-chip';chip.append(document.createTextNode(p.nickname||p.email));const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Remove '+(p.nickname||p.email);remove.addEventListener('click',()=>{state.selectedMemberIds.delete(id);renderSelectedMembers();renderMemberResults();});chip.append(remove);wrap.append(chip);}
+ for(const id of state.selectedMemberIds){const p=state.people.find(x=>x.id===id);if(!p)continue;const chip=document.createElement('span');chip.className='member-chip';chip.append(document.createTextNode(p.nickname||'VillFam member'));const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Remove '+(p.nickname||'VillFam member');remove.addEventListener('click',()=>{state.selectedMemberIds.delete(id);renderSelectedMembers();renderMemberResults();});chip.append(remove);wrap.append(chip);}
 }
 function renderMemberResults(){
  const list=$('memberResults');list.replaceChildren();const q=$('memberSearchInput').value.trim();const matches=memberMatches(q);
- if(!q){const e=document.createElement('div');e.className='picker-empty';e.textContent='Type a nickname, email, or first letter to find members.';list.append(e);return;}
+ if(!q){const e=document.createElement('div');e.className='picker-empty';e.textContent='Type a name or email to find members.';list.append(e);return;}
  if(!matches.length){const e=document.createElement('div');e.className='picker-empty';e.textContent='No VillFam members match that search.';list.append(e);return;}
- matches.forEach(p=>{const selected=state.selectedMemberIds.has(p.id);const btn=document.createElement('button');btn.type='button';btn.className='member-option'+(selected?' selected':'');btn.append(avatarElement(p));const copy=document.createElement('div');copy.className='member-option-copy';const name=document.createElement('div');name.className='member-option-name';name.textContent=p.nickname||'VillFam member';const email=document.createElement('div');email.className='member-option-email';email.textContent=p.email||'';copy.append(name,email);btn.append(copy);const mark=document.createElement('span');mark.className='member-option-check';mark.textContent=selected?'✓':(state.memberPickerMode==='direct'?'›':'+');btn.append(mark);btn.addEventListener('click',()=>{if(state.memberPickerMode==='direct'){showMemberProfile(p).catch(e=>toast('Could not open profile: '+errorText(e)));return;}if(selected)state.selectedMemberIds.delete(p.id);else state.selectedMemberIds.add(p.id);renderSelectedMembers();renderMemberResults();});list.append(btn);});
+ matches.forEach(p=>{const selected=state.selectedMemberIds.has(p.id);const btn=document.createElement('button');btn.type='button';btn.className='member-option'+(selected?' selected':'');btn.append(avatarElement(p));const copy=document.createElement('div');copy.className='member-option-copy';const name=document.createElement('div');name.className='member-option-name';name.textContent=p.nickname||'VillFam member';const detail=document.createElement('div');detail.className='member-option-meta';detail.textContent=isUserOnline(p.id)?'Online':'Offline';copy.append(name,detail);btn.append(copy);const mark=document.createElement('span');mark.className='member-option-check';mark.textContent=selected?'✓':(state.memberPickerMode==='direct'?'›':'+');btn.append(mark);btn.addEventListener('click',()=>{if(state.memberPickerMode==='direct'){showMemberProfile(p).catch(e=>toast('Could not open profile: '+errorText(e)));return;}if(selected)state.selectedMemberIds.delete(p.id);else state.selectedMemberIds.add(p.id);renderSelectedMembers();renderMemberResults();});list.append(btn);});
 }
 function currentFriendRecord(userId){return state.friendRequests.find(r=>((r.requester_id===state.user?.id&&r.recipient_id===userId)||(r.requester_id===userId&&r.recipient_id===state.user?.id))&&['pending','accepted'].includes(r.status))||null;}
 function friendStateFor(userId){const row=currentFriendRecord(userId);if(!row)return {kind:'none',row:null};if(row.status==='accepted')return {kind:'friends',row};return {kind:row.requester_id===state.user.id?'sent':'received',row};}
@@ -1309,7 +1309,7 @@ async function openMemberPicker(mode){
  state.memberPickerMode=mode;state.selectedMemberIds=new Set();$('memberSearchInput').value='';$('newGroupName').value='';
  const isGroup=mode==='group';const isAdd=mode==='add';
  $('memberPickerTitle').textContent=isAdd?'Invite members to group':isGroup?'Create a family group':'Start a new chat';
- $('memberPickerHint').textContent=isAdd?'Search by nickname, email, or first letter. They will join only after accepting your invitation.':isGroup?'Choose whom to invite to this group. They will join only after accepting. Search by nickname, email, or first letter.':'Tap a person to view their profile. Send a friend request first; chat opens after they accept.';
+ $('memberPickerHint').textContent=isAdd?'Search by name or email. They will join only after accepting your invitation.':isGroup?'Choose whom to invite to this group. They will join only after accepting. Search by name or email.':'Tap a person to view their profile. Send a friend request first; chat opens after they accept.';
  $('groupNameField').classList.toggle('hidden',!isGroup);$('submitMemberPicker').classList.toggle('hidden',mode==='direct');$('submitMemberPicker').textContent=isAdd?'Send invitations':isGroup?'Create group & invite':'Start chat';$('memberPickerDialog').showModal();renderSelectedMembers();renderMemberResults();setTimeout(()=>$('memberSearchInput').focus(),30);
 }
 $('memberSearchInput').addEventListener('input',renderMemberResults);
@@ -1383,14 +1383,14 @@ async function renderGroupManagement(){
  $('groupMemberCount').textContent=members.length+' member'+(members.length===1?'':'s');
  const memberList=$('groupMemberRoster');memberList.replaceChildren();
  if(!members.length){const e=document.createElement('div');e.className='picker-empty';e.textContent='No accepted members yet.';memberList.append(e);}
- members.forEach(m=>{const row=document.createElement('div');row.className='group-roster-row';const profile=state.people.find(p=>p.id===m.user_id)||{nickname:m.nickname,email:m.email};row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='group-roster-copy';const name=document.createElement('div');name.className='group-roster-name';name.textContent=(m.nickname||m.email||'VillFam member')+(m.user_id===state.user.id?' (You)':'');const meta=document.createElement('div');meta.className='group-roster-meta';meta.textContent=m.email||'';copy.append(name,meta);row.append(copy);const tag=document.createElement('span');tag.className='group-roster-tag';tag.textContent=m.role==='admin'?'ADMIN':'MEMBER';row.append(tag);
+ members.forEach(m=>{const row=document.createElement('div');row.className='group-roster-row';const profile=state.people.find(p=>p.id===m.user_id)||{nickname:m.nickname,email:m.email};row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='group-roster-copy';const name=document.createElement('div');name.className='group-roster-name';name.textContent=(m.nickname||profile.nickname||'VillFam member')+(m.user_id===state.user.id?' (You)':'');const meta=document.createElement('div');meta.className='group-roster-meta';meta.textContent=m.role==='admin'?'Group admin':'Member';copy.append(name,meta);row.append(copy);const tag=document.createElement('span');tag.className='group-roster-tag';tag.textContent=m.role==='admin'?'ADMIN':'MEMBER';row.append(tag);
    const canKick=isAdmin&&m.user_id!==conv.created_by&&m.user_id!==state.user.id&&(conv.created_by===state.user.id||m.role!=='admin');
    if(canKick){const kick=document.createElement('button');kick.type='button';kick.className='danger-button';kick.textContent='Remove';kick.addEventListener('click',()=>kickGroupMember(conv,m,kick));row.append(kick);}memberList.append(row);});
  $('groupPendingCount').textContent=pending.length+' pending';const pendingList=$('groupPendingRoster');pendingList.replaceChildren();
- if(!isAdmin||!pending.length){const e=document.createElement('div');e.className='picker-empty';e.textContent=!isAdmin?'Only group admins can view pending invitations.':'No pending invitations.';pendingList.append(e);}else pending.forEach(inv=>{const row=document.createElement('div');row.className='group-roster-row';const profile=state.people.find(p=>p.id===inv.user_id)||{nickname:inv.nickname,email:inv.email};row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='group-roster-copy';const name=document.createElement('div');name.className='group-roster-name';name.textContent=inv.nickname||inv.email||'VillFam member';const meta=document.createElement('div');meta.className='group-roster-meta';meta.textContent='Invited · '+new Date(inv.created_at).toLocaleString();copy.append(name,meta);row.append(copy);const tag=document.createElement('span');tag.className='group-roster-tag pending';tag.textContent='PENDING';row.append(tag);const cancel=document.createElement('button');cancel.type='button';cancel.className='danger-button';cancel.textContent='Cancel';cancel.addEventListener('click',()=>cancelGroupInvitation(inv,cancel));row.append(cancel);pendingList.append(row);});
+ if(!isAdmin||!pending.length){const e=document.createElement('div');e.className='picker-empty';e.textContent=!isAdmin?'Only group admins can view pending invitations.':'No pending invitations.';pendingList.append(e);}else pending.forEach(inv=>{const row=document.createElement('div');row.className='group-roster-row';const profile=state.people.find(p=>p.id===inv.user_id)||{nickname:inv.nickname,email:inv.email};row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='group-roster-copy';const name=document.createElement('div');name.className='group-roster-name';name.textContent=inv.nickname||profile.nickname||'VillFam member';const meta=document.createElement('div');meta.className='group-roster-meta';meta.textContent='Invited · '+new Date(inv.created_at).toLocaleString();copy.append(name,meta);row.append(copy);const tag=document.createElement('span');tag.className='group-roster-tag pending';tag.textContent='PENDING';row.append(tag);const cancel=document.createElement('button');cancel.type='button';cancel.className='danger-button';cancel.textContent='Cancel';cancel.addEventListener('click',()=>cancelGroupInvitation(inv,cancel));row.append(cancel);pendingList.append(row);});
 }
 async function kickGroupMember(conv,member,button){
- const label=member.nickname||member.email||'this member';if(!await askConfirm('Remove group member?','Remove '+label+' from '+conv.displayTitle+'? They will immediately lose access to this group.','Remove member'))return;
+ const label=member.nickname||'this member';if(!await askConfirm('Remove group member?','Remove '+label+' from '+conv.displayTitle+'? They will immediately lose access to this group.','Remove member'))return;
  setBusy(button,true,'Removing…');try{const {error}=await state.client.rpc('villfam_kick_group_member',{p_conversation_id:conv.id,p_member_id:member.user_id});if(error)throw error;await loadConversations();await renderGroupManagement();toast(label+' was removed from the group.');}catch(e){toast('Could not remove member: '+errorText(e));}finally{setBusy(button,false);}
 }
 async function cancelGroupInvitation(inv,button){
@@ -1534,7 +1534,7 @@ $('resetPasswordButton').addEventListener('click',async()=>{
 function showForceLogoutControls(session,email,message){
  state.pendingSession=session;state.forceLogoutEmail=(email||session?.user?.email||'').toLowerCase();state.forceLogoutOtpSent=false;
  $('authEmail').value=state.forceLogoutEmail;$('authEmail').readOnly=true;$('authPasswordField').classList.add('hidden');$('loginButton').classList.add('hidden');$('forgotLinkRow').classList.add('hidden');document.querySelector('.tabs').classList.add('hidden');
- $('forceLogoutEmailLine').textContent='Code destination: '+state.forceLogoutEmail;$('forceLogoutOtp').value='';$('forceLogoutOtpFields').classList.add('hidden');$('sendForceLogoutOtpButton').classList.remove('hidden');$('forceLogoutPanel').classList.remove('hidden');$('resumeSessionButton').classList.add('hidden');
+ $('forceLogoutEmailLine').textContent='An approval code will be sent to your registered email address.';$('forceLogoutOtp').value='';$('forceLogoutOtpFields').classList.add('hidden');$('sendForceLogoutOtpButton').classList.remove('hidden');$('forceLogoutPanel').classList.remove('hidden');$('resumeSessionButton').classList.add('hidden');
  if(message)notice(message,'error');
 }
 function showResumeSessionControl(session,message){
@@ -1803,7 +1803,7 @@ async function loadConversations(){
  state.hiddenConversations=new Map((hideRes.data||[]).map(x=>[x.conversation_id,x.hidden_at]));
  state.conversations=(convRes.data||[]).map(c=>{
   const members=memberMap.get(c.id)||[];const other=state.people.find(p=>members.some(m=>m.user_id===p.id)&&p.id!==state.user.id);
-  const last=latest.get(c.id);const title=c.is_group?(c.title||'Family group'):(other?.nickname||other?.email||'Direct message');
+  const last=latest.get(c.id);const title=c.is_group?(c.title||'Family group'):(other?.nickname||'VillFam member');
   const hiddenAt=state.hiddenConversations.get(c.id);const isHidden=hiddenAt&&(!last||new Date(last.created_at).getTime()<=new Date(hiddenAt).getTime());
   return {...c,members,me:members.find(m=>m.user_id===state.user.id),displayTitle:title,otherProfile:other,lastPreview:last?(last.deleted_at?'Message deleted':last.message_type==='text'?last.content:(last.attachment_name||'Attachment')):'Start the conversation',ongoingCall:ongoingCallByConversation.get(c.id)||null,isHidden};
  }).filter(c=>!c.isHidden);
@@ -1811,7 +1811,7 @@ async function loadConversations(){
  renderConversations();
 }
 function renderConversations(){
- const list=$('conversationList');list.replaceChildren();const q=$('searchChats').value.trim().toLowerCase();const filtered=state.conversations.filter(c=>c.displayTitle.toLowerCase().includes(q));
+ const list=$('conversationList');list.replaceChildren();const q=$('searchChats').value.trim().toLowerCase();const filtered=state.conversations.filter(c=>c.displayTitle.toLowerCase().includes(q)||(!c.is_group&&String(c.otherProfile?.email||'').toLowerCase().includes(q)));
  if(!filtered.length){const el=document.createElement('div');el.className='empty';el.textContent=state.conversations.length?'No matching conversations.':'No conversations yet. Use ＋ to start a chat or create a family group.';list.append(el);return;}
  filtered.forEach(c=>{
   const call=c.ongoingCall;const activeCall=!!call&&call.status==='active';const ringingCall=!!call&&call.status==='ringing';
