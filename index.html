@@ -484,7 +484,7 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 .villfam-filter-chip:hover{transform:translateY(-3px);background:linear-gradient(145deg,#f0fbff,#fff4e7);border-color:#89d3e9;box-shadow:0 9px 17px rgba(24,91,126,.13)}
 .villfam-filter-chip.is-active{border:1px solid #49afd0;background:linear-gradient(145deg,#e9faff,#fff4e5);color:#164766;box-shadow:0 0 0 2px rgba(83,217,255,.18),0 8px 19px rgba(19,90,128,.13)}
 .villfam-filter-swatch{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;font-size:25px;background:linear-gradient(145deg,#173a5d,#276f91);color:#fff;border:1px solid rgba(73,178,213,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 5px 12px rgba(16,52,81,.15)}
-.look-beauty{background:linear-gradient(145deg,#f5c7bd,#e9aab7)}.look-dog,.look-puppy{background:linear-gradient(145deg,#99633f,#d7a16b)}.look-cat{background:linear-gradient(145deg,#30415b,#9b79a5)}.look-hearts{background:linear-gradient(145deg,#e76b98,#ad4775)}.look-sparkle{background:linear-gradient(145deg,#bd8c35,#f2d78b);color:#273b57}.look-warm{background:linear-gradient(145deg,#b96a31,#f0c16e)}.look-mono{background:linear-gradient(145deg,#273544,#aeb7c0)}
+.look-beauty{background:linear-gradient(145deg,#f5c7bd,#e9aab7)}.look-dog{background:linear-gradient(145deg,#99633f,#d7a16b)}.look-cat{background:linear-gradient(145deg,#30415b,#9b79a5)}.look-hearts{background:linear-gradient(145deg,#e76b98,#ad4775)}.look-sparkle{background:linear-gradient(145deg,#bd8c35,#f2d78b);color:#273b57}.look-warm{background:linear-gradient(145deg,#b96a31,#f0c16e)}.look-mono{background:linear-gradient(145deg,#273544,#aeb7c0)}
 .villfam-filter-heading{align-items:flex-start}.villfam-filter-heading strong{font-size:13px;letter-spacing:.015em}.villfam-filter-heading>span{max-width:56%;text-align:right;line-height:1.35}
 .villfam-camera-actions .secondary,.villfam-camera-actions .primary{min-height:48px;padding-inline:17px}
 .villfam-camera-stage{isolation:isolate}.villfam-effect-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;pointer-events:none;border-radius:18px}.villfam-effect-canvas.mirror-camera{transform:scaleX(-1)}
@@ -598,7 +598,6 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
   <button type="button" class="villfam-filter-chip is-active" data-look-filter="original" aria-pressed="true" title="No effect"><span class="villfam-filter-swatch look-original">◌</span><span>Original</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="beauty" aria-pressed="false" title="Soft skin and gentle brightening"><span class="villfam-filter-swatch look-beauty">✨</span><span>Beauty</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="dog" aria-pressed="false" title="Floppy dog ears and nose"><span class="villfam-filter-swatch look-dog">🐶</span><span>Dog ears</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="puppy" aria-pressed="false" title="Puppy ears and nose"><span class="villfam-filter-swatch look-puppy">🐾</span><span>Puppy</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="cat" aria-pressed="false" title="Cat ears"><span class="villfam-filter-swatch look-cat">🐱</span><span>Cat ears</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="hearts" aria-pressed="false" title="Floating heart stickers"><span class="villfam-filter-swatch look-hearts">💗</span><span>Hearts</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="sparkle" aria-pressed="false" title="Sparkle face stickers"><span class="villfam-filter-swatch look-sparkle">🌟</span><span>Sparkle</span></button>
@@ -615,7 +614,6 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
   <button type="button" class="villfam-filter-chip is-active" data-look-filter="original" aria-pressed="true" title="No effect"><span class="villfam-filter-swatch look-original">◌</span><span>Original</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="beauty" aria-pressed="false" title="Soft skin and gentle brightening"><span class="villfam-filter-swatch look-beauty">✨</span><span>Beauty</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="dog" aria-pressed="false" title="Floppy dog ears and nose"><span class="villfam-filter-swatch look-dog">🐶</span><span>Dog ears</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="puppy" aria-pressed="false" title="Puppy ears and nose"><span class="villfam-filter-swatch look-puppy">🐾</span><span>Puppy</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="cat" aria-pressed="false" title="Cat ears"><span class="villfam-filter-swatch look-cat">🐱</span><span>Cat ears</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="hearts" aria-pressed="false" title="Floating heart stickers"><span class="villfam-filter-swatch look-hearts">💗</span><span>Hearts</span></button>
   <button type="button" class="villfam-filter-chip" data-look-filter="sparkle" aria-pressed="false" title="Sparkle face stickers"><span class="villfam-filter-swatch look-sparkle">🌟</span><span>Sparkle</span></button>
@@ -704,7 +702,6 @@ const VILLFAM_LOOKS = {
  original:{label:'Original',type:'none',css:'none',needsFace:false},
  beauty:{label:'Beauty',type:'beauty',css:'none',needsFace:true},
  dog:{label:'Dog ears',type:'dog',css:'none',needsFace:true},
- puppy:{label:'Puppy',type:'puppy',css:'none',needsFace:true},
  cat:{label:'Cat ears',type:'cat',css:'none',needsFace:true},
  hearts:{label:'Hearts',type:'hearts',css:'none',needsFace:true},
  sparkle:{label:'Sparkle',type:'sparkle',css:'none',needsFace:true},
@@ -773,25 +770,62 @@ function drawCatEar(ctx,x,y,w,h,rotation,flip=false){
  ctx.beginPath();ctx.moveTo(-w*.52,0);ctx.quadraticCurveTo(-w*.5,-h*.68,0,-h);ctx.quadraticCurveTo(w*.5,-h*.7,w*.52,0);ctx.quadraticCurveTo(0,h*.12,-w*.52,0);ctx.closePath();ctx.fillStyle='#27334a';ctx.shadowColor='rgba(9,18,32,.3)';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
  ctx.beginPath();ctx.moveTo(-w*.27,-h*.08);ctx.quadraticCurveTo(-w*.25,-h*.56,0,-h*.76);ctx.quadraticCurveTo(w*.26,-h*.53,w*.28,-h*.08);ctx.closePath();ctx.fillStyle='#f5a7b8';ctx.fill();ctx.restore();
 }
-function drawNoseSticker(ctx,nose,size,style='dog'){
- if(!nose)return;ctx.save();ctx.translate(nose.x,nose.y+size*.16);ctx.fillStyle=style==='puppy'?'#29242a':'#302b31';
+function drawNoseSticker(ctx,nose,size){
+ if(!nose)return;ctx.save();ctx.translate(nose.x,nose.y+size*.16);ctx.fillStyle='#302b31';
  ctx.beginPath();ctx.moveTo(-size*.42,-size*.12);ctx.quadraticCurveTo(-size*.5,-size*.42,0,-size*.35);ctx.quadraticCurveTo(size*.5,-size*.42,size*.42,-size*.12);ctx.quadraticCurveTo(size*.24,size*.34,0,size*.38);ctx.quadraticCurveTo(-size*.24,size*.34,-size*.42,-size*.12);ctx.fill();ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.ellipse(-size*.12,-size*.2,size*.1,size*.045,-.2,0,Math.PI*2);ctx.fill();ctx.restore();
 }
 function drawHeart(ctx,x,y,size,rotation=0){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.scale(size,size);ctx.beginPath();ctx.moveTo(0,.34);ctx.bezierCurveTo(-.18,.18,-.54,-.05,-.45,-.32);ctx.bezierCurveTo(-.38,-.55,-.08,-.55,0,-.33);ctx.bezierCurveTo(.1,-.55,.4,-.55,.47,-.3);ctx.bezierCurveTo(.54,-.02,.17,.22,0,.34);ctx.closePath();ctx.fillStyle='#ff668e';ctx.shadowColor='rgba(255,102,142,.35)';ctx.shadowBlur=5;ctx.fill();ctx.restore();}
 function drawSparkle(ctx,x,y,size,rotation=0){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.beginPath();ctx.moveTo(0,-size);ctx.quadraticCurveTo(size*.16,-size*.16,size,0);ctx.quadraticCurveTo(size*.16,size*.16,0,size);ctx.quadraticCurveTo(-size*.16,size*.16,-size,0);ctx.quadraticCurveTo(-size*.16,-size*.16,0,-size);ctx.closePath();ctx.fillStyle='#ffe29a';ctx.shadowColor='#ffd16b';ctx.shadowBlur=9;ctx.fill();ctx.restore();}
 function drawFaceSticker(ctx,landmarks,width,height,type){
  if(!landmarks||landmarks.length<264)return;
- const left=facePoint(landmarks,33,width,height),right=facePoint(landmarks,263,width,height),nose=facePoint(landmarks,1,width,height),cheekL=facePoint(landmarks,50,width,height),cheekR=facePoint(landmarks,280,width,height),chin=facePoint(landmarks,152,width,height);
- if(!left||!right||!nose)return;
- const cx=(left.x+right.x)/2,cy=(left.y+right.y)/2,dx=right.x-left.x,dy=right.y-left.y,eyeSpan=Math.hypot(dx,dy),angle=Math.atan2(dy,dx),w=eyeSpan*1.02,h=eyeSpan*1.42;
- if(type==='dog'||type==='puppy'){
-  drawFloppyEar(ctx,cx-eyeSpan*.94,cy-eyeSpan*.55,w,h,angle-.52,type==='puppy'?'#b87945':'#9a633c',type==='puppy'?'#eab28a':'#e8a17e',false);
-  drawFloppyEar(ctx,cx+eyeSpan*.94,cy-eyeSpan*.55,w,h,angle+.52,type==='puppy'?'#b87945':'#9a633c',type==='puppy'?'#eab28a':'#e8a17e',true);
-  drawNoseSticker(ctx,nose,eyeSpan*.34,type);
-  if(type==='puppy'&&chin){ctx.save();ctx.strokeStyle='#8d4d47';ctx.lineWidth=Math.max(1.4,eyeSpan*.025);ctx.beginPath();ctx.moveTo(nose.x,nose.y+eyeSpan*.15);ctx.lineTo(nose.x,nose.y+eyeSpan*.36);ctx.moveTo(nose.x,nose.y+eyeSpan*.36);ctx.quadraticCurveTo(nose.x-eyeSpan*.12,nose.y+eyeSpan*.48,nose.x-eyeSpan*.2,nose.y+eyeSpan*.36);ctx.moveTo(nose.x,nose.y+eyeSpan*.36);ctx.quadraticCurveTo(nose.x+eyeSpan*.12,nose.y+eyeSpan*.48,nose.x+eyeSpan*.2,nose.y+eyeSpan*.36);ctx.stroke();ctx.restore();}
- }else if(type==='cat'){
-  drawCatEar(ctx,cx-eyeSpan*.9,cy-eyeSpan*.47,w*.92,h*.95,angle-.25,false);drawCatEar(ctx,cx+eyeSpan*.9,cy-eyeSpan*.47,w*.92,h*.95,angle+.25,true);
-  ctx.save();ctx.fillStyle='rgba(255,122,156,.25)';if(cheekL){ctx.beginPath();ctx.ellipse(cheekL.x,cheekL.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}if(cheekR){ctx.beginPath();ctx.ellipse(cheekR.x,cheekR.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}ctx.restore();
+ const leftEye=facePoint(landmarks,33,width,height),rightEye=facePoint(landmarks,263,width,height);
+ const nose=facePoint(landmarks,1,width,height),cheekL=facePoint(landmarks,50,width,height),cheekR=facePoint(landmarks,280,width,height);
+ if(!leftEye||!rightEye||!nose)return;
+ const cx=(leftEye.x+rightEye.x)/2,cy=(leftEye.y+rightEye.y)/2;
+ const dx=rightEye.x-leftEye.x,dy=rightEye.y-leftEye.y,eyeSpan=Math.hypot(dx,dy);
+ if(!Number.isFinite(eyeSpan)||eyeSpan<8)return;
+ const angle=Math.atan2(dy,dx);
+ if(type==='dog'||type==='cat'){
+  // Anchor both ears to the upper temple/hairline contour, not to cheekbones
+  // or arbitrary offsets from the eyes. MediaPipe's 21/251 points sit on the
+  // upper left/right head outline; 54/284 are the next-best temple fallback.
+  let templeL=facePoint(landmarks,21,width,height),templeR=facePoint(landmarks,251,width,height);
+  if(!templeL||!templeR||Math.hypot(templeR.x-templeL.x,templeR.y-templeL.y)<eyeSpan*1.05){
+   templeL=facePoint(landmarks,54,width,height);
+   templeR=facePoint(landmarks,284,width,height);
+  }
+  // Last-resort fallback for extreme profiles or missing landmarks.
+  if(!templeL||!templeR||Math.hypot(templeR.x-templeL.x,templeR.y-templeL.y)<eyeSpan*1.05){
+   templeL=facePoint(landmarks,234,width,height)||{x:cx-eyeSpan*1.05,y:cy};
+   templeR=facePoint(landmarks,454,width,height)||{x:cx+eyeSpan*1.05,y:cy};
+  }
+  if(templeL.x>templeR.x){const swap=templeL;templeL=templeR;templeR=swap;}
+  const headDx=templeR.x-templeL.x,headDy=templeR.y-templeL.y;
+  const headWidth=Math.max(eyeSpan*1.45,Math.hypot(headDx,headDy));
+  const headAngle=Math.atan2(headDy,headDx);
+  // Move the roots slightly inward and down so the ear bases overlap the
+  // hairline/head instead of appearing detached beside it.
+  const upX=Math.sin(headAngle),upY=-Math.cos(headAngle);
+  const sideX=Math.cos(headAngle),sideY=Math.sin(headAngle);
+  const leftRoot={x:templeL.x+sideX*headWidth*.055-upX*headWidth*.035,
+                  y:templeL.y+sideY*headWidth*.055-upY*headWidth*.035};
+  const rightRoot={x:templeR.x-sideX*headWidth*.055-upX*headWidth*.035,
+                   y:templeR.y-sideY*headWidth*.055-upY*headWidth*.035};
+  const earW=headWidth*(type==='dog' ? 0.39 : 0.34),earH=headWidth*(type==='dog' ? 0.47 : 0.43);
+  if(type==='dog'){
+   drawFloppyEar(ctx,leftRoot.x,leftRoot.y,earW,earH,headAngle-.08,'#9a633c','#e8a17e',false);
+   drawFloppyEar(ctx,rightRoot.x,rightRoot.y,earW,earH,headAngle+.08,'#9a633c','#e8a17e',true);
+   drawNoseSticker(ctx,nose,eyeSpan*.34);
+  }else{
+   // Cat ears share the same temple anchors, with their bases overlapping
+   // the upper head contour rather than floating above the eyebrows.
+   drawCatEar(ctx,leftRoot.x+sideX*headWidth*.045,leftRoot.y+sideY*headWidth*.045,earW,earH,headAngle-.04,false);
+   drawCatEar(ctx,rightRoot.x-sideX*headWidth*.045,rightRoot.y-sideY*headWidth*.045,earW,earH,headAngle+.04,true);
+   ctx.save();ctx.fillStyle='rgba(255,122,156,.25)';
+   if(cheekL){ctx.beginPath();ctx.ellipse(cheekL.x,cheekL.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
+   if(cheekR){ctx.beginPath();ctx.ellipse(cheekR.x,cheekR.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
+   ctx.restore();
+  }
  }else if(type==='hearts'){
   drawHeart(ctx,cx-eyeSpan*1.35,cy+eyeSpan*.4,eyeSpan*.25,-.25);drawHeart(ctx,cx+eyeSpan*1.35,cy+eyeSpan*.25,eyeSpan*.23,.25);drawHeart(ctx,cx+eyeSpan*.88,cy-eyeSpan*.85,eyeSpan*.15,.12);
  }else if(type==='sparkle'){
@@ -817,7 +851,18 @@ function detectFaceForPipeline(pipeline,timestamp){
  const dctx=pipeline.detectorCanvas.getContext('2d',{alpha:false});dctx.drawImage(video,0,0,dw,dh);
  const detectionTime=Math.max(timestamp,pipeline.lastDetectionTime+1);
  const result=state.faceLandmarker.detectForVideo(pipeline.detectorCanvas,detectionTime);
- pipeline.lastDetectionTime=detectionTime;pipeline.landmarks=result.faceLandmarks?.[0]||null;
+ pipeline.lastDetectionTime=detectionTime;
+ const detected=result.faceLandmarks?.[0]||null;
+ if(detected&&pipeline.smoothedLandmarks&&pipeline.smoothedLandmarks.length===detected.length){
+  const previous=pipeline.smoothedLandmarks,blend=.42;
+  pipeline.smoothedLandmarks=detected.map((point,index)=>({
+   ...point,
+   x:previous[index].x*(1-blend)+point.x*blend,
+   y:previous[index].y*(1-blend)+point.y*blend,
+   z:(previous[index].z||0)*(1-blend)+(point.z||0)*blend
+  }));
+ }else pipeline.smoothedLandmarks=detected;
+ pipeline.landmarks=pipeline.smoothedLandmarks;
 }
 function drawPipelineLoop(pipeline){
  const draw=timestamp=>{
