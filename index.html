@@ -952,15 +952,38 @@ function drawFaceSticker(ctx,landmarks,width,height,type){
    drawFloppyEar(ctx,rightRoot.x,rightRoot.y,earW,earH,headAngle+.08,'#9a633c','#e8a17e',true);
    drawNoseSticker(ctx,nose,eyeSpan*.34);
   }else{
-   // Cat ears use the outer-eye/temple line as their attachment, not the
-   // upper face-oval points. This keeps the ear bases at the brow/temple line
-   // and brings the triangles down so they visibly join the head.
-   const downX=-Math.sin(angle),downY=Math.cos(angle);
-   const leftRootCat={x:leftEye.x-Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
-                      y:leftEye.y-Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
-   const rightRootCat={x:rightEye.x+Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
-                       y:rightEye.y+Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
-   const catEarW=eyeSpan*.48,catEarH=eyeSpan*.57;
+   // Cat ears attach to the upper-temple/head outline, well above the eyes.
+   // Landmark 67/297 are upper-side face-oval points; 109/338 and
+   // 103/332 are fallbacks for angles where the first pair is occluded.
+   const upX=Math.sin(angle),upY=-Math.cos(angle);
+   const sideX=Math.cos(angle),sideY=Math.sin(angle);
+   const eyeCenter={x:(leftEye.x+rightEye.x)/2,y:(leftEye.y+rightEye.y)/2};
+   const aboveEye=(p)=>p?(p.x-eyeCenter.x)*upX+(p.y-eyeCenter.y)*upY: -Infinity;
+   const candidatePairs=[[67,297],[109,338],[103,332],[54,284]];
+   let catL=null,catR=null;
+   for(const pair of candidatePairs){
+    const a=facePoint(landmarks,pair[0],width,height),b=facePoint(landmarks,pair[1],width,height);
+    if(!a||!b)continue;
+    const ordered=(a.x<=b.x)?[a,b]:[b,a];
+    const span=Math.hypot(ordered[1].x-ordered[0].x,ordered[1].y-ordered[0].y);
+    if(span>eyeSpan*1.05&&aboveEye(ordered[0])>eyeSpan*.08&&aboveEye(ordered[1])>eyeSpan*.08){catL=ordered[0];catR=ordered[1];break;}
+   }
+   // If the upper-oval points are unavailable, project from the eye corners
+   // upward. The minimum vertical offset prevents an eye-level regression.
+   if(!catL||!catR){
+    catL={x:leftEye.x-sideX*eyeSpan*.28+upX*eyeSpan*.32,y:leftEye.y-sideY*eyeSpan*.28+upY*eyeSpan*.32};
+    catR={x:rightEye.x+sideX*eyeSpan*.28+upX*eyeSpan*.32,y:rightEye.y+sideY*eyeSpan*.28+upY*eyeSpan*.32};
+   }
+   const setMinimumHeight=(p)=>{
+    const heightAboveEyes=aboveEye(p),minimum=eyeSpan*.30;
+    if(heightAboveEyes<minimum){const lift=minimum-heightAboveEyes;p.x+=upX*lift;p.y+=upY*lift;}
+    // Nudge the base slightly inward/down so the triangles overlap the head.
+    p.x+=sideX*(p===catL?eyeSpan*.025:-eyeSpan*.025)-upX*eyeSpan*.025;
+    p.y+=sideY*(p===catL?eyeSpan*.025:-eyeSpan*.025)-upY*eyeSpan*.025;
+    return p;
+   };
+   const leftRootCat=setMinimumHeight(catL),rightRootCat=setMinimumHeight(catR);
+   const catEarW=eyeSpan*.58,catEarH=eyeSpan*.72;
    drawCatEar(ctx,leftRootCat.x,leftRootCat.y,catEarW,catEarH,angle-.10,false);
    drawCatEar(ctx,rightRootCat.x,rightRootCat.y,catEarW,catEarH,angle+.10,true);
    ctx.save();ctx.fillStyle='rgba(255,122,156,.25)';
