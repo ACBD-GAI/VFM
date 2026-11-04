@@ -602,7 +602,15 @@ function currentFriendRecord(userId){return state.friendRequests.find(r=>((r.req
 function friendStateFor(userId){const row=currentFriendRecord(userId);if(!row)return {kind:'none',row:null};if(row.status==='accepted')return {kind:'friends',row};return {kind:row.requester_id===state.user.id?'sent':'received',row};}
 async function loadFriendRequests(){
  if(!state.user)return;const {data,error}=await state.client.from('villfam_friend_requests').select('*').or('requester_id.eq.'+state.user.id+',recipient_id.eq.'+state.user.id).order('created_at',{ascending:false});
- if(error)throw error;state.friendRequests=data||[];renderFriendRequests();
+ if(error){state.friendFeatureReady=false;state.friendFeatureError=error;throw error;}
+ state.friendFeatureReady=true;state.friendFeatureError=null;state.friendRequests=data||[];renderFriendRequests();return state.friendRequests;
+}
+function friendSetupMessage(error){
+ const code=String(error?.code||'');const message=String(error?.message||'');
+ if(['42P01','42883','PGRST202','PGRST205','PGRST204'].includes(code)||/villfam_friend_requests|villfam_send_friend_request|villfam_respond_friend_request|schema cache/i.test(message)){
+  return 'Friend requests are not installed in your Supabase database yet. In Supabase → SQL Editor, run supabase_profile_friends_patch.sql, then refresh VillFam.';
+ }
+ return 'Friend feature error: '+errorText(error);
 }
 function makeFriendRow(profile,meta,actions){
  const row=document.createElement('div');row.className='friend-list-row';row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='friend-list-copy';const name=document.createElement('strong');name.textContent=profile.nickname||'VillFam member';const detail=document.createElement('span');detail.textContent=meta||'';copy.append(name,detail);row.append(copy);actions.forEach(button=>row.append(button));return row;
@@ -621,17 +629,20 @@ async function removeFriend(userId,button){const p=state.people.find(x=>x.id===u
 function renderMemberProfileCover(profile){const el=$('memberProfileCover');el.replaceChildren();if(profile.cover_url){const img=document.createElement('img');img.src=profile.cover_url;img.alt='Cover photo';img.loading='lazy';el.append(img);}}
 function updateMemberProfileActions(){
  const p=state.viewedProfile;if(!p)return;const rel=friendStateFor(p.id),primary=$('memberProfilePrimaryAction'),secondary=$('memberProfileSecondaryAction'),status=$('memberProfileFriendStatus');secondary.classList.add('hidden');primary.disabled=false;
+ if(state.friendFeatureReady===false){status.textContent='Friend requests are not connected. The Supabase friend setup must be installed before you can add or message this person.';primary.textContent='Friend setup required';primary.disabled=true;primary.onclick=null;return;}
  if(rel.kind==='friends'){status.textContent='You are friends. You can start a private chat.';primary.textContent='Message';primary.onclick=()=>startPrivateChatWith(p);}
  else if(rel.kind==='sent'){status.textContent='Friend request sent. You can message after they accept.';primary.textContent='Request sent';primary.disabled=true;primary.onclick=null;}
  else if(rel.kind==='received'){status.textContent='This person sent you a friend request.';primary.textContent='Accept request';primary.onclick=()=>respondFriendRequest(rel.row,'accept',primary);secondary.textContent='Decline request';secondary.classList.remove('hidden');secondary.onclick=()=>respondFriendRequest(rel.row,'decline',secondary);}
- else{status.textContent='Add this person as a friend to start a private chat.';primary.textContent='Add friend';primary.onclick=async()=>{setBusy(primary,true,'Sending…');try{const {data,error}=await state.client.rpc('villfam_send_friend_request',{p_user_id:p.id});if(error)throw error;await loadFriendRequests();const message=data==='incoming'?'They already sent you a request. Accept it to become friends.':data==='accepted'?'You are already friends.':'Friend request sent.';toast(message);updateMemberProfileActions();}catch(e){toast('Could not send friend request: '+errorText(e));}finally{setBusy(primary,false);}};}
+ else{status.textContent='Add this person as a friend to start a private chat.';primary.textContent='Add friend';primary.onclick=async()=>{setBusy(primary,true,'Sending…');try{const {data,error}=await state.client.rpc('villfam_send_friend_request',{p_user_id:p.id});if(error)throw error;await loadFriendRequests();const message=data==='incoming'?'They already sent you a request. Accept it to become friends.':data==='accepted'?'You are already friends.':'Friend request sent.';toast(message);updateMemberProfileActions();}catch(e){toast('Could not send friend request: '+friendSetupMessage(e));}finally{setBusy(primary,false);}};}
 }
 async function showMemberProfile(profile){
  if(!profile||profile.id===state.user?.id)return;state.returnToMemberPicker=$('memberPickerDialog').open;if(state.returnToMemberPicker)$('memberPickerDialog').close();
  state.viewedProfile=state.people.find(x=>x.id===profile.id)||profile;
- try{await loadFriendRequests();}catch(e){if(state.returnToMemberPicker){state.returnToMemberPicker=false;$('memberPickerDialog').showModal();}throw e;}
+ let friendLoadError=null;
+ try{await loadFriendRequests();}catch(e){friendLoadError=e;state.friendRequests=[];renderFriendRequests();}
  const p=state.viewedProfile;$('memberProfileName').textContent=p.nickname||'VillFam member';$('memberProfileGender').textContent=p.gender||'Gender not shared';$('memberProfileBio').textContent=p.bio||'This member has not added an introduction yet.';
  renderMemberProfileCover(p);const avatar=$('memberProfileAvatar');avatar.replaceWith(avatarElement(p,'member-profile-avatar'));$('memberProfileAvatar').id='memberProfileAvatar';updateMemberProfileActions();$('memberProfileDialog').showModal();
+ if(friendLoadError)toast(friendSetupMessage(friendLoadError));
 }
 async function startPrivateChatWith(profile){
  if(friendStateFor(profile.id).kind!=='friends'){toast('You need to be friends before you can message.');return;}
@@ -639,9 +650,9 @@ async function startPrivateChatWith(profile){
 }
 $('closeMemberProfile').addEventListener('click',()=>$('memberProfileDialog').close());
 $('memberProfileDialog').addEventListener('close',()=>{state.viewedProfile=null;if(state.returnToMemberPicker){state.returnToMemberPicker=false;state.memberPickerMode='direct';$('submitMemberPicker').classList.add('hidden');$('memberPickerDialog').showModal();renderMemberResults();}});
-$('friendRequestsButton').addEventListener('click',async()=>{try{await Promise.all([loadPeople(),loadFriendRequests()]);$('friendRequestsDialog').showModal();}catch(e){toast('Could not load friends: '+errorText(e));}});
+$('friendRequestsButton').addEventListener('click',async()=>{try{await Promise.all([loadPeople(),loadFriendRequests()]);$('friendRequestsDialog').showModal();}catch(e){toast(friendSetupMessage(e));}});
 $('closeFriendRequests').addEventListener('click',()=>$('friendRequestsDialog').close());$('doneFriendRequests').addEventListener('click',()=>$('friendRequestsDialog').close());
-$('refreshFriendRequests').addEventListener('click',async()=>{setBusy($('refreshFriendRequests'),true,'Refreshing…');try{await Promise.all([loadPeople(),loadFriendRequests()]);}catch(e){toast(errorText(e));}finally{setBusy($('refreshFriendRequests'),false);}});
+$('refreshFriendRequests').addEventListener('click',async()=>{setBusy($('refreshFriendRequests'),true,'Refreshing…');try{await Promise.all([loadPeople(),loadFriendRequests()]);}catch(e){toast(friendSetupMessage(e));}finally{setBusy($('refreshFriendRequests'),false);}});
 function subscribeFriendRequests(){if(state.friendChannel)state.client.removeChannel(state.friendChannel);state.friendChannel=state.client.channel('villfam-friends-'+state.user.id).on('postgres_changes',{event:'*',schema:'public',table:'villfam_friend_requests'},async()=>{try{await loadFriendRequests();if(state.viewedProfile)updateMemberProfileActions();}catch(e){console.warn('Friend request refresh:',e);}}).subscribe();}
 
 async function openMemberPicker(mode){
@@ -1104,7 +1115,22 @@ function updateChatConversationHeader(conv){
  $('editGroupButton').classList.toggle('hidden',!canManage);$('addMembersButton').classList.toggle('hidden',!canManage);$('manageGroupButton').classList.toggle('hidden',!conv.is_group);
  replaceConversationAvatar('chatAvatar',conv);updateChatCallState(conv);
 }
-async function loadPeople(){const {data,error}=await state.client.from('profiles').select('id,email,nickname,avatar_url,cover_url,bio,gender').order('nickname');if(error)throw error;state.people=data||[];}
+async function loadPeople(){
+ // New profile fields are added by the companion Supabase migration. Keep the
+ // member directory usable on older databases while that migration is pending.
+ let result=await state.client.from('profiles').select('id,email,nickname,avatar_url,cover_url,bio,gender').order('nickname');
+ if(result.error){
+  const message=String(result.error.message||'');
+  const missingProfileFields=/column .* does not exist|could not find .*column|schema cache/i.test(message)||result.error.code==='42703'||result.error.code==='PGRST204';
+  if(!missingProfileFields)throw result.error;
+  result=await state.client.from('profiles').select('id,email,nickname,avatar_url').order('nickname');
+  if(result.error)throw result.error;
+  state.profileFieldsReady=false;
+  state.people=(result.data||[]).map(p=>({...p,cover_url:null,bio:'',gender:''}));
+  return state.people;
+ }
+ state.profileFieldsReady=true;state.people=result.data||[];return state.people;
+}
 async function loadConversations(){
  if(!state.user)return;
  const {data:memberships,error:memberError}=await state.client.from('conversation_members').select('conversation_id,user_id,role').eq('user_id',state.user.id);if(memberError)throw memberError;
