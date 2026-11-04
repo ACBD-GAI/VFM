@@ -817,10 +817,17 @@ function drawFaceSticker(ctx,landmarks,width,height,type){
    drawFloppyEar(ctx,rightRoot.x,rightRoot.y,earW,earH,headAngle+.08,'#9a633c','#e8a17e',true);
    drawNoseSticker(ctx,nose,eyeSpan*.34);
   }else{
-   // Cat ears share the same temple anchors, with their bases overlapping
-   // the upper head contour rather than floating above the eyebrows.
-   drawCatEar(ctx,leftRoot.x+sideX*headWidth*.045,leftRoot.y+sideY*headWidth*.045,earW,earH,headAngle-.04,false);
-   drawCatEar(ctx,rightRoot.x-sideX*headWidth*.045,rightRoot.y-sideY*headWidth*.045,earW,earH,headAngle+.04,true);
+   // Cat ears use the outer-eye/temple line as their attachment, not the
+   // upper face-oval points. This keeps the ear bases at the brow/temple line
+   // and brings the triangles down so they visibly join the head.
+   const downX=-Math.sin(angle),downY=Math.cos(angle);
+   const leftRootCat={x:leftEye.x-Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
+                      y:leftEye.y-Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
+   const rightRootCat={x:rightEye.x+Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
+                       y:rightEye.y+Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
+   const catEarW=eyeSpan*.48,catEarH=eyeSpan*.57;
+   drawCatEar(ctx,leftRootCat.x,leftRootCat.y,catEarW,catEarH,angle-.10,false);
+   drawCatEar(ctx,rightRootCat.x,rightRootCat.y,catEarW,catEarH,angle+.10,true);
    ctx.save();ctx.fillStyle='rgba(255,122,156,.25)';
    if(cheekL){ctx.beginPath();ctx.ellipse(cheekL.x,cheekL.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
    if(cheekR){ctx.beginPath();ctx.ellipse(cheekR.x,cheekR.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
@@ -1904,16 +1911,39 @@ $('avatarInput').addEventListener('change',e=>{const file=e.target.files?.[0];if
 $('profileCoverInput').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){toast('Choose an image file.');e.target.value='';return;}state.profileCoverFile=file;if(state.profileCoverPreviewUrl)URL.revokeObjectURL(state.profileCoverPreviewUrl);state.profileCoverPreviewUrl=URL.createObjectURL(file);setProfileEditorCover(state.profileCoverPreviewUrl);});
 function closeProfileEditor(){if($('profileEditDialog').open)$('profileEditDialog').close();state.profileAvatarFile=null;state.profileCoverFile=null;if(state.profileAvatarPreviewUrl)URL.revokeObjectURL(state.profileAvatarPreviewUrl);if(state.profileCoverPreviewUrl)URL.revokeObjectURL(state.profileCoverPreviewUrl);state.profileAvatarPreviewUrl=null;state.profileCoverPreviewUrl=null;}
 $('profileEditCancel').addEventListener('click',closeProfileEditor);$('profileEditCancelTop').addEventListener('click',closeProfileEditor);
+function profileImageStoragePath(publicUrl,userId){
+ if(!publicUrl||!userId)return null;
+ try{
+  const pathname=new URL(publicUrl,window.location.href).pathname;
+  const marker='/storage/v1/object/public/avatars/';
+  const at=pathname.indexOf(marker);if(at<0)return null;
+  const path=decodeURIComponent(pathname.slice(at+marker.length));
+  // Only remove objects inside the signed-in user's own Storage folder.
+  return path.split('/')[0]===userId?path:null;
+ }catch(_){return null;}
+}
 $('profileEditSave').addEventListener('click',async()=>{
  const nickname=$('profileNicknameInput').value.trim().slice(0,40);if(!nickname){toast('Name cannot be empty.');return;}
  const bio=$('profileBioInput').value.trim().slice(0,240),gender=$('profileGenderInput').value;
- const btn=$('profileEditSave');setBusy(btn,true,'Saving…');const uploaded=[];let saved=false;
+ const btn=$('profileEditSave');setBusy(btn,true,'Saving…');const uploaded=[];let saved=false,oldImageCleanupFailed=false;
+ const oldAvatarPath=state.profileAvatarFile?profileImageStoragePath(state.profile?.avatar_url,state.user.id):null;
+ const oldCoverPath=state.profileCoverFile?profileImageStoragePath(state.profile?.cover_url,state.user.id):null;
  try{
   const updates={nickname,bio,gender,updated_at:new Date().toISOString()};
   if(state.profileAvatarFile){const file=await compressAvatarImage(state.profileAvatarFile),ext=imageExtension(file),path=state.user.id+'/profile/avatar_'+Date.now()+'.'+ext;const {error}=await state.client.storage.from('avatars').upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;uploaded.push(path);updates.avatar_url=state.client.storage.from('avatars').getPublicUrl(path).data.publicUrl;}
   if(state.profileCoverFile){const file=await compressCoverImage(state.profileCoverFile),ext=imageExtension(file),path=state.user.id+'/profile/cover_'+Date.now()+'.'+ext;const {error}=await state.client.storage.from('avatars').upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;uploaded.push(path);updates.cover_url=state.client.storage.from('avatars').getPublicUrl(path).data.publicUrl;}
+  // Point the profile row at the new images first. Never delete the current
+  // image until the replacement uploads AND the profile update have succeeded.
   const {error}=await state.client.from('profiles').update(updates).eq('id',state.user.id);if(error)throw error;saved=true;
-  state.profile={...state.profile,...updates};updateProfileHeader();await Promise.all([loadPeople(),loadConversations()]);closeProfileEditor();toast('Your profile was updated.');
+  const obsolete=[];
+  if(oldAvatarPath&&updates.avatar_url){const nextPath=profileImageStoragePath(updates.avatar_url,state.user.id);if(nextPath&&oldAvatarPath!==nextPath)obsolete.push(oldAvatarPath);}
+  if(oldCoverPath&&updates.cover_url){const nextPath=profileImageStoragePath(updates.cover_url,state.user.id);if(nextPath&&oldCoverPath!==nextPath&&!obsolete.includes(oldCoverPath))obsolete.push(oldCoverPath);}
+  if(obsolete.length){
+   const {error:removeError}=await state.client.storage.from('avatars').remove(obsolete);
+   if(removeError){oldImageCleanupFailed=true;console.warn('New profile images were saved, but old Storage files could not be removed:',removeError.message);}
+  }
+  state.profile={...state.profile,...updates};updateProfileHeader();await Promise.all([loadPeople(),loadConversations()]);closeProfileEditor();
+  toast(oldImageCleanupFailed?'Profile updated, but Supabase could not delete an old image. Check the avatar delete policy.':'Your profile was updated. Old profile images were replaced and removed.');
  }catch(err){if(!saved&&uploaded.length){const {error}=await state.client.storage.from('avatars').remove(uploaded);if(error)console.warn('Profile upload cleanup:',error.message);}toast('Could not save your profile: '+errorText(err));}
  finally{setBusy(btn,false);}
 });
