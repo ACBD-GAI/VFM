@@ -451,6 +451,52 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 }
 @media(prefers-reduced-motion:reduce){button{transition:none!important}}
 
+
+
+/* VillFam control suite — stronger hierarchy, clearer states, generous touch targets */
+:root{--vf-navy:#10233d;--vf-navy-2:#193b5a;--vf-cyan:#55d9ff;--vf-amber:#ffbf70;--vf-focus:rgba(50,174,220,.28)}
+button{font-weight:750;letter-spacing:.005em;-webkit-tap-highlight-color:transparent;outline:none}
+button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-shadow:0 0 0 5px rgba(83,217,255,.15)!important}
+.primary,.send-btn{position:relative;isolation:isolate;overflow:hidden;border:1px solid rgba(105,224,255,.42);background:linear-gradient(135deg,#153c62 0%,#187eaa 62%,#b8783a 145%);color:#fff;box-shadow:0 8px 19px rgba(13,67,106,.22),inset 0 1px 0 rgba(255,255,255,.24);font-weight:850;letter-spacing:.015em;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.primary::after,.send-btn::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 15%,rgba(255,255,255,.18) 48%,transparent 75%);transform:translateX(-120%);transition:transform .55s ease}
+.primary:hover:not(:disabled),.send-btn:hover:not(:disabled){transform:translateY(-2px);filter:saturate(1.12);box-shadow:0 12px 25px rgba(17,86,129,.29),0 0 0 3px rgba(83,217,255,.10),inset 0 1px 0 rgba(255,255,255,.24)}
+.primary:hover::after,.send-btn:hover::after{transform:translateX(120%)}
+.primary:active:not(:disabled),.send-btn:active:not(:disabled){transform:translateY(0) scale(.975);box-shadow:0 4px 10px rgba(17,86,129,.2)}
+.secondary{border:1px solid #c8d9e7;background:linear-gradient(180deg,#fff 0%,#edf4f9 100%);color:#1c3e5d;box-shadow:0 3px 8px rgba(12,39,66,.07),inset 0 1px 0 #fff;font-weight:800;transition:transform .17s ease,border-color .17s ease,box-shadow .17s ease,background .17s ease}
+.secondary:hover:not(:disabled){transform:translateY(-1px);border-color:#65bfdc;background:linear-gradient(135deg,#effaff,#fff5e9);box-shadow:0 7px 16px rgba(21,81,115,.12),0 0 0 3px rgba(83,217,255,.09)}
+.icon-btn{min-width:40px;min-height:40px;border:1px solid rgba(157,184,207,.68);border-radius:13px;background:linear-gradient(145deg,#fff,#edf4f9);color:#254765;box-shadow:0 3px 8px rgba(14,38,64,.07),inset 0 1px 0 #fff;font-size:17px;font-weight:850;transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease,color .18s ease}
+.icon-btn:hover:not(:disabled){transform:translateY(-2px);background:linear-gradient(145deg,#eafaff,#fff2e3);border-color:#74c8e2;color:#124d72;box-shadow:0 7px 17px rgba(17,76,113,.13),0 0 0 3px rgba(83,217,255,.09)}
+.icon-btn:active:not(:disabled){transform:translateY(0) scale(.94)}
+.danger-button{border:1px solid #edb9be;background:linear-gradient(145deg,#fff,#fff0f1);color:#a82f3d;box-shadow:0 3px 8px rgba(150,43,57,.07);font-weight:800;transition:transform .17s ease,box-shadow .17s ease,background .17s ease}
+.danger-button:hover:not(:disabled){transform:translateY(-1px);background:linear-gradient(145deg,#fff2f3,#ffe4e6);box-shadow:0 7px 16px rgba(166,43,60,.13)}
+.send-btn{min-width:46px;border-radius:14px;font-size:18px}
+.villfam-refresh-button{display:grid;place-items:center;font-size:23px;line-height:1;color:#1c658d}
+.villfam-refresh-button span{display:block;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.villfam-refresh-button:hover span{transform:rotate(90deg)}
+.villfam-refresh-button.is-refreshing span{animation:vfRefreshSpin .6s linear infinite}
+@keyframes vfRefreshSpin{to{transform:rotate(360deg)}}
+.chat-tools .icon-btn,.side-actions .icon-btn,.compose-tools .icon-btn{min-width:40px;min-height:40px}
+.dialog-buttons button,.action-dialog .actions button,.incoming-call-actions button{min-height:44px;border-radius:13px;font-size:13px}
+.call-controls button{min-height:45px;border-radius:14px;font-weight:850;box-shadow:0 5px 13px rgba(0,0,0,.18);transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+.call-controls button:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.12);box-shadow:0 9px 18px rgba(0,0,0,.24)}
+.call-controls .hangup{background:linear-gradient(135deg,#e65c67,#a72c42);border:1px solid rgba(255,190,190,.28)}
+.villfam-filter-chip{flex:0 0 78px;min-height:91px;padding:9px 6px;border:1px solid #dce7f1;border-radius:16px;background:linear-gradient(160deg,#fff,#f0f6fa);color:#34516c;box-shadow:0 3px 8px rgba(19,47,76,.05);font-size:10px;font-weight:850;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease}
+.villfam-filter-chip:hover{transform:translateY(-3px);background:linear-gradient(145deg,#f0fbff,#fff4e7);border-color:#89d3e9;box-shadow:0 9px 17px rgba(24,91,126,.13)}
+.villfam-filter-chip.is-active{border:1px solid #49afd0;background:linear-gradient(145deg,#e9faff,#fff4e5);color:#164766;box-shadow:0 0 0 2px rgba(83,217,255,.18),0 8px 19px rgba(19,90,128,.13)}
+.villfam-filter-swatch{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;font-size:25px;background:linear-gradient(145deg,#173a5d,#276f91);color:#fff;border:1px solid rgba(73,178,213,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 5px 12px rgba(16,52,81,.15)}
+.look-beauty{background:linear-gradient(145deg,#f5c7bd,#e9aab7)}.look-dog,.look-puppy{background:linear-gradient(145deg,#99633f,#d7a16b)}.look-cat{background:linear-gradient(145deg,#30415b,#9b79a5)}.look-hearts{background:linear-gradient(145deg,#e76b98,#ad4775)}.look-sparkle{background:linear-gradient(145deg,#bd8c35,#f2d78b);color:#273b57}.look-warm{background:linear-gradient(145deg,#b96a31,#f0c16e)}.look-mono{background:linear-gradient(145deg,#273544,#aeb7c0)}
+.villfam-filter-heading{align-items:flex-start}.villfam-filter-heading strong{font-size:13px;letter-spacing:.015em}.villfam-filter-heading>span{max-width:56%;text-align:right;line-height:1.35}
+.villfam-camera-actions .secondary,.villfam-camera-actions .primary{min-height:48px;padding-inline:17px}
+.villfam-camera-stage{isolation:isolate}.villfam-effect-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;pointer-events:none;border-radius:18px}.villfam-effect-canvas.mirror-camera{transform:scaleX(-1)}
+.villfam-camera-live{z-index:3}
+#cameraVideo{transition:opacity .08s linear}
+@media(max-width:760px){
+ .profile-area{gap:3px}.profile-area>.icon-btn{min-width:34px;min-height:35px;width:34px;height:35px}
+ .villfam-filter-chip{flex-basis:72px;min-height:86px}.villfam-filter-swatch{width:43px;height:43px}
+ .dialog-buttons button,.action-dialog .actions button,.incoming-call-actions button{min-height:45px}
+}
+@media(max-width:390px){.profile-area>.icon-btn{min-width:31px;width:31px}.villfam-refresh-button{font-size:20px}}
+
 </style>
 
 
@@ -516,8 +562,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <div class="spacer"></div><span class="online-dot">Connected</span>
     <div class="profile-area">
       <button id="profileButton" class="profile-button" type="button"><div id="topAvatar" class="avatar">V</div><span id="topNickname" class="profile-name">VillFam member</span></button>
-      <button id="editProfileButton" class="icon-btn" title="Edit nickname">✎</button>
-      <button id="logoutButton" class="icon-btn" title="Sign out">⇥</button>
+      <button id="editProfileButton" class="icon-btn" title="Edit profile" aria-label="Edit profile">✎</button>
+      <button id="refreshPageButton" class="icon-btn villfam-refresh-button" title="Refresh this webpage" aria-label="Refresh this webpage" type="button"><span aria-hidden="true">⟳</span></button>
+      <button id="logoutButton" class="icon-btn" title="Sign out" aria-label="Sign out">⇥</button>
     </div>
   </header>
   <main id="mainLayout" class="layout">
@@ -547,16 +594,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <dialog id="cameraDialog" class="villfam-camera-dialog">
  <div class="villfam-dialog-heading"><div><span class="villfam-eyebrow">VILLFAM CAMERA</span><h3>Capture a moment</h3></div><button id="closeCamera" class="icon-btn villfam-close" type="button" aria-label="Close camera">×</button></div>
  <div class="villfam-camera-stage"><video id="cameraVideo" autoplay playsinline></video><span class="villfam-camera-live">● LIVE</span></div>
- <div class="villfam-filter-panel"><div class="villfam-filter-heading"><strong>Choose a look</strong><span>Live preview · applied to photo</span></div><div id="cameraLookFilters" class="villfam-filter-strip" role="group" aria-label="Camera filters">
-  <button type="button" class="villfam-filter-chip is-active" data-look-filter="original" aria-pressed="true"><span class="villfam-filter-swatch look-original"></span><span>Original</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="warm" aria-pressed="false"><span class="villfam-filter-swatch look-warm"></span><span>Warm</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="cool" aria-pressed="false"><span class="villfam-filter-swatch look-cool"></span><span>Cool</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="mono" aria-pressed="false"><span class="villfam-filter-swatch look-mono"></span><span>B&amp;W</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="vintage" aria-pressed="false"><span class="villfam-filter-swatch look-vintage"></span><span>Vintage</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="soft" aria-pressed="false"><span class="villfam-filter-swatch look-soft"></span><span>Soft</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="vivid" aria-pressed="false"><span class="villfam-filter-swatch look-vivid"></span><span>Vivid</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="dusk" aria-pressed="false"><span class="villfam-filter-swatch look-dusk"></span><span>Dusk</span></button>
- </div></div>
+ <div class="villfam-filter-panel"><div class="villfam-filter-heading"><strong>AR face effects</strong><span>Beauty and playful stickers · on-device</span></div><div id="cameraLookFilters" class="villfam-filter-strip" role="group" aria-label="Camera face effects">
+  <button type="button" class="villfam-filter-chip is-active" data-look-filter="original" aria-pressed="true" title="No effect"><span class="villfam-filter-swatch look-original">◌</span><span>Original</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="beauty" aria-pressed="false" title="Soft skin and gentle brightening"><span class="villfam-filter-swatch look-beauty">✨</span><span>Beauty</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="dog" aria-pressed="false" title="Floppy dog ears and nose"><span class="villfam-filter-swatch look-dog">🐶</span><span>Dog ears</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="puppy" aria-pressed="false" title="Puppy ears and nose"><span class="villfam-filter-swatch look-puppy">🐾</span><span>Puppy</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="cat" aria-pressed="false" title="Cat ears"><span class="villfam-filter-swatch look-cat">🐱</span><span>Cat ears</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="hearts" aria-pressed="false" title="Floating heart stickers"><span class="villfam-filter-swatch look-hearts">💗</span><span>Hearts</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="sparkle" aria-pressed="false" title="Sparkle face stickers"><span class="villfam-filter-swatch look-sparkle">🌟</span><span>Sparkle</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="warm" aria-pressed="false" title="Warm color tone"><span class="villfam-filter-swatch look-warm">☀</span><span>Warm</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="mono" aria-pressed="false" title="Black and white"><span class="villfam-filter-swatch look-mono">◐</span><span>B&amp;W</span></button></div></div>
  <div class="villfam-camera-actions"><button id="switchCamera" class="secondary" type="button">⇄ Switch camera</button><button id="takePhoto" class="primary villfam-capture-button" type="button"><span aria-hidden="true">●</span> Capture photo</button></div>
 </dialog>
 <dialog id="messageActionDialog" class="action-dialog"><h3>Message options</h3><p id="messageActionLabel">Choose what to do with this message.</p><div class="actions"><button id="deleteMessageMe" class="secondary" type="button">Delete for me</button><button id="deleteMessageEveryone" class="danger-button hidden" type="button">Delete for everyone</button><button id="cancelMessageAction" class="secondary" type="button">Cancel</button></div></dialog>
@@ -564,16 +611,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <dialog id="incomingCallDialog" class="action-dialog"><div class="incoming-call-card"><div class="incoming-call-icon" id="incomingCallIcon">📹</div><h3 id="incomingCallTitle">Incoming call</h3><p id="incomingCallText">Someone is calling you.</p><div class="call-note">You can answer without opening the conversation.</div><div class="incoming-call-actions"><button id="declineIncomingCall" class="danger-button" type="button">Decline</button><button id="answerIncomingCall" class="primary" type="button">Answer</button></div></div></dialog>
 <dialog id="callDialog" class="call-dialog villfam-call-dialog"><div class="villfam-dialog-heading villfam-call-heading"><div><span class="villfam-eyebrow">VILLFAM LIVE</span><h3 id="callTitle">VillFam call</h3></div><span style="flex:1"></span><button id="closeCallDialog" class="icon-btn villfam-close" type="button" title="Leave call" aria-label="Leave call">×</button></div>
  <div id="callGrid" class="call-grid"></div>
- <div id="callLookPanel" class="villfam-filter-panel villfam-call-filter-panel hidden"><div class="villfam-filter-heading"><strong>Live camera look</strong><span>Shared with call participants</span></div><div id="callLookFilters" class="villfam-filter-strip" role="group" aria-label="Video call filters">
-  <button type="button" class="villfam-filter-chip is-active" data-look-filter="original" aria-pressed="true"><span class="villfam-filter-swatch look-original"></span><span>Original</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="warm" aria-pressed="false"><span class="villfam-filter-swatch look-warm"></span><span>Warm</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="cool" aria-pressed="false"><span class="villfam-filter-swatch look-cool"></span><span>Cool</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="mono" aria-pressed="false"><span class="villfam-filter-swatch look-mono"></span><span>B&amp;W</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="vintage" aria-pressed="false"><span class="villfam-filter-swatch look-vintage"></span><span>Vintage</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="soft" aria-pressed="false"><span class="villfam-filter-swatch look-soft"></span><span>Soft</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="vivid" aria-pressed="false"><span class="villfam-filter-swatch look-vivid"></span><span>Vivid</span></button>
-  <button type="button" class="villfam-filter-chip" data-look-filter="dusk" aria-pressed="false"><span class="villfam-filter-swatch look-dusk"></span><span>Dusk</span></button>
- </div></div>
+ <div id="callLookPanel" class="villfam-filter-panel villfam-call-filter-panel hidden"><div class="villfam-filter-heading"><strong>Live AR face effects</strong><span>Other people in the call can see your effect</span></div><div id="callLookFilters" class="villfam-filter-strip" role="group" aria-label="Video call face effects">
+  <button type="button" class="villfam-filter-chip is-active" data-look-filter="original" aria-pressed="true" title="No effect"><span class="villfam-filter-swatch look-original">◌</span><span>Original</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="beauty" aria-pressed="false" title="Soft skin and gentle brightening"><span class="villfam-filter-swatch look-beauty">✨</span><span>Beauty</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="dog" aria-pressed="false" title="Floppy dog ears and nose"><span class="villfam-filter-swatch look-dog">🐶</span><span>Dog ears</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="puppy" aria-pressed="false" title="Puppy ears and nose"><span class="villfam-filter-swatch look-puppy">🐾</span><span>Puppy</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="cat" aria-pressed="false" title="Cat ears"><span class="villfam-filter-swatch look-cat">🐱</span><span>Cat ears</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="hearts" aria-pressed="false" title="Floating heart stickers"><span class="villfam-filter-swatch look-hearts">💗</span><span>Hearts</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="sparkle" aria-pressed="false" title="Sparkle face stickers"><span class="villfam-filter-swatch look-sparkle">🌟</span><span>Sparkle</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="warm" aria-pressed="false" title="Warm color tone"><span class="villfam-filter-swatch look-warm">☀</span><span>Warm</span></button>
+  <button type="button" class="villfam-filter-chip" data-look-filter="mono" aria-pressed="false" title="Black and white"><span class="villfam-filter-swatch look-mono">◐</span><span>B&amp;W</span></button></div></div>
  <div id="callStatus" class="call-status">Connecting…</div><div class="call-controls"><button id="muteCallButton" type="button">Mute mic</button><button id="toggleCameraButton" type="button">Turn camera off</button><button id="switchCallCameraButton" type="button">⇄ Switch camera</button><button id="hangupCallButton" class="hangup" type="button">Leave call</button></div></dialog>
 
 
@@ -651,19 +698,24 @@ const SUPABASE_AUTH_STORAGE_KEY = 'sb-' + new URL(SUPABASE_URL).hostname.split('
 const SUPABASE_RECOVERY_KEY = 'villfam_supabase_session_recovery_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null, faceLandmarkerPromise:null };
 
 const VILLFAM_LOOKS = {
- original:{label:'Original',css:'none'},
- warm:{label:'Warm',css:'saturate(1.18) sepia(.16) hue-rotate(-8deg) brightness(1.04)'},
- cool:{label:'Cool',css:'saturate(1.08) hue-rotate(12deg) contrast(1.04) brightness(1.02)'},
- mono:{label:'B&W',css:'grayscale(1) contrast(1.12) brightness(1.04)'},
- vintage:{label:'Vintage',css:'sepia(.28) saturate(.84) contrast(1.08) brightness(1.03)'},
- soft:{label:'Soft',css:'brightness(1.10) saturate(.88) contrast(.93)'},
- vivid:{label:'Vivid',css:'saturate(1.38) contrast(1.08)'},
- dusk:{label:'Dusk',css:'sepia(.12) hue-rotate(205deg) saturate(1.15) contrast(1.06)'}
+ original:{label:'Original',type:'none',css:'none',needsFace:false},
+ beauty:{label:'Beauty',type:'beauty',css:'none',needsFace:true},
+ dog:{label:'Dog ears',type:'dog',css:'none',needsFace:true},
+ puppy:{label:'Puppy',type:'puppy',css:'none',needsFace:true},
+ cat:{label:'Cat ears',type:'cat',css:'none',needsFace:true},
+ hearts:{label:'Hearts',type:'hearts',css:'none',needsFace:true},
+ sparkle:{label:'Sparkle',type:'sparkle',css:'none',needsFace:true},
+ warm:{label:'Warm',type:'color',css:'sepia(.14) saturate(1.15) brightness(1.04)',needsFace:false},
+ mono:{label:'B&W',type:'color',css:'grayscale(1) contrast(1.1)',needsFace:false}
 };
-function currentLookCss(){return VILLFAM_LOOKS[state.activeLookFilter]?.css||'none';}
+const FACE_MODEL_URL='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+const FACE_WASM_URL='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.2/wasm';
+const FACE_OVAL=[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109];
+const LEFT_EYE=[33,160,158,133,153,144], RIGHT_EYE=[362,385,387,263,373,380], LIPS=[61,146,91,181,84,17,314,405,321,375,291,308];
+function lookPreset(key){return VILLFAM_LOOKS[key]||VILLFAM_LOOKS.original;}
 function updateLookButtons(scopeId){
  const wrap=$(scopeId);if(!wrap)return;
  wrap.querySelectorAll('[data-look-filter]').forEach(button=>{
@@ -671,67 +723,182 @@ function updateLookButtons(scopeId){
   button.classList.toggle('is-active',selected);button.setAttribute('aria-pressed',selected?'true':'false');
  });
 }
+function updateAllLookButtons(){updateLookButtons('cameraLookFilters');updateLookButtons('callLookFilters');}
 function applyLookToPreviews(){
- const css=currentLookCss();
- const cameraVideo=$('cameraVideo');if(cameraVideo)cameraVideo.style.filter=css;
- const localVideo=$('callGrid')?.querySelector('.call-tile.local video');if(localVideo)localVideo.style.filter=css;
- updateLookButtons('cameraLookFilters');updateLookButtons('callLookFilters');
+ updateAllLookButtons();
+ const css=lookPreset(state.activeLookFilter).css||'none';
+ const cameraVideo=$('cameraVideo');if(cameraVideo&&!state.cameraEffectPipeline)cameraVideo.style.filter=css;
+ const localVideo=$('callGrid')?.querySelector('.call-tile.local video');if(localVideo&&!state.callFilterPipeline)localVideo.style.filter=css;
+}
+async function ensureFaceLandmarker(){
+ if(state.faceLandmarker)return state.faceLandmarker;
+ if(state.faceLandmarkerPromise)return state.faceLandmarkerPromise;
+ state.faceLandmarkerPromise=(async()=>{
+  const mp=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.2/+esm');
+  const fileset=await mp.FilesetResolver.forVisionTasks(FACE_WASM_URL);
+  const options={baseOptions:{modelAssetPath:FACE_MODEL_URL,delegate:'GPU'},runningMode:'VIDEO',numFaces:1,minFaceDetectionConfidence:.5,minFacePresenceConfidence:.5,minTrackingConfidence:.5};
+  try{state.faceLandmarker=await mp.FaceLandmarker.createFromOptions(fileset,options);}
+  catch(gpuError){
+   console.warn('VillFam face effects: GPU delegate unavailable; using CPU.',gpuError);
+   options.baseOptions.delegate='CPU';
+   state.faceLandmarker=await mp.FaceLandmarker.createFromOptions(fileset,options);
+  }
+  return state.faceLandmarker;
+ })().catch(error=>{state.faceLandmarkerPromise=null;throw error;});
+ return state.faceLandmarkerPromise;
+}
+function facePoint(landmarks,index,width,height){const p=landmarks?.[index];return p?{x:p.x*width,y:p.y*height}:null;}
+function traceLandmarkPath(ctx,landmarks,indices,width,height){
+ ctx.beginPath();indices.forEach((index,i)=>{const p=facePoint(landmarks,index,width,height);if(!p)return;if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});ctx.closePath();
+}
+function drawBeautySkin(ctx,source,landmarks,width,height,pipeline){
+ if(!landmarks)return;
+ const skin=pipeline.skinCanvas||(pipeline.skinCanvas=document.createElement('canvas'));
+ if(skin.width!==width||skin.height!==height){skin.width=width;skin.height=height;}
+ const skinCtx=skin.getContext('2d');skinCtx.clearRect(0,0,width,height);skinCtx.save();skinCtx.filter='blur(2.1px) saturate(1.08) brightness(1.035)';skinCtx.drawImage(source,0,0,width,height);skinCtx.restore();
+ ctx.save();traceLandmarkPath(ctx,landmarks,FACE_OVAL,width,height);ctx.clip();ctx.globalAlpha=.58;ctx.drawImage(skin,0,0);ctx.restore();
+ // Restore the eye and lip detail so the soft-skin treatment does not blur expressions.
+ ctx.save();traceLandmarkPath(ctx,landmarks,LEFT_EYE,width,height);ctx.clip();ctx.drawImage(source,0,0,width,height);ctx.restore();
+ ctx.save();traceLandmarkPath(ctx,landmarks,RIGHT_EYE,width,height);ctx.clip();ctx.drawImage(source,0,0,width,height);ctx.restore();
+ ctx.save();traceLandmarkPath(ctx,landmarks,LIPS,width,height);ctx.clip();ctx.drawImage(source,0,0,width,height);ctx.restore();
+}
+function drawFloppyEar(ctx,x,y,w,h,rotation,color,inner,flip=false){
+ ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.scale(flip?-1:1,1);
+ ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(-w*.28,-h*.18,-w*.95,-h*.62,-w*.52,-h*.96);ctx.bezierCurveTo(-w*.28,-h*1.12,w*.18,-h*.82,w*.17,-h*.48);ctx.bezierCurveTo(w*.12,-h*.25,w*.05,-h*.08,0,0);ctx.closePath();
+ ctx.fillStyle=color;ctx.shadowColor='rgba(20,20,28,.28)';ctx.shadowBlur=Math.max(3,w*.08);ctx.fill();ctx.shadowBlur=0;
+ ctx.beginPath();ctx.moveTo(-w*.09,-h*.16);ctx.bezierCurveTo(-w*.26,-h*.38,-w*.68,-h*.72,-w*.43,-h*.88);ctx.bezierCurveTo(-w*.2,-h*.92,w*.04,-h*.68,w*.05,-h*.45);ctx.closePath();ctx.fillStyle=inner;ctx.fill();ctx.restore();
+}
+function drawCatEar(ctx,x,y,w,h,rotation,flip=false){
+ ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.scale(flip?-1:1,1);
+ ctx.beginPath();ctx.moveTo(-w*.52,0);ctx.quadraticCurveTo(-w*.5,-h*.68,0,-h);ctx.quadraticCurveTo(w*.5,-h*.7,w*.52,0);ctx.quadraticCurveTo(0,h*.12,-w*.52,0);ctx.closePath();ctx.fillStyle='#27334a';ctx.shadowColor='rgba(9,18,32,.3)';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
+ ctx.beginPath();ctx.moveTo(-w*.27,-h*.08);ctx.quadraticCurveTo(-w*.25,-h*.56,0,-h*.76);ctx.quadraticCurveTo(w*.26,-h*.53,w*.28,-h*.08);ctx.closePath();ctx.fillStyle='#f5a7b8';ctx.fill();ctx.restore();
+}
+function drawNoseSticker(ctx,nose,size,style='dog'){
+ if(!nose)return;ctx.save();ctx.translate(nose.x,nose.y+size*.16);ctx.fillStyle=style==='puppy'?'#29242a':'#302b31';
+ ctx.beginPath();ctx.moveTo(-size*.42,-size*.12);ctx.quadraticCurveTo(-size*.5,-size*.42,0,-size*.35);ctx.quadraticCurveTo(size*.5,-size*.42,size*.42,-size*.12);ctx.quadraticCurveTo(size*.24,size*.34,0,size*.38);ctx.quadraticCurveTo(-size*.24,size*.34,-size*.42,-size*.12);ctx.fill();ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.ellipse(-size*.12,-size*.2,size*.1,size*.045,-.2,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawHeart(ctx,x,y,size,rotation=0){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.scale(size,size);ctx.beginPath();ctx.moveTo(0,.34);ctx.bezierCurveTo(-.18,.18,-.54,-.05,-.45,-.32);ctx.bezierCurveTo(-.38,-.55,-.08,-.55,0,-.33);ctx.bezierCurveTo(.1,-.55,.4,-.55,.47,-.3);ctx.bezierCurveTo(.54,-.02,.17,.22,0,.34);ctx.closePath();ctx.fillStyle='#ff668e';ctx.shadowColor='rgba(255,102,142,.35)';ctx.shadowBlur=5;ctx.fill();ctx.restore();}
+function drawSparkle(ctx,x,y,size,rotation=0){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.beginPath();ctx.moveTo(0,-size);ctx.quadraticCurveTo(size*.16,-size*.16,size,0);ctx.quadraticCurveTo(size*.16,size*.16,0,size);ctx.quadraticCurveTo(-size*.16,size*.16,-size,0);ctx.quadraticCurveTo(-size*.16,-size*.16,0,-size);ctx.closePath();ctx.fillStyle='#ffe29a';ctx.shadowColor='#ffd16b';ctx.shadowBlur=9;ctx.fill();ctx.restore();}
+function drawFaceSticker(ctx,landmarks,width,height,type){
+ if(!landmarks||landmarks.length<264)return;
+ const left=facePoint(landmarks,33,width,height),right=facePoint(landmarks,263,width,height),nose=facePoint(landmarks,1,width,height),cheekL=facePoint(landmarks,50,width,height),cheekR=facePoint(landmarks,280,width,height),chin=facePoint(landmarks,152,width,height);
+ if(!left||!right||!nose)return;
+ const cx=(left.x+right.x)/2,cy=(left.y+right.y)/2,dx=right.x-left.x,dy=right.y-left.y,eyeSpan=Math.hypot(dx,dy),angle=Math.atan2(dy,dx),w=eyeSpan*1.02,h=eyeSpan*1.42;
+ if(type==='dog'||type==='puppy'){
+  drawFloppyEar(ctx,cx-eyeSpan*.94,cy-eyeSpan*.55,w,h,angle-.52,type==='puppy'?'#b87945':'#9a633c',type==='puppy'?'#eab28a':'#e8a17e',false);
+  drawFloppyEar(ctx,cx+eyeSpan*.94,cy-eyeSpan*.55,w,h,angle+.52,type==='puppy'?'#b87945':'#9a633c',type==='puppy'?'#eab28a':'#e8a17e',true);
+  drawNoseSticker(ctx,nose,eyeSpan*.34,type);
+  if(type==='puppy'&&chin){ctx.save();ctx.strokeStyle='#8d4d47';ctx.lineWidth=Math.max(1.4,eyeSpan*.025);ctx.beginPath();ctx.moveTo(nose.x,nose.y+eyeSpan*.15);ctx.lineTo(nose.x,nose.y+eyeSpan*.36);ctx.moveTo(nose.x,nose.y+eyeSpan*.36);ctx.quadraticCurveTo(nose.x-eyeSpan*.12,nose.y+eyeSpan*.48,nose.x-eyeSpan*.2,nose.y+eyeSpan*.36);ctx.moveTo(nose.x,nose.y+eyeSpan*.36);ctx.quadraticCurveTo(nose.x+eyeSpan*.12,nose.y+eyeSpan*.48,nose.x+eyeSpan*.2,nose.y+eyeSpan*.36);ctx.stroke();ctx.restore();}
+ }else if(type==='cat'){
+  drawCatEar(ctx,cx-eyeSpan*.9,cy-eyeSpan*.47,w*.92,h*.95,angle-.25,false);drawCatEar(ctx,cx+eyeSpan*.9,cy-eyeSpan*.47,w*.92,h*.95,angle+.25,true);
+  ctx.save();ctx.fillStyle='rgba(255,122,156,.25)';if(cheekL){ctx.beginPath();ctx.ellipse(cheekL.x,cheekL.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}if(cheekR){ctx.beginPath();ctx.ellipse(cheekR.x,cheekR.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}ctx.restore();
+ }else if(type==='hearts'){
+  drawHeart(ctx,cx-eyeSpan*1.35,cy+eyeSpan*.4,eyeSpan*.25,-.25);drawHeart(ctx,cx+eyeSpan*1.35,cy+eyeSpan*.25,eyeSpan*.23,.25);drawHeart(ctx,cx+eyeSpan*.88,cy-eyeSpan*.85,eyeSpan*.15,.12);
+ }else if(type==='sparkle'){
+  drawSparkle(ctx,cx-eyeSpan*1.3,cy-eyeSpan*.5,eyeSpan*.2,-.2);drawSparkle(ctx,cx+eyeSpan*1.35,cy-eyeSpan*.25,eyeSpan*.17,.35);drawSparkle(ctx,cx+eyeSpan*.82,cy+eyeSpan*.72,eyeSpan*.13,.1);drawSparkle(ctx,cx-eyeSpan*.96,cy+eyeSpan*.85,eyeSpan*.12,-.4);
+ }
+}
+function renderEffectFrame(pipeline,timestamp){
+ const video=pipeline.sourceVideo;if(!video||video.readyState<2)return;
+ const preset=lookPreset(pipeline.filter),ctx=pipeline.context,w=pipeline.canvas.width,h=pipeline.canvas.height;
+ try{
+  ctx.save();ctx.filter=preset.css||'none';ctx.drawImage(video,0,0,w,h);ctx.restore();
+  if(preset.needsFace&&pipeline.landmarks){
+   if(preset.type==='beauty')drawBeautySkin(ctx,video,pipeline.landmarks,w,h,pipeline);
+   else drawFaceSticker(ctx,pipeline.landmarks,w,h,preset.type);
+  }
+ }catch(error){console.warn('VillFam AR effect frame:',error);}
+}
+function detectFaceForPipeline(pipeline,timestamp){
+ const video=pipeline.sourceVideo;if(!state.faceLandmarker||video.readyState<2)return;
+ const dw=Math.min(480,video.videoWidth||480),dh=Math.max(1,Math.round(dw*(video.videoHeight||360)/(video.videoWidth||480)));
+ if(!pipeline.detectorCanvas)pipeline.detectorCanvas=document.createElement('canvas');
+ if(pipeline.detectorCanvas.width!==dw||pipeline.detectorCanvas.height!==dh){pipeline.detectorCanvas.width=dw;pipeline.detectorCanvas.height=dh;}
+ const dctx=pipeline.detectorCanvas.getContext('2d',{alpha:false});dctx.drawImage(video,0,0,dw,dh);
+ const detectionTime=Math.max(timestamp,pipeline.lastDetectionTime+1);
+ const result=state.faceLandmarker.detectForVideo(pipeline.detectorCanvas,detectionTime);
+ pipeline.lastDetectionTime=detectionTime;pipeline.landmarks=result.faceLandmarks?.[0]||null;
+}
+function drawPipelineLoop(pipeline){
+ const draw=timestamp=>{
+  if(pipeline.stopped)return;
+  const preset=lookPreset(pipeline.filter);
+  if(preset.needsFace&&timestamp-pipeline.lastDetectionAt>=100){
+   pipeline.lastDetectionAt=timestamp;
+   try{detectFaceForPipeline(pipeline,timestamp);}catch(error){if(!pipeline.detectionWarned){pipeline.detectionWarned=true;console.warn('VillFam face tracking:',error);}}
+  }
+  renderEffectFrame(pipeline,timestamp);
+  pipeline.frame=requestAnimationFrame(draw);
+ };
+ pipeline.frame=requestAnimationFrame(draw);
+}
+function stopCameraEffects(){
+ const pipeline=state.cameraEffectPipeline;if(pipeline){pipeline.stopped=true;if(pipeline.frame)cancelAnimationFrame(pipeline.frame);pipeline.canvas?.remove();state.cameraEffectPipeline=null;}
+ const video=$('cameraVideo');if(video){video.style.opacity='';video.style.filter='none';}
+}
+async function setCameraVideoLook(filterKey){
+ const preset=lookPreset(filterKey);if(filterKey==='original'){stopCameraEffects();return;}
+ if(!state.cameraStream||!$('cameraDialog').open)return;
+ if(preset.needsFace)await ensureFaceLandmarker();
+ let pipeline=state.cameraEffectPipeline;
+ if(!pipeline){
+  const stage=document.querySelector('.villfam-camera-stage'),video=$('cameraVideo');
+  const canvas=document.createElement('canvas');canvas.className='villfam-effect-canvas';canvas.setAttribute('aria-hidden','true');
+  const width=Math.min(960,video.videoWidth||640),height=Math.max(1,Math.round(width*(video.videoHeight||480)/(video.videoWidth||640)));canvas.width=width;canvas.height=height;
+  stage.append(canvas);const context=canvas.getContext('2d',{alpha:false,desynchronized:true});if(!context){canvas.remove();throw new Error('Camera effects are not supported in this browser.');}
+  pipeline={sourceVideo:video,canvas,context,filter:filterKey,frame:0,lastDetectionAt:-Infinity,lastDetectionTime:0,landmarks:null,stopped:false};state.cameraEffectPipeline=pipeline;
+  video.style.opacity='0';canvas.classList.toggle('mirror-camera',state.cameraFacing==='user');
+  drawPipelineLoop(pipeline);
+ }
+ pipeline.filter=filterKey;pipeline.canvas.classList.toggle('mirror-camera',state.cameraFacing==='user');
 }
 function stopCallFilterPipeline(){
  const pipeline=state.callFilterPipeline;if(!pipeline)return;
- if(pipeline.frame)cancelAnimationFrame(pipeline.frame);
+ pipeline.stopped=true;if(pipeline.frame)cancelAnimationFrame(pipeline.frame);
  if(pipeline.stream)pipeline.stream.getTracks().forEach(track=>{try{track.stop();}catch(_){}});
  if(pipeline.video){pipeline.video.pause();pipeline.video.srcObject=null;pipeline.video.remove();}
  state.callFilterPipeline=null;
+ const localVideo=$('callGrid')?.querySelector('.call-tile.local video');
+ if(localVideo&&state.localCallStream){localVideo.srcObject=state.localCallStream;localVideo.style.filter='none';localVideo.play().catch(()=>{});}
 }
 async function setCallVideoLook(filterKey){
- const preset=VILLFAM_LOOKS[filterKey];if(!preset)throw new Error('This camera look is not available.');
- const rawTrack=state.localCallStream?.getVideoTracks?.()[0];
+ const preset=lookPreset(filterKey),rawTrack=state.localCallStream?.getVideoTracks?.()[0];
  if(filterKey==='original'||!rawTrack){
-  if(state.callFilterPipeline&&rawTrack){
-   for(const pc of state.peerConnections.values()){
-    const sender=pc.getSenders().find(item=>item.track?.kind==='video');if(sender)await sender.replaceTrack(rawTrack);
-   }
-  }
+  if(state.callFilterPipeline&&rawTrack){for(const pc of state.peerConnections.values()){const sender=pc.getSenders().find(item=>item.track?.kind==='video');if(sender)await sender.replaceTrack(rawTrack);}}
   stopCallFilterPipeline();return;
  }
- if(!HTMLCanvasElement.prototype.captureStream||typeof MediaStream==='undefined'){
-  toast('This browser can preview filters, but cannot send filtered video.');return;
- }
+ if(!HTMLCanvasElement.prototype.captureStream||typeof MediaStream==='undefined')throw new Error('Filtered video is not supported in this browser.');
+ if(preset.needsFace)await ensureFaceLandmarker();
  let pipeline=state.callFilterPipeline;
  if(!pipeline){
   const video=document.createElement('video');video.muted=true;video.autoplay=true;video.playsInline=true;video.style.cssText='position:fixed;left:-10000px;top:-10000px;width:2px;height:2px;opacity:0;pointer-events:none';video.srcObject=state.localCallStream;document.body.append(video);
-  try{await video.play();}catch(e){video.remove();throw new Error('The camera filter could not start. Check camera permission and try again.');}
-  if(!video.videoWidth){await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Camera video is not ready for filters yet.')),3500);video.addEventListener('loadedmetadata',()=>{clearTimeout(timer);resolve();},{once:true});});}
-  const width=Math.min(960,video.videoWidth||640),height=Math.max(1,Math.round(width*(video.videoHeight||480)/(video.videoWidth||640)));
-  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
-  const context=canvas.getContext('2d',{alpha:false,desynchronized:true});if(!context){video.pause();video.remove();throw new Error('Canvas video filters are not supported in this browser.');}
-  const stream=canvas.captureStream(24),videoTrack=stream.getVideoTracks()[0];
-  const outputStream=new MediaStream([...state.localCallStream.getAudioTracks(),videoTrack]);
-  pipeline={video,canvas,context,stream,videoTrack,outputStream,frame:0,lastFrame:0,filter: preset.css};state.callFilterPipeline=pipeline;
-  const draw=timestamp=>{
-   if(state.callFilterPipeline!==pipeline||!state.currentCallId)return;
-   if(timestamp-pipeline.lastFrame>=1000/24&&video.readyState>=2){
-    pipeline.lastFrame=timestamp;
-    try{context.save();context.filter=pipeline.filter;context.drawImage(video,0,0,canvas.width,canvas.height);context.restore();}catch(e){console.warn('VillFam video look frame:',e);}
-   }
-   pipeline.frame=requestAnimationFrame(draw);
-  };
-  pipeline.frame=requestAnimationFrame(draw);
+  try{await video.play();}catch(error){video.remove();throw new Error('The camera effect could not start. Check camera permission and try again.');}
+  if(!video.videoWidth)await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Camera video is not ready for effects yet.')),3500);video.addEventListener('loadedmetadata',()=>{clearTimeout(timer);resolve();},{once:true});});
+  const width=Math.min(720,video.videoWidth||640),height=Math.max(1,Math.round(width*(video.videoHeight||480)/(video.videoWidth||640)));
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d',{alpha:false,desynchronized:true});if(!context){video.pause();video.remove();throw new Error('Canvas video effects are not supported in this browser.');}
+  const stream=canvas.captureStream(20),videoTrack=stream.getVideoTracks()[0],outputStream=new MediaStream([...state.localCallStream.getAudioTracks(),videoTrack]);
+  pipeline={sourceVideo:video,video,canvas,context,stream,videoTrack,outputStream,filter:filterKey,frame:0,lastDetectionAt:-Infinity,lastDetectionTime:0,landmarks:null,stopped:false};state.callFilterPipeline=pipeline;drawPipelineLoop(pipeline);
  }
- pipeline.filter=preset.css;
+ pipeline.filter=filterKey;
+ const localVideo=$('callGrid')?.querySelector('.call-tile.local video');
+ if(localVideo){localVideo.srcObject=pipeline.outputStream;localVideo.style.filter='none';localVideo.play().catch(()=>{});}
  for(const pc of state.peerConnections.values()){
   const sender=pc.getSenders().find(item=>item.track?.kind==='video');if(sender&&sender.track!==pipeline.videoTrack)await sender.replaceTrack(pipeline.videoTrack);
  }
 }
 async function chooseLook(filterKey,scope){
  if(!VILLFAM_LOOKS[filterKey])return;
- state.activeLookFilter=filterKey;applyLookToPreviews();
- if(scope==='call'&&state.currentCallId&&state.callType==='video'){
-  if(state.callFilterBusy)return;state.callFilterBusy=true;
-  try{await setCallVideoLook(filterKey);}catch(e){toast('Could not apply video-call look: '+errorText(e));}
-  finally{state.callFilterBusy=false;}
- }
+ const previous=state.activeLookFilter;state.activeLookFilter=filterKey;updateAllLookButtons();
+ try{
+  if(scope==='camera'&&$('cameraDialog').open){if(lookPreset(filterKey).needsFace&&!state.faceLandmarker)toast('Loading face effects for the first time…');await setCameraVideoLook(filterKey);}
+  else if(scope==='call'&&state.currentCallId&&state.callType==='video'){
+   if(state.callFilterBusy)return;state.callFilterBusy=true;if(lookPreset(filterKey).needsFace&&!state.faceLandmarker)toast('Loading face effects for the first time…');await setCallVideoLook(filterKey);
+  }else{
+   const localVideo=$('callGrid')?.querySelector('.call-tile.local video');if(localVideo)localVideo.style.filter=lookPreset(filterKey).css||'none';
+  }
+  if(filterKey!=='original'&&lookPreset(filterKey).needsFace&&(!state.faceLandmarker))throw new Error('Face effects could not initialize. Try again with a stronger internet connection.');
+ }catch(error){state.activeLookFilter=previous;updateAllLookButtons();toast('Could not apply effect: '+errorText(error));}
+ finally{state.callFilterBusy=false;}
 }
 $('cameraLookFilters').addEventListener('click',event=>{const button=event.target.closest('[data-look-filter]');if(button)chooseLook(button.dataset.lookFilter,'camera');});
 $('callLookFilters').addEventListener('click',event=>{const button=event.target.closest('[data-look-filter]');if(button)chooseLook(button.dataset.lookFilter,'call');});
@@ -1653,7 +1820,7 @@ async function startCamera(facing){
  let result;
  try{result=await acquireFacingCameraStream(facing,current);}
  catch(err){
-  if(err.restoreStream){state.cameraStream=err.restoreStream.stream;state.cameraFacing=err.restoreStream.facing;$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');$('cameraVideo').style.filter=currentLookCss();await $('cameraVideo').play().catch(()=>{});}
+  if(err.restoreStream){state.cameraStream=err.restoreStream.stream;state.cameraFacing=err.restoreStream.facing;$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');$('cameraVideo').style.filter='none';await $('cameraVideo').play().catch(()=>{});if(state.activeLookFilter!=='original')await setCameraVideoLook(state.activeLookFilter);}
   throw err;
  }
  const previous=state.cameraStream;
@@ -1661,8 +1828,9 @@ async function startCamera(facing){
  state.cameraFacing=result.facing;
  $('cameraVideo').srcObject=state.cameraStream;
  $('cameraVideo').classList.toggle('mirror-camera',state.cameraFacing==='user');
- $('cameraVideo').style.filter=currentLookCss();updateLookButtons('cameraLookFilters');
+ $('cameraVideo').style.filter='none';updateAllLookButtons();
  await $('cameraVideo').play().catch(()=>{});
+ if(state.activeLookFilter!=='original')await setCameraVideoLook(state.activeLookFilter);
  if(previous&&previous!==state.cameraStream)previous.getTracks().forEach(track=>track.stop());
  $('switchCamera').textContent=state.cameraFacing==='user'?'Switch to rear camera':'Switch to front camera';
 }
@@ -1671,9 +1839,9 @@ async function openCamera(){
  try{$('cameraDialog').showModal();await startCamera('environment');}
  catch(err){toast('Camera permission failed: '+errorText(err));if($('cameraDialog').open)$('cameraDialog').close();}
 }
-function closeCamera(){if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null;}$('cameraVideo').srcObject=null;if($('cameraDialog').open)$('cameraDialog').close();}
+function closeCamera(){stopCameraEffects();if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null;}$('cameraVideo').srcObject=null;state.activeLookFilter='original';updateAllLookButtons();if($('cameraDialog').open)$('cameraDialog').close();}
 $('cameraButton').addEventListener('click',openCamera);$('closeCamera').addEventListener('click',closeCamera);$('switchCamera').addEventListener('click',async()=>{if(state.cameraSwitchBusy)return;state.cameraSwitchBusy=true;setBusy($('switchCamera'),true,'Switching…');try{await startCamera(state.cameraFacing==='environment'?'user':'environment');}catch(err){toast('Could not switch camera: '+errorText(err));}finally{state.cameraSwitchBusy=false;setBusy($('switchCamera'),false);}});
-$('takePhoto').addEventListener('click',async()=>{const video=$('cameraVideo');if(!video.videoWidth){toast('Camera is not ready yet.');return;}const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;const context=canvas.getContext('2d');context.filter=currentLookCss();context.drawImage(video,0,0);context.filter='none';canvas.toBlob(async blob=>{if(blob){closeCamera();await sendAttachment(new File([blob],'villfam-photo.jpg',{type:'image/jpeg'}));}},'image/jpeg',.88);});
+$('takePhoto').addEventListener('click',async()=>{const video=$('cameraVideo');if(!video.videoWidth){toast('Camera is not ready yet.');return;}const source=state.cameraEffectPipeline?.canvas||video;const canvas=document.createElement('canvas');canvas.width=source.videoWidth||source.width||video.videoWidth;canvas.height=source.videoHeight||source.height||video.videoHeight;const context=canvas.getContext('2d');context.drawImage(source,0,0,canvas.width,canvas.height);canvas.toBlob(async blob=>{if(blob){closeCamera();await sendAttachment(new File([blob],'villfam-photo.jpg',{type:'image/jpeg'}));}},'image/jpeg',.88);});
 
 function setProfileEditorAvatar(url){const box=$('profileAvatarPreview');box.replaceChildren();if(url){const img=document.createElement('img');img.src=url;img.alt='Profile photo preview';box.append(img);}else box.textContent=initials(state.profile?.nickname||'V');}
 function setProfileEditorCover(url){const box=$('profileCoverPreview');box.replaceChildren();if(url){const img=document.createElement('img');img.src=url;img.alt='Cover photo preview';box.append(img);}else{const label=document.createElement('span');label.textContent='YOUR COVER PHOTO';box.append(label);}}
@@ -1704,6 +1872,7 @@ $('profileEditSave').addEventListener('click',async()=>{
  }catch(err){if(!saved&&uploaded.length){const {error}=await state.client.storage.from('avatars').remove(uploaded);if(error)console.warn('Profile upload cleanup:',error.message);}toast('Could not save your profile: '+errorText(err));}
  finally{setBusy(btn,false);}
 });
+$('refreshPageButton').addEventListener('click',async()=>{if(state.currentCallId){const proceed=await askConfirm('Refresh VillFam?','Refreshing this webpage will disconnect your current call.','Refresh page');if(!proceed)return;}const button=$('refreshPageButton');button.classList.add('is-refreshing');window.location.reload();});
 $('logoutButton').addEventListener('click',async()=>{await releaseSingleSession();const {error}=await state.client.auth.signOut({scope:'local'});if(error)toast(errorText(error));else showAuth();});
 
 // Calls use native WebRTC peer-to-peer connections. Supabase stores invitations
@@ -1728,7 +1897,7 @@ function addCallTile(userId,label,isLocal=false){
 function showVideoOnTile(userId,stream,isLocal=false){
  const profile=findCallProfile(userId);const tile=addCallTile(userId,profile.nickname,isLocal);
  let video=tile.querySelector('video');if(!video){video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;video.style.width='100%';video.style.height='100%';video.style.objectFit='cover';tile.insertBefore(video,tile.querySelector('.participant-name'));}
- video.srcObject=stream;video.classList.toggle('mirror-camera',isLocal&&state.facingMode==='user');video.style.filter=isLocal?currentLookCss():'none';const avatar=tile.querySelector('.audio-avatar');if(avatar)avatar.remove();video.play().catch(()=>{});
+ video.srcObject=stream;video.classList.toggle('mirror-camera',isLocal&&state.facingMode==='user');video.style.filter='none';const avatar=tile.querySelector('.audio-avatar');if(avatar)avatar.remove();video.play().catch(()=>{});
 }
 function showAudioOnTile(userId,stream){
  const profile=findCallProfile(userId);const tile=addCallTile(userId,profile.nickname,false);
@@ -1890,7 +2059,7 @@ async function enterPeerCall(callId,isCaller,media){
   if(error)throw error;if(!call||call.status==='ended'||new Date(call.expires_at).getTime()<Date.now())throw new Error('This call has ended or expired.');
   state.currentCallId=callId;state.callType=call.call_type;state.localCallStream=media;state.callConversation=state.conversations.find(c=>c.id===call.conversation_id)||state.activeConversation;
   showCallDialog(call.call_type,state.callConversation);addCallTile(state.user.id,state.profile?.nickname||'You',true);
-  if(call.call_type==='video'){showVideoOnTile(state.user.id,media,true);if(state.activeLookFilter!=='original'){try{await setCallVideoLook(state.activeLookFilter);}catch(filterError){console.warn('Call filter could not be enabled:',filterError);toast('Your camera look is preview-only on this device.');}}}
+  if(call.call_type==='video'){showVideoOnTile(state.user.id,media,true);if(state.activeLookFilter!=='original'){try{await setCallVideoLook(state.activeLookFilter);}catch(filterError){console.warn('Call effect could not be enabled:',filterError);toast('Your camera effect could not start on this device.');}}}
   await subscribeCallSignals(callId);
   if(!isCaller){const {error:respondError}=await state.client.rpc('villfam_respond_call',{p_call_id:callId,p_response:'accept'});if(respondError)throw respondError;accepted=true;state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
   startCallHeartbeat(callId);await syncCallPeers();
@@ -1968,7 +2137,7 @@ async function switchCallCamera(){
   try{
    for(const pc of state.peerConnections.values()){
     const sender=pc.getSenders().find(s=>s.track?.kind==='video');
-    if(sender){await sender.replaceTrack(newTrack);changed.push(sender);}
+    if(sender){await sender.replaceTrack(state.callFilterPipeline?.videoTrack||newTrack);changed.push(sender);}
    }
   }catch(replaceError){
    for(const sender of changed){try{await sender.replaceTrack(oldTrack);}catch(_){}}
@@ -1976,7 +2145,7 @@ async function switchCallCamera(){
    throw replaceError;
   }
   state.localCallStream.removeTrack(oldTrack);state.localCallStream.addTrack(newTrack);oldTrack.stop();state.facingMode=result.facing;
-  showVideoOnTile(state.user.id,state.localCallStream,true);
+  showVideoOnTile(state.user.id,state.callFilterPipeline?.outputStream||state.localCallStream,true);
   $('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';
   toast(state.facingMode==='user'?'Front camera is on.':'Back camera is on.');
  }catch(e){
@@ -1987,7 +2156,7 @@ async function switchCallCamera(){
     for(const pc of state.peerConnections.values()){
      const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(restoredTrack);
     }
-    state.facingMode=e.restoreStream.facing||currentFacing;showVideoOnTile(state.user.id,state.localCallStream,true);
+    state.facingMode=e.restoreStream.facing||currentFacing;showVideoOnTile(state.user.id,state.callFilterPipeline?.outputStream||state.localCallStream,true);
    }catch(restoreError){console.warn('Could not restore the previous call camera:',restoreError);}
   }
   toast('Could not switch camera: '+errorText(e));
