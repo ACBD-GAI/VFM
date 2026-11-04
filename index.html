@@ -641,7 +641,7 @@ async function showMemberProfile(profile){
  let friendLoadError=null;
  try{await loadFriendRequests();}catch(e){friendLoadError=e;state.friendRequests=[];renderFriendRequests();}
  const p=state.viewedProfile;$('memberProfileName').textContent=p.nickname||'VillFam member';$('memberProfileGender').textContent=p.gender||'Gender not shared';$('memberProfileBio').textContent=p.bio||'This member has not added an introduction yet.';
- renderMemberProfileCover(p);const avatar=$('memberProfileAvatar');avatar.replaceWith(avatarElement(p,'member-profile-avatar'));$('memberProfileAvatar').id='memberProfileAvatar';updateMemberProfileActions();$('memberProfileDialog').showModal();
+ renderMemberProfileCover(p);replaceAvatar('memberProfileAvatar',p,'member-profile-avatar');updateMemberProfileActions();$('memberProfileDialog').showModal();
  if(friendLoadError)toast(friendSetupMessage(friendLoadError));
 }
 async function startPrivateChatWith(profile){
