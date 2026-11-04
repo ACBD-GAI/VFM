@@ -635,6 +635,46 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
  .avatar[data-presence-user-id]::after{width:10px;height:10px;}
  .user-presence-label{font-size:8px;gap:3px;}
 }
+
+
+/* Group chat toolbar spacing: separate actions from the title row. */
+#chatActive.is-group-conversation > .chat-head{
+  height:auto;min-height:70px;flex-wrap:wrap;align-items:center;
+  row-gap:10px;padding-top:12px;padding-bottom:12px;
+}
+#chatActive.is-group-conversation > .chat-head > .chat-tools{
+  flex:1 0 100%;width:100%;min-width:0;margin:0;padding-top:10px;
+  border-top:1px solid #edf0f5;display:flex;align-items:center;
+  justify-content:flex-end;flex-wrap:wrap;gap:9px;
+}
+#chatActive.is-group-conversation > .chat-head > .chat-tools > .icon-btn:not(.hidden){
+  box-sizing:border-box;flex:0 0 42px;width:42px;height:42px;
+  min-width:42px;min-height:42px;border-radius:12px;font-size:16px;
+}
+#chatActive.is-group-conversation > .chat-head > .chat-tools > .join-ongoing-call-btn:not(.hidden){
+  flex:0 1 auto;min-height:42px;padding:8px 12px;white-space:nowrap;
+}
+@media(max-width:760px){
+  #chatActive.is-group-conversation > .chat-head{
+    min-height:0;padding:10px 10px 9px;row-gap:8px;column-gap:7px;
+  }
+  #chatActive.is-group-conversation > .chat-head > .chat-tools{
+    justify-content:space-evenly;gap:7px;padding-top:9px;
+  }
+  #chatActive.is-group-conversation > .chat-head > .chat-tools > .icon-btn:not(.hidden){
+    flex-basis:40px;width:40px;height:40px;min-width:40px;min-height:40px;
+  }
+  #chatActive.is-group-conversation > .chat-head > .chat-tools > .join-ongoing-call-btn:not(.hidden){
+    font-size:10px;padding:7px 9px;min-height:40px;
+  }
+}
+@media(max-width:360px){
+  #chatActive.is-group-conversation > .chat-head > .chat-tools{gap:5px;}
+  #chatActive.is-group-conversation > .chat-head > .chat-tools > .icon-btn:not(.hidden){
+    flex-basis:38px;width:38px;height:38px;min-width:38px;min-height:38px;
+  }
+}
+
 </style>
 
 </head>
@@ -1671,7 +1711,7 @@ async function enterApp(){
 }
 function updateProfileHeader(){$('topNickname').textContent=state.profile?.nickname||'VillFam member';replaceAvatar('topAvatar',state.profile);}
 function updateChatConversationHeader(conv){
- if(!conv)return;$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':('Private conversation · '+(isUserOnline(conv.otherProfile?.id)?'Online':'Offline'));
+ if(!conv)return;$('chatActive').classList.toggle('is-group-conversation',!!conv.is_group);$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':('Private conversation · '+(isUserOnline(conv.otherProfile?.id)?'Online':'Offline'));
  const canManage=!!conv.is_group&&(conv.me?.role==='admin'||conv.created_by===state.user?.id);
  $('editGroupButton').classList.toggle('hidden',!canManage);$('addMembersButton').classList.toggle('hidden',!canManage);$('manageGroupButton').classList.toggle('hidden',!conv.is_group);
  replaceConversationAvatar('chatAvatar',conv);updateChatCallState(conv);
