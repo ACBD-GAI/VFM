@@ -893,7 +893,7 @@ const SUPABASE_AUTH_STORAGE_KEY = 'sb-' + new URL(SUPABASE_URL).hostname.split('
 const SUPABASE_RECOVERY_KEY = 'villfam_supabase_session_recovery_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], friendListTab:'incoming', viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, presenceChannel:null, onlineUserIds:new Set(), presenceReady:false, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null, faceLandmarkerPromise:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callRingtoneTimer:null, callRingtoneNodes:[], callRingtoneType:null, callAudioContext:null, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], friendListTab:'incoming', viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, presenceChannel:null, onlineUserIds:new Set(), presenceReady:false, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null, faceLandmarkerPromise:null };
 
 const VILLFAM_LOOKS = {
  original:{label:'Original',type:'none',css:'none',needsFace:false},
@@ -2261,7 +2261,52 @@ function showCallDialog(type,conversation){
  $('callTitle').textContent=(type==='video'?'Video call':'Audio call')+' · '+(conversation?.displayTitle||'VillFam');$('callGrid').replaceChildren();
  $('callDialog').showModal();$('callLookPanel').classList.toggle('hidden',type!=='video');$('toggleCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';applyLookToPreviews();
 }
-function showIncomingCall(call){state.incomingCall=call;$('incomingCallIcon').textContent=call.call_type==='video'?'📹':'☎';$('incomingCallTitle').textContent='Incoming '+(call.call_type==='video'?'video':'audio')+' call';$('incomingCallText').textContent=(call.caller_name||'A VillFam member')+' is calling '+(call.conversation_title||'you');if(!$('incomingCallDialog').open)$('incomingCallDialog').showModal();}
+function ensureCallAudioContext(){
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+ if(!AudioContextClass)return null;
+ if(!state.callAudioContext){try{state.callAudioContext=new AudioContextClass();}catch(e){console.warn('Call ringtone audio is unavailable:',e);return null;}}
+ return state.callAudioContext;
+}
+function primeCallRingtoneAudio(){
+ const ctx=ensureCallAudioContext();
+ if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});
+}
+function stopCallRingtone(){
+ if(state.callRingtoneTimer){clearInterval(state.callRingtoneTimer);state.callRingtoneTimer=null;}
+ state.callRingtoneType=null;
+ (state.callRingtoneNodes||[]).forEach(node=>{try{node.onended=null;node.stop();}catch(e){}try{node.disconnect();}catch(e){}});
+ state.callRingtoneNodes=[];
+}
+function scheduleCallRingtoneTone(ctx,frequency,startAt,duration,waveform,volume){
+ const oscillator=ctx.createOscillator(),gain=ctx.createGain();
+ oscillator.type=waveform;oscillator.frequency.setValueAtTime(frequency,startAt);
+ gain.gain.setValueAtTime(0.0001,startAt);gain.gain.exponentialRampToValueAtTime(volume,startAt+0.025);gain.gain.setValueAtTime(volume,startAt+Math.max(0.03,duration-0.06));gain.gain.exponentialRampToValueAtTime(0.0001,startAt+duration);
+ oscillator.connect(gain);gain.connect(ctx.destination);state.callRingtoneNodes.push(oscillator);
+ oscillator.onended=()=>{try{oscillator.disconnect();gain.disconnect();}catch(e){}state.callRingtoneNodes=state.callRingtoneNodes.filter(node=>node!==oscillator);};
+ oscillator.start(startAt);oscillator.stop(startAt+duration+0.03);
+}
+function scheduleCallRingtoneCycle(type){
+ const ctx=state.callAudioContext;if(!ctx||ctx.state!=='running'||state.callRingtoneType!==type)return;
+ const start=ctx.currentTime+0.035;
+ if(type==='audio'){
+  // Audio calls use a classic paired telephone ring: two short dual-tone bursts.
+  [0,0.48].forEach(offset=>{scheduleCallRingtoneTone(ctx,440,start+offset,0.32,'triangle',0.075);scheduleCallRingtoneTone(ctx,480,start+offset,0.32,'sine',0.065);});
+ }else{
+  // Video calls use a brighter four-note ascending/returning digital chime.
+  [659.25,783.99,987.77,783.99].forEach((frequency,index)=>scheduleCallRingtoneTone(ctx,frequency,start+index*0.19,0.2,'sine',0.075));
+ }
+}
+function startCallRingtone(type){
+ stopCallRingtone();const ringtoneType=type==='video'?'video':'audio';state.callRingtoneType=ringtoneType;
+ const ctx=ensureCallAudioContext();if(!ctx)return;
+ const begin=()=>{
+  if(!state.incomingCall||state.callRingtoneType!==ringtoneType||!$('incomingCallDialog')?.open)return;
+  scheduleCallRingtoneCycle(ringtoneType);
+  state.callRingtoneTimer=setInterval(()=>scheduleCallRingtoneCycle(ringtoneType),ringtoneType==='video'?2450:2050);
+ };
+ if(ctx.state==='running')begin();else ctx.resume().then(begin).catch(()=>{});
+}
+function showIncomingCall(call){state.incomingCall=call;$('incomingCallIcon').textContent=call.call_type==='video'?'📹':'☎';$('incomingCallTitle').textContent='Incoming '+(call.call_type==='video'?'video':'audio')+' call';$('incomingCallText').textContent=(call.caller_name||'A VillFam member')+' is calling '+(call.conversation_title||'you');if(!$('incomingCallDialog').open)$('incomingCallDialog').showModal();startCallRingtone(call.call_type);}
 function subscribeCallInbox(){
  if(!state.user||!state.client||state.callInboxChannel)return;
  state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:null}).then(({error})=>{if(error)console.warn('Call recovery:',error.message);});
@@ -2472,6 +2517,9 @@ $('callAudioBtn').addEventListener('click',()=>startCall('audio'));$('callVideoB
 $('declineIncomingCall').addEventListener('click',declineIncomingCall);
 $('answerIncomingCall').addEventListener('click',answerIncomingCall);
 $('hangupCallButton').addEventListener('click',endCall);$('closeCallDialog').addEventListener('click',endCall);
+$('incomingCallDialog').addEventListener('close',stopCallRingtone);
+document.addEventListener('pointerdown',primeCallRingtoneAudio,{passive:true});
+document.addEventListener('keydown',primeCallRingtoneAudio);
 $('incomingCallDialog').addEventListener('cancel',e=>{e.preventDefault();declineIncomingCall();});
 $('callDialog').addEventListener('cancel',e=>{e.preventDefault();endCall();});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(state.currentCallId)sendCallHeartbeat(state.currentCallId);if(state.user)refreshSingleSessionLease();}});
