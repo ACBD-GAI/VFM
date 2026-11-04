@@ -497,6 +497,65 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 }
 @media(max-width:390px){.profile-area>.icon-btn{min-width:31px;width:31px}.villfam-refresh-button{font-size:20px}}
 
+
+/* VillFam alignment polish — consistent button labels, symbols and dialog actions. */
+button:not(.member-option):not(.villfam-filter-chip){
+ text-align:center;
+ vertical-align:middle;
+ line-height:1.2;
+}
+.primary,.secondary,.danger-button,.link,.send-btn,
+.dialog-buttons button,.action-dialog .actions button,
+.incoming-call-actions button,.call-controls button,
+.villfam-camera-actions button,.profile-media-actions button,
+.friend-small-action,.msg-actions button{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:8px;
+ text-align:center;
+ line-height:1.2;
+}
+.icon-btn{
+ display:inline-grid;
+ place-items:center;
+ align-content:center;
+ justify-content:center;
+ padding:0;
+ text-align:center;
+ line-height:1;
+}
+.member-option{display:flex;align-items:center;justify-content:flex-start;text-align:left}
+.member-option-copy{text-align:left}
+.member-option-check{display:grid;place-items:center;flex:none}
+.dialog-buttons,.incoming-call-actions,.villfam-camera-actions{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex-wrap:wrap;
+ gap:10px;
+}
+.dialog-buttons button,.incoming-call-actions button{min-width:min(132px,100%)}
+.action-dialog .actions{display:grid;justify-items:stretch;gap:9px}
+.action-dialog .actions button{width:100%;min-height:46px}
+.villfam-dialog-heading{align-items:center}
+.villfam-dialog-heading h3,.picker-head h3,.action-dialog>h3{text-align:center}
+.villfam-filter-chip{display:grid;justify-items:center;align-content:center;text-align:center;line-height:1.15}
+.villfam-filter-chip>span:last-child{display:block;width:100%;text-align:center}
+.villfam-camera-actions button{min-width:148px}
+.profile-media-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px}
+.profile-media-actions button{min-height:42px}
+@media(max-width:760px){
+ .dialog-buttons,.incoming-call-actions,.villfam-camera-actions{gap:8px}
+ .dialog-buttons button,.incoming-call-actions button{flex:1 1 128px;min-width:0}
+ .villfam-camera-actions button{flex:1 1 140px;min-width:0}
+ .action-dialog .actions button{min-height:46px}
+}
+@media(max-width:390px){
+ .dialog-buttons button,.incoming-call-actions button{font-size:12px;padding-inline:10px}
+ .villfam-camera-actions button{font-size:12px;padding-inline:10px}
+}
+
 </style>
 
 
@@ -817,17 +876,32 @@ function drawFaceSticker(ctx,landmarks,width,height,type){
    drawFloppyEar(ctx,rightRoot.x,rightRoot.y,earW,earH,headAngle+.08,'#9a633c','#e8a17e',true);
    drawNoseSticker(ctx,nose,eyeSpan*.34);
   }else{
-   // Cat ears use the outer-eye/temple line as their attachment, not the
-   // upper face-oval points. This keeps the ear bases at the brow/temple line
-   // and brings the triangles down so they visibly join the head.
-   const downX=-Math.sin(angle),downY=Math.cos(angle);
-   const leftRootCat={x:leftEye.x-Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
-                      y:leftEye.y-Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
-   const rightRootCat={x:rightEye.x+Math.cos(angle)*eyeSpan*.25+downX*eyeSpan*.12,
-                       y:rightEye.y+Math.sin(angle)*eyeSpan*.25+downY*eyeSpan*.12};
-   const catEarW=eyeSpan*.48,catEarH=eyeSpan*.57;
-   drawCatEar(ctx,leftRootCat.x,leftRootCat.y,catEarW,catEarH,angle-.10,false);
-   drawCatEar(ctx,rightRootCat.x,rightRootCat.y,catEarW,catEarH,angle+.10,true);
+   // Cat-ear roots come from the upper face-oval/head contour, well above
+   // the eyebrows: 67/297 are the upper-left/upper-right forehead outline.
+   // Pull each root slightly inward and downward so the ear base overlaps
+   // the detected head outline instead of floating over the eyes.
+   let upperL=facePoint(landmarks,67,width,height);
+   let upperR=facePoint(landmarks,297,width,height);
+   const minimumRise=eyeSpan*.18;
+   if(!upperL||upperL.y>cy-minimumRise)upperL=facePoint(landmarks,109,width,height);
+   if(!upperR||upperR.y>cy-minimumRise)upperR=facePoint(landmarks,338,width,height);
+   if(!upperL||!upperR||upperL.y>cy-minimumRise||upperR.y>cy-minimumRise){
+    const acrossX=Math.cos(angle),acrossY=Math.sin(angle),upX=Math.sin(angle),upY=-Math.cos(angle);
+    upperL={x:cx-acrossX*eyeSpan*.62+upX*eyeSpan*.55,y:cy-acrossY*eyeSpan*.62+upY*eyeSpan*.55};
+    upperR={x:cx+acrossX*eyeSpan*.62+upX*eyeSpan*.55,y:cy+acrossY*eyeSpan*.62+upY*eyeSpan*.55};
+   }
+   if(upperL.x>upperR.x){const swap=upperL;upperL=upperR;upperR=swap;}
+   const catLineAngle=Math.atan2(upperR.y-upperL.y,upperR.x-upperL.x);
+   const catAcrossX=Math.cos(catLineAngle),catAcrossY=Math.sin(catLineAngle);
+   const catDownX=-Math.sin(catLineAngle),catDownY=Math.cos(catLineAngle);
+   const rootOverlap=eyeSpan*.075,rootInset=eyeSpan*.025;
+   const leftRootCat={x:upperL.x+catAcrossX*rootInset+catDownX*rootOverlap,
+                      y:upperL.y+catAcrossY*rootInset+catDownY*rootOverlap};
+   const rightRootCat={x:upperR.x-catAcrossX*rootInset+catDownX*rootOverlap,
+                       y:upperR.y-catAcrossY*rootInset+catDownY*rootOverlap};
+   const catEarW=eyeSpan*.58,catEarH=eyeSpan*.72;
+   drawCatEar(ctx,leftRootCat.x,leftRootCat.y,catEarW,catEarH,catLineAngle-.11,false);
+   drawCatEar(ctx,rightRootCat.x,rightRootCat.y,catEarW,catEarH,catLineAngle+.11,true);
    ctx.save();ctx.fillStyle='rgba(255,122,156,.25)';
    if(cheekL){ctx.beginPath();ctx.ellipse(cheekL.x,cheekL.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
    if(cheekR){ctx.beginPath();ctx.ellipse(cheekR.x,cheekR.y,eyeSpan*.2,eyeSpan*.1,angle,0,Math.PI*2);ctx.fill();}
