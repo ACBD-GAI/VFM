@@ -583,6 +583,60 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 }
 
 </style>
+
+<style>
+/* Call close control: neutralize the global raised/white icon button skin. */
+#callDialog .villfam-call-heading{box-sizing:border-box;display:flex;align-items:center;gap:10px;}
+#callDialog #closeCallDialog.villfam-close,
+#callDialog #closeCallDialog.villfam-close:hover,
+#callDialog #closeCallDialog.villfam-close:active{
+  -webkit-appearance:none;appearance:none;box-sizing:border-box!important;
+  display:grid!important;place-items:center!important;flex:0 0 40px!important;
+  width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+  margin:0 0 0 auto!important;padding:0!important;inset:auto!important;
+  border:1px solid rgba(172,210,236,.28)!important;border-radius:12px!important;
+  background:#263b56!important;color:#fff!important;box-shadow:none!important;
+  font-family:Arial,sans-serif!important;font-size:22px!important;font-weight:700!important;
+  line-height:1!important;text-align:center!important;text-indent:0!important;
+  transform:none!important;outline-offset:3px;
+}
+#callDialog #closeCallDialog.villfam-close:hover{background:#345575!important;border-color:rgba(83,217,255,.55)!important;}
+#callDialog #closeCallDialog.villfam-close:active{background:#1d314a!important;}
+#callDialog #closeCallDialog.villfam-close:focus-visible{outline:2px solid #53d9ff!important;}
+#callDialog .villfam-call-heading .villfam-close{align-self:center;justify-self:end;}
+
+
+.presence-copy-state{display:flex;align-items:center;gap:5px;}
+.presence-copy-state::before{content:"";display:inline-block;width:7px;height:7px;flex:none;border-radius:50%;}
+.presence-copy-state.is-online{color:#12804d!important;}
+.presence-copy-state.is-online::before{background:#19b968;}
+.presence-copy-state.is-offline{color:#c0444b!important;}
+.presence-copy-state.is-offline::before{background:#e0444d;}
+
+/* Presence dots are shown on every individual member avatar. */
+.avatar[data-presence-user-id]{position:relative;isolation:isolate;}
+.avatar[data-presence-user-id]::after{
+  content:"";position:absolute;z-index:5;right:0;bottom:0;width:11px;height:11px;
+  border:2px solid #fff;border-radius:50%;box-sizing:border-box;pointer-events:none;
+  box-shadow:0 1px 4px rgba(9,24,43,.25);
+}
+.avatar[data-presence-state="online"]::after{background:#19b968;}
+.avatar[data-presence-state="offline"]::after{background:#e0444d;}
+.user-presence-label{display:inline-flex;align-items:center;gap:4px;flex:none;font-size:9px;font-weight:800;white-space:nowrap;}
+.user-presence-label::before{content:"";width:7px;height:7px;border-radius:50%;display:inline-block;}
+.user-presence-label.is-online{color:#12804d;}
+.user-presence-label.is-online::before{background:#19b968;box-shadow:0 0 0 2px rgba(25,185,104,.12);}
+.user-presence-label.is-offline{color:#c0444b;}
+.user-presence-label.is-offline::before{background:#e0444d;box-shadow:0 0 0 2px rgba(224,68,77,.10);}
+@media(max-width:760px){
+ #callDialog #closeCallDialog.villfam-close,
+ #callDialog #closeCallDialog.villfam-close:hover,
+ #callDialog #closeCallDialog.villfam-close:active{flex-basis:38px!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:0!important;}
+ .avatar[data-presence-user-id]::after{width:10px;height:10px;}
+ .user-presence-label{font-size:8px;gap:3px;}
+}
+</style>
+
 </head>
 <body>
 <section id="authView">
@@ -777,7 +831,7 @@ const SUPABASE_AUTH_STORAGE_KEY = 'sb-' + new URL(SUPABASE_URL).hostname.split('
 const SUPABASE_RECOVERY_KEY = 'villfam_supabase_session_recovery_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null, faceLandmarkerPromise:null };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, presenceChannel:null, onlineUserIds:new Set(), presenceReady:false, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null, faceLandmarkerPromise:null };
 
 const VILLFAM_LOOKS = {
  original:{label:'Original',type:'none',css:'none',needsFace:false},
@@ -1043,13 +1097,14 @@ function errorText(err){const raw=(err && err.message) ? err.message : String(er
 function setBusy(button,busy,label){if(!button)return;button.disabled=busy;if(busy){button.dataset.old=button.textContent;button.textContent=label||'Please wait…';}else if(button.dataset.old){button.textContent=button.dataset.old;delete button.dataset.old;}}
 function escapeName(value){return String(value||'').trim();}
 function initials(value){const s=String(value||'V').trim();return s.split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'V';}
-function avatarElement(profile, extra=''){const el=document.createElement('div');el.className='avatar '+extra;if(profile&&profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.appendChild(img);}else el.textContent=initials(profile&&profile.nickname);return el;}
+function setAvatarPresence(el,userId){if(!el||!userId)return;const id=String(userId);const online=state.onlineUserIds?.has(id)||false;el.dataset.presenceUserId=id;el.dataset.presenceState=online?'online':'offline';el.title=online?'Online':'Offline';el.setAttribute('aria-label',(el.getAttribute('aria-label')||'Member avatar')+' · '+(online?'Online':'Offline'));}
+function avatarElement(profile, extra=''){const el=document.createElement('div');el.className='avatar '+extra;if(profile&&profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.appendChild(img);}else el.textContent=initials(profile&&profile.nickname);setAvatarPresence(el,profile?.id||profile?.user_id);return el;}
 function replaceAvatar(id,profile,extra=''){const old=$(id);if(!old)return;const next=avatarElement(profile,extra);next.id=id;old.replaceWith(next);}
 function conversationAvatarElement(conv,extra=''){
  const el=document.createElement('div');el.className='avatar '+extra;
  if(conv?.is_group&&conv.group_avatar_url){const img=document.createElement('img');img.src=conv.group_avatar_url;img.alt='';el.append(img);}
  else if(conv?.is_group){el.textContent=initials(conv.displayTitle||conv.title||'Family group');}
- else {const profile=conv?.otherProfile||null;if(profile?.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.append(img);}else el.textContent=initials(profile?.nickname||profile?.email||'VillFam');}
+ else {const profile=conv?.otherProfile||null;if(profile?.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';el.append(img);}else el.textContent=initials(profile?.nickname||profile?.email||'VillFam');setAvatarPresence(el,profile?.id);}
  return el;
 }
 function replaceConversationAvatar(id,conv){const old=$(id);if(!old)return;const next=conversationAvatarElement(conv);next.id=id;old.replaceWith(next);}
@@ -1096,7 +1151,7 @@ function friendSetupMessage(error){
  return 'Friend feature error: '+errorText(error);
 }
 function makeFriendRow(profile,meta,actions){
- const row=document.createElement('div');row.className='friend-list-row';row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='friend-list-copy';const name=document.createElement('strong');name.textContent=profile.nickname||'VillFam member';const detail=document.createElement('span');detail.textContent=meta||'';copy.append(name,detail);row.append(copy);actions.forEach(button=>row.append(button));return row;
+ const row=document.createElement('div');row.className='friend-list-row';row.append(avatarElement(profile));const copy=document.createElement('div');copy.className='friend-list-copy';const name=document.createElement('strong');name.textContent=profile.nickname||'VillFam member';const detail=document.createElement('span');const online=isUserOnline(profile?.id);detail.className='presence-copy-state '+(online?'is-online':'is-offline');detail.textContent=(meta?meta+' · ':'')+(online?'Online':'Offline');copy.append(name,detail);row.append(copy);actions.forEach(button=>row.append(button));return row;
 }
 function renderFriendRequests(){
  const list=$('friendRequestsList');if(!list)return;list.replaceChildren();const incoming=state.friendRequests.filter(r=>r.status==='pending'&&r.recipient_id===state.user?.id),outgoing=state.friendRequests.filter(r=>r.status==='pending'&&r.requester_id===state.user?.id),friends=state.friendRequests.filter(r=>r.status==='accepted');
@@ -1562,7 +1617,7 @@ async function initSupabase(){
   if(error)notice('VillFam could not restore the saved login. Your browser session was not cleared. Please sign in again or check browser storage settings.','error');
  }
 }
-function showAuth(){state.pendingSession=null;state.forceLogoutOtpSent=false;state.forceLogoutEmail='';$('forceLogoutPanel').classList.add('hidden');$('resumeSessionButton').classList.add('hidden');stopSingleSessionHeartbeat();if(state.inboxRefreshTimer){clearTimeout(state.inboxRefreshTimer);state.inboxRefreshTimer=null;}if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
+function showAuth(){state.pendingSession=null;state.forceLogoutOtpSent=false;state.forceLogoutEmail='';$('forceLogoutPanel').classList.add('hidden');$('resumeSessionButton').classList.add('hidden');stopSingleSessionHeartbeat();if(state.inboxRefreshTimer){clearTimeout(state.inboxRefreshTimer);state.inboxRefreshTimer=null;}if(state.callStateInterval){clearInterval(state.callStateInterval);state.callStateInterval=null;}if(state.callRefreshTimer){clearTimeout(state.callRefreshTimer);state.callRefreshTimer=null;}if(state.presenceChannel){try{state.client?.removeChannel(state.presenceChannel);}catch(e){console.warn('Presence channel cleanup:',e);}state.presenceChannel=null;}state.onlineUserIds=new Set();state.presenceReady=false;state.user=null;state.profile=null;state.activeConversation=null;if(state.messageChannel){state.client.removeChannel(state.messageChannel);state.messageChannel=null;}if(state.inboxChannel){state.client.removeChannel(state.inboxChannel);state.inboxChannel=null;}if(state.callInboxChannel){state.client.removeChannel(state.callInboxChannel);state.callInboxChannel=null;}cleanupCall(false);$('appView').style.display='none';$('authView').style.display='grid';$('authEmail').readOnly=false;setAuthMode('signin');}
 async function enterApp(){
  if(state.entering)return;state.entering=true;
  $('authView').style.display='none';$('appView').style.display='block';$('mainLayout').classList.remove('chat-open');
@@ -1570,7 +1625,7 @@ async function enterApp(){
  // kept a full-screen restore layer visible while every secondary query finished.
  document.documentElement.classList.remove('villfam-session-restoring');
  state.profile={id:state.user.id,email:state.user.email,nickname:(state.user.email||'VillFam').split('@')[0]};
- updateProfileHeader();
+ updateProfileHeader();subscribePresence();
  try{
   // These profile reads do not depend on each other; run them together to save
   // one full network round trip on every restored login.
@@ -1593,7 +1648,7 @@ async function enterApp(){
 }
 function updateProfileHeader(){$('topNickname').textContent=state.profile?.nickname||'VillFam member';replaceAvatar('topAvatar',state.profile);}
 function updateChatConversationHeader(conv){
- if(!conv)return;$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':'Private conversation';
+ if(!conv)return;$('chatTitle').textContent=conv.displayTitle;$('chatSubtitle').textContent=conv.is_group?'Group conversation · '+(conv.members?.length||0)+' members':('Private conversation · '+(isUserOnline(conv.otherProfile?.id)?'Online':'Offline'));
  const canManage=!!conv.is_group&&(conv.me?.role==='admin'||conv.created_by===state.user?.id);
  $('editGroupButton').classList.toggle('hidden',!canManage);$('addMembersButton').classList.toggle('hidden',!canManage);$('manageGroupButton').classList.toggle('hidden',!conv.is_group);
  replaceConversationAvatar('chatAvatar',conv);updateChatCallState(conv);
@@ -1653,6 +1708,7 @@ function renderConversations(){
   row.append(conversationAvatarElement(c));
   const copy=document.createElement('div');copy.className='conv-text';const heading=document.createElement('div');heading.className='conv-heading';
   const title=document.createElement('div');title.className='conv-title';title.textContent=c.displayTitle;heading.append(title);
+  if(!c.is_group&&c.otherProfile?.id){const status=document.createElement('span');const online=isUserOnline(c.otherProfile.id);status.className='user-presence-label '+(online?'is-online':'is-offline');status.textContent=online?'Online':'Offline';status.title=(online?'Online now':'Offline');heading.append(status);}
   if(call){const badge=document.createElement('span');badge.className='call-live-badge '+(activeCall?'is-live':'is-ringing');badge.textContent=activeCall?(call.call_type==='video'?'LIVE VIDEO':'LIVE AUDIO'):'CALLING';heading.append(badge);}
   const preview=document.createElement('div');preview.className='conv-preview';
   preview.textContent=activeCall?(call.liveCount>0?`${call.liveCount} member${call.liveCount===1?' is':'s are'} in the call · Tap to join`:'Call room open · Tap to rejoin'):ringingCall?'VillFam is ringing…':(c.lastPreview||'No messages yet');
@@ -1697,6 +1753,35 @@ async function loadMessages(){
   row.append(wrap);area.append(row);
  }
  area.scrollTop=area.scrollHeight;
+}
+
+function isUserOnline(userId){return !!userId&&!!state.onlineUserIds?.has(String(userId));}
+function refreshPresenceUI(){
+ document.querySelectorAll('[data-presence-user-id]').forEach(el=>{const online=isUserOnline(el.dataset.presenceUserId);el.dataset.presenceState=online?'online':'offline';el.title=online?'Online':'Offline';});
+ if(state.activeConversation&&!state.activeConversation.is_group){const other=state.activeConversation.otherProfile;$('chatSubtitle').textContent='Private conversation · '+(isUserOnline(other?.id)?'Online':'Offline');}
+ renderConversations();
+ if($('friendRequestsDialog')?.open)renderFriendRequests();
+}
+function subscribePresence(){
+ if(!state.client||!state.user)return;
+ if(state.presenceChannel){state.client.removeChannel(state.presenceChannel);state.presenceChannel=null;}
+ const userId=String(state.user.id);
+ const channel=state.client.channel('villfam-global-presence',{config:{presence:{key:userId}}});
+ const sync=()=>{
+  const snapshot=channel.presenceState();const next=new Set();
+  Object.entries(snapshot||{}).forEach(([key,metas])=>{if(key)next.add(String(key));(Array.isArray(metas)?metas:[]).forEach(meta=>{if(meta?.user_id)next.add(String(meta.user_id));});});
+  state.onlineUserIds=next;state.presenceReady=true;refreshPresenceUI();
+ };
+ channel.on('presence',{event:'sync'},sync);
+ channel.subscribe(async status=>{
+  if(status==='SUBSCRIBED'){
+   try{const result=await channel.track({user_id:userId,online_at:new Date().toISOString()});if(result==='ok'||result===undefined){sync();}}
+   catch(error){console.warn('VillFam presence tracking:',error);}
+  }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+   state.presenceReady=false;console.warn('VillFam presence channel:',status);
+  }
+ });
+ state.presenceChannel=channel;
 }
 
 function subscribeInbox(){
