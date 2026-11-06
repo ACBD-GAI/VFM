@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f7fc">
 <title>VillFam Messenger</title>
-<link rel="icon" type="image/png" href="./vfm-app-icon.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./vfm-app-icon.png">
+<link rel="apple-touch-icon" href="./vfm-app-icon.png">
 <style>
 :root{--blue:#3478f6;--blue-dark:#2364df;--ink:#172033;--muted:#7d899e;--line:#e8edf5;--bg:#f4f6fb;--panel:#fff;--green:#169b68;--red:#c43d48;--shadow:0 18px 55px #24385a12}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:12px}.primary{border:0;border-radius:12px;padding:12px 16px;background:var(--blue);color:#fff;font-weight:750}.primary:hover{background:var(--blue-dark)}.secondary{border:1px solid var(--line);border-radius:12px;padding:11px 14px;background:#fff;color:var(--ink);font-weight:650}.link{border:0;background:none;color:var(--blue);font-weight:700;padding:6px}.danger{color:var(--red)}
@@ -17,7 +18,7 @@
 .chat-tools{display:flex;align-items:center;gap:6px;margin-left:auto}.chat-tools .icon-btn{width:38px;height:38px;font-size:16px}.chat-head{gap:9px}
 .msg-actions{display:flex;gap:5px;justify-content:flex-end;margin-top:3px}.msg-actions button{border:0;background:transparent;color:#8190a8;font-size:10px;padding:3px 6px;border-radius:7px}.msg-actions button:hover{background:#edf3ff;color:var(--blue)}
 .own-bubble-menu{position:relative}.action-dialog{border:0;border-radius:18px;padding:20px;width:min(92vw,370px);box-shadow:0 20px 70px #0003;color:var(--ink)}.action-dialog::backdrop{background:#0b183399}.action-dialog h3{margin:0 0 7px}.action-dialog p{font-size:13px;line-height:1.5;color:var(--muted)}.action-dialog .actions{display:grid;gap:8px;margin-top:15px}.action-dialog .actions button{width:100%;text-align:left}.danger-button{border:1px solid #f1c8cc;background:#fff7f7;color:#b52f3b;border-radius:11px;padding:11px 13px;font-weight:750}
-.call-dialog{border:0;border-radius:22px;padding:16px;width:min(96vw,900px);max-width:900px;max-height:92dvh;box-shadow:0 20px 70px #0005;background:#101827;color:#fff}.call-dialog::backdrop{background:#07101bcc}.call-dialog h3{margin:0;font-size:17px}.call-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:9px;max-height:66dvh;overflow:auto;margin:14px 0}.call-tile{position:relative;min-height:180px;border-radius:15px;overflow:hidden;background:#263348;display:flex;align-items:center;justify-content:center}.call-tile video{width:100%;height:100%;min-height:180px;object-fit:cover}.call-tile .participant-name{position:absolute;left:10px;bottom:9px;padding:5px 8px;border-radius:8px;background:#07101aaa;font-size:12px;z-index:2}.call-tile .audio-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:#48618a;font-size:23px;font-weight:800}.call-status{font-size:12px;color:#bdc9dc;text-align:center;margin:9px}.call-controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}.call-controls button{border:0;border-radius:12px;padding:11px 15px;background:#30415c;color:white;font-weight:700}.call-controls .hangup{background:#cf3947}.incoming-call-card{text-align:center;padding:10px 8px}.incoming-call-icon{font-size:48px;margin:9px}.incoming-call-actions{display:flex;justify-content:center;gap:12px;margin-top:18px}.incoming-call-actions button{min-width:125px}.call-note{color:#b9c7dc;font-size:12px;margin-top:8px}
+.call-dialog{border:0;border-radius:22px;padding:16px;width:min(96vw,900px);max-width:900px;max-height:92dvh;box-shadow:0 20px 70px #0005;background:#101827;color:#fff}.call-dialog::backdrop{background:#07101bcc}.call-dialog h3{margin:0;font-size:17px}.call-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:9px;max-height:66dvh;overflow:auto;margin:14px 0}.call-tile{position:relative;min-height:180px;border-radius:15px;overflow:hidden;background:#263348;display:flex;align-items:center;justify-content:center}.call-tile video{width:100%;height:100%;min-height:180px;object-fit:cover}.call-tile .participant-name{position:absolute;left:10px;bottom:9px;padding:5px 8px;border-radius:8px;background:#07101aaa;font-size:12px;z-index:2}.call-tile .audio-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:#48618a;font-size:23px;font-weight:800}.call-status{font-size:12px;color:#bdc9dc;text-align:center;margin:9px}.call-controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}.call-controls button{border:0;border-radius:12px;padding:11px 15px;background:#30415c;color:white;font-weight:700}.call-controls .hangup{background:#cf3947}
 @media(max-width:760px){.chat-head{padding:0 8px}.chat-tools{gap:2px}.chat-tools .icon-btn{width:33px;height:34px;font-size:14px}.call-dialog{padding:12px}.call-grid{grid-template-columns:1fr 1fr}.call-tile{min-height:130px}.call-tile video{min-height:130px}}
 
 
@@ -700,6 +701,11 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 
 </style>
 
+<style>
+/* The supplied full VillFam Messenger logo is shared by the sign-in and app headers. */
+.brand-icon{width:46px;height:46px;flex:0 0 46px;padding:0;overflow:hidden;border-radius:13px;background:#071b36;box-shadow:0 3px 12px #071b3630}
+.brand-icon img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+</style>
 </head>
 <body>
 <section id="authView">
@@ -805,7 +811,7 @@ button:focus-visible{outline:3px solid var(--vf-cyan);outline-offset:2px;box-sha
 </dialog>
 <dialog id="messageActionDialog" class="action-dialog"><h3>Message options</h3><p id="messageActionLabel">Choose what to do with this message.</p><div class="actions"><button id="deleteMessageMe" class="secondary" type="button">Delete for me</button><button id="deleteMessageEveryone" class="danger-button hidden" type="button">Delete for everyone</button><button id="cancelMessageAction" class="secondary" type="button">Cancel</button></div></dialog>
 <dialog id="conversationActionDialog" class="action-dialog"><h3 id="conversationActionTitle">Conversation options</h3><p id="conversationActionText"></p><div class="actions"><button id="editGroupFromMenuButton" class="secondary hidden" type="button">Edit group name & photo</button><button id="manageGroupFromMenuButton" class="secondary hidden" type="button">Manage members & invitations</button><button id="addMembersFromMenuButton" class="secondary hidden" type="button">Invite members</button><button id="deleteConversationMe" class="danger-button hidden" type="button">Delete conversation for me</button><button id="leaveGroupButton" class="danger-button hidden" type="button">Leave group</button><button id="deleteGroupButton" class="danger-button hidden" type="button">Delete group for everyone</button><button id="cancelConversationAction" class="secondary" type="button">Cancel</button></div></dialog>
-<dialog id="incomingCallDialog" class="action-dialog"><div class="incoming-call-card"><div class="incoming-call-icon" id="incomingCallIcon">📹</div><h3 id="incomingCallTitle">Incoming call</h3><p id="incomingCallText">Someone is calling you.</p><div class="call-note">You can answer without opening the conversation.</div><div class="incoming-call-actions"><button id="declineIncomingCall" class="danger-button" type="button">Decline</button><button id="answerIncomingCall" class="primary" type="button">Answer</button></div></div></dialog>
+
 <dialog id="callDialog" class="call-dialog villfam-call-dialog"><div class="villfam-dialog-heading villfam-call-heading"><div><span class="villfam-eyebrow">VILLFAM LIVE</span><h3 id="callTitle">VillFam call</h3></div><span style="flex:1"></span><button id="closeCallDialog" class="icon-btn villfam-close" type="button" title="Leave call" aria-label="Leave call">×</button></div>
  <div id="callGrid" class="call-grid"></div>
  <div id="callLookPanel" class="villfam-filter-panel villfam-call-filter-panel hidden"><div class="villfam-filter-heading"><strong>Live AR face effects</strong><span>Other people in the call can see your effect</span></div><div id="callLookFilters" class="villfam-filter-strip" role="group" aria-label="Video call face effects">
@@ -900,7 +906,7 @@ const SUPABASE_AUTH_STORAGE_KEY = 'sb-' + new URL(SUPABASE_URL).hostname.split('
 const SUPABASE_RECOVERY_KEY = 'villfam_supabase_session_recovery_v1';
 const SESSION_HEARTBEAT_MS = 45000;
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callRingtoneTimer:null, callRingtoneNodes:[], callRingtoneType:null, callAudioContext:null, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], friendListTab:'incoming', viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, presenceChannel:null, onlineUserIds:new Set(), presenceReady:false, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null,faceLandmarkerPromise:null, pushToken:null, pushListenersReady:false, pushRegistrationPromise:null, pendingPushConversationId:null, pendingCallAction:null, appLinkListenersReady:false, totalUnreadCount:0 };
+const state = { client:null, user:null, profile:null, authMode:'signin', otpSent:false, otpEmail:'', resetOtpSent:false, resetOtpEmail:'', people:[], conversations:[], activeConversation:null, messageChannel:null, inboxChannel:null, recorder:null, chunks:[], cameraStream:null, cameraFacing:'environment', toastTimer:null, entering:false, hiddenConversations:new Map(), hiddenMessages:new Set(), callInboxChannel:null, callSignalChannel:null, currentCallId:null, incomingCall:null, callType:null, callMuted:false, callCameraEnabled:true, facingMode:'user', callConversation:null, callActionBusy:false, callRingtoneTimer:null, callRingtoneNodes:[], callRingtoneType:null, callAudioContext:null, callStarting:false, singleSessionId:null, sessionHeartbeatTimer:null, sessionHeartbeatBusy:false, callHeartbeatTimer:null, callHeartbeatBusy:false, lastCallHeartbeatWarningAt:0, localCallStream:null, peerConnections:new Map(), remoteStreams:new Map(), processedSignalIds:new Set(), callSignalQueues:new Map(), callPeerSyncing:false, callPeerSyncPending:false, callRefreshTimer:null, callStateInterval:null, cameraSwitchBusy:false, memberPickerMode:null, selectedMemberIds:new Set(), confirmResolver:null, sendingText:null, lastSentText:null, groupInvitations:[], groupManageConversationId:null, inboxRefreshTimer:null, pendingSession:null, forceLogoutEmail:'', forceLogoutOtpSent:false, groupPhotoFile:null, groupPhotoPreviewUrl:null, friendRequests:[], friendListTab:'incoming', viewedProfile:null, returnToMemberPicker:false, profileAvatarFile:null, profileCoverFile:null, profileAvatarPreviewUrl:null, profileCoverPreviewUrl:null, friendChannel:null, presenceChannel:null, onlineUserIds:new Set(), presenceReady:false, activeLookFilter:'original', callFilterPipeline:null, callFilterBusy:false, cameraEffectPipeline:null, faceLandmarker:null,faceLandmarkerPromise:null, pushToken:null, pushListenersReady:false, pushRegistrationPromise:null, pendingPushConversationId:null, pendingCallAction:null, appLinkListenersReady:false, totalUnreadCount:0, messageAudioContext:null, messageBeepedIds:new Set() };
 
 const VILLFAM_LOOKS = {
  original:{label:'Original',type:'none',css:'none',needsFace:false},
@@ -1187,6 +1193,42 @@ function clearNotice(){ $('authNotice').className='notice'; $('authNotice').text
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>el.classList.remove('show'),3300);}
 function errorText(err){const raw=(err && err.message) ? err.message : String(err || 'Something went wrong.');return raw.replace(/https?:\/\/[^\s]+/gi,'[link hidden]').replace(/\b(?:sb_secret|sb_publishable)_[A-Za-z0-9_-]+/g,'[key hidden]');}
 function setBusy(button,busy,label){if(!button)return;button.disabled=busy;if(busy){button.dataset.old=button.textContent;button.textContent=label||'Please wait…';}else if(button.dataset.old){button.textContent=button.dataset.old;delete button.dataset.old;}}
+function isConversationVisible(conversationId){
+ if(!state.activeConversation||state.activeConversation.id!==conversationId||document.visibilityState!=='visible')return false;
+ const active=$('chatActive'),layout=$('mainLayout');
+ if(!active||active.classList.contains('hidden'))return false;
+ return window.innerWidth>760||!!layout?.classList.contains('chat-open');
+}
+function updateUnreadSummary(){
+ state.totalUnreadCount=state.conversations.reduce((sum,c)=>sum+(Number(c.unreadCount)||0),0);
+ const badge=$('totalUnreadBadge');
+ if(badge){badge.textContent=state.totalUnreadCount>99?'99+':String(state.totalUnreadCount);badge.classList.toggle('hidden',state.totalUnreadCount===0);badge.setAttribute('aria-label',state.totalUnreadCount+' unread messages');}
+ document.title=state.totalUnreadCount?'('+state.totalUnreadCount+') VillFam Messenger':'VillFam Messenger';
+}
+function getMessageAudioContext(){
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+ if(!AudioContextClass)return null;
+ if(!state.messageAudioContext){try{state.messageAudioContext=new AudioContextClass();}catch(error){console.warn('Message alert sound is unavailable:',error);return null;}}
+ return state.messageAudioContext;
+}
+function primeMessageAudio(){const ctx=getMessageAudioContext();if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});}
+function playOneMessageBeep(messageId,senderId,conversationId){
+ if(!messageId||!state.user||!senderId||senderId===state.user.id)return;
+ const id=String(messageId);if(state.messageBeepedIds.has(id))return;
+ state.messageBeepedIds.add(id);if(state.messageBeepedIds.size>250){const oldest=state.messageBeepedIds.values().next().value;state.messageBeepedIds.delete(oldest);}
+ if(isConversationVisible(conversationId))return;
+ const ctx=getMessageAudioContext();if(!ctx)return;
+ const play=()=>{
+  if(ctx.state!=='running')return;
+  const oscillator=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+0.02,duration=0.16;
+  oscillator.type='sine';oscillator.frequency.setValueAtTime(880,start);
+  gain.gain.setValueAtTime(0.0001,start);gain.gain.exponentialRampToValueAtTime(0.10,start+0.012);gain.gain.setValueAtTime(0.10,start+duration-0.035);gain.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+  oscillator.connect(gain);gain.connect(ctx.destination);oscillator.start(start);oscillator.stop(start+duration+0.025);
+  oscillator.onended=()=>{try{oscillator.disconnect();gain.disconnect();}catch(_){}};
+ };
+ if(ctx.state==='suspended')ctx.resume().then(play).catch(()=>{});else play();
+}
+
 function escapeName(value){return String(value||'').trim();}
 function initials(value){const s=String(value||'V').trim();return s.split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'V';}
 function setAvatarPresence(el,userId){if(!el||!userId)return;const id=String(userId);const online=state.onlineUserIds?.has(id)||false;el.dataset.presenceUserId=id;el.dataset.presenceState=online?'online':'offline';el.title=online?'Online':'Offline';el.setAttribute('aria-label',(el.getAttribute('aria-label')||'Member avatar')+' · '+(online?'Online':'Offline'));}
@@ -1779,9 +1821,9 @@ async function initializeVillFamPush(){
    await plugin.addListener('registrationError',event=>console.error('VillFam FCM registration failed:',event?.error||event));
    await plugin.addListener('pushNotificationReceived',event=>{
     const data=event?.data||{};
-    if(data.type==='incoming_call'&&data.call_id){state.pendingCallAction={action:'show',callId:data.call_id,callType:data.call_type||'audio'};processPendingVillFamCallAction().catch(console.warn);return;}
-    if(data.type==='call_cancelled'&&state.incomingCall?.id===data.call_id){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
-    if(data.type==='new_message'){const id=data.conversation_id;if(id&&id!==state.activeConversation?.id)loadConversations().catch(console.warn);}
+    if(data.type==='incoming_call'&&data.call_id){handleIncomingCall(data.call_id).catch(console.warn);return;}
+    if(data.type==='call_cancelled'&&state.incomingCall?.id===data.call_id){state.incomingCall=null;}
+    if(data.type==='new_message'){playOneMessageBeep(data.message_id,data.sender_id,data.conversation_id);const id=data.conversation_id;if(id&&id!==state.activeConversation?.id)loadConversations().catch(console.warn);}
    });
    await plugin.addListener('pushNotificationActionPerformed',action=>handleVillFamPushTap(action).catch(error=>console.warn('VillFam push navigation:',error)));
    state.pushListenersReady=true;
@@ -1830,7 +1872,7 @@ async function processPendingVillFamCallAction(){
   call.caller_name=caller?.nickname||'A VillFam member';call.conversation_title=conversation?.title||(conversation?.is_group?'family group':'your chat');state.incomingCall=call;
   if(pending.action==='answer')await answerIncomingCall();
   else if(pending.action==='decline')await declineIncomingCall();
-  else showIncomingCall(call);
+  else{if(!state.conversations.some(item=>item.id===call.conversation_id))await loadConversations();if(state.conversations.some(item=>item.id===call.conversation_id))await openConversation(call.conversation_id);toast('Incoming '+(call.call_type==='video'?'video':'audio')+' call. Use Answer or Decline in the Android notification.');}
  }catch(error){console.error('VillFam could not process the notification call action:',error);toast('Could not open the incoming call: '+errorText(error));}
 }
 
@@ -1892,7 +1934,7 @@ async function loadPeople(){
 async function loadConversations(){
  if(!state.user)return;
  const {data:memberships,error:memberError}=await state.client.from('conversation_members').select('conversation_id,user_id,role,last_read_at').eq('user_id',state.user.id);if(memberError)throw memberError;
- const ids=(memberships||[]).map(x=>x.conversation_id);if(!ids.length){state.conversations=[];state.hiddenConversations.clear();if(state.activeConversation)closeActiveConversation('You no longer have access to this conversation.');renderConversations();return;}
+ const ids=(memberships||[]).map(x=>x.conversation_id);if(!ids.length){state.conversations=[];state.hiddenConversations.clear();updateUnreadSummary();if(state.activeConversation)closeActiveConversation('You no longer have access to this conversation.');renderConversations();return;}
  const [convRes,memberRes,msgRes,hideRes,callsRes,unreadRes]=await Promise.all([
   state.client.from('conversations').select('*').in('id',ids).order('updated_at',{ascending:false}),
   state.client.from('conversation_members').select('conversation_id,user_id,role,last_read_at').in('conversation_id',ids),
@@ -1927,11 +1969,9 @@ async function loadConversations(){
   const last=latest.get(c.id);const title=c.is_group?(c.title||'Family group'):(other?.nickname||'VillFam member');
   const hiddenAt=state.hiddenConversations.get(c.id);const isHidden=hiddenAt&&(!last||new Date(last.created_at).getTime()<=new Date(hiddenAt).getTime());
   const me=members.find(m=>m.user_id===state.user.id);
-  return {...c,members,me,displayTitle:title,otherProfile:other,lastPreview:last?(last.deleted_at?'Message deleted':last.message_type==='text'?last.content:(last.attachment_name||'Attachment')):'Start the conversation',ongoingCall:ongoingCallByConversation.get(c.id)||null,unreadCount:unreadMap.get(c.id)||0,isHidden};
+  return {...c,members,me,displayTitle:title,otherProfile:other,lastPreview:last?(last.deleted_at?'Message deleted':last.message_type==='text'?last.content:(last.attachment_name||'Attachment')):'Start the conversation',ongoingCall:ongoingCallByConversation.get(c.id)||null,unreadCount:isConversationVisible(c.id)?0:(unreadMap.get(c.id)||0),isHidden};
  }).filter(c=>!c.isHidden);
- state.totalUnreadCount=state.conversations.reduce((sum,c)=>sum+(Number(c.unreadCount)||0),0);
- const unreadBadge=$('totalUnreadBadge');if(unreadBadge){unreadBadge.textContent=state.totalUnreadCount>99?'99+':String(state.totalUnreadCount);unreadBadge.classList.toggle('hidden',state.totalUnreadCount===0);unreadBadge.setAttribute('aria-label',state.totalUnreadCount+' unread messages');}
- document.title=state.totalUnreadCount?'('+state.totalUnreadCount+') VillFam Messenger':'VillFam Messenger';
+ updateUnreadSummary();
  const active=state.activeConversation&&state.conversations.find(c=>c.id===state.activeConversation.id);if(active){state.activeConversation=active;updateChatConversationHeader(active);}else if(state.activeConversation){closeActiveConversation('This group was removed or deleted.');}
  renderConversations();
 }
@@ -1961,21 +2001,25 @@ function updateChatCallState(conv){
  join.textContent=state.currentCallId===call.id?'You are in this call':freshJoined?'Already joined':'Join '+(call.call_type==='video'?'video':'audio')+' call';
 }
 async function markConversationRead(conversationId){
- if(!state.user||!state.client||!conversationId)return;
+ if(!state.user||!state.client||!conversationId||!isConversationVisible(conversationId))return false;
  const readAt=new Date().toISOString();
- const {error}=await state.client.from('conversation_members').update({last_read_at:readAt}).eq('conversation_id',conversationId).eq('user_id',state.user.id);
- if(error){console.warn('VillFam could not mark the conversation as read:',error.message);return;}
- const conv=state.conversations.find(c=>c.id===conversationId);if(conv){conv.me={...(conv.me||{}),last_read_at:readAt};conv.unreadCount=0;}
- state.totalUnreadCount=state.conversations.reduce((sum,c)=>sum+(Number(c.unreadCount)||0),0);
- const badge=$('totalUnreadBadge');if(badge){badge.textContent=state.totalUnreadCount>99?'99+':String(state.totalUnreadCount);badge.classList.toggle('hidden',state.totalUnreadCount===0);}
- document.title=state.totalUnreadCount?'('+state.totalUnreadCount+') VillFam Messenger':'VillFam Messenger';renderConversations();
+ const conv=state.conversations.find(c=>c.id===conversationId);
+ if(conv){conv.me={...(conv.me||{}),last_read_at:readAt};conv.unreadCount=0;}
+ updateUnreadSummary();renderConversations();
+ const {data,error}=await state.client.rpc('villfam_mark_conversation_read',{
+  p_conversation_id:conversationId
+ });
+ if(error){console.warn('VillFam could not persist the read state. Run the unread/read-state SQL migration:',error.message);return false;}
+ const persistedAt=data||readAt;
+ if(conv)conv.me={...(conv.me||{}),last_read_at:persistedAt};
+ updateUnreadSummary();renderConversations();return true;
 }
 async function openConversation(id){
- const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');updateChatConversationHeader(conv);renderConversations();
+ const conv=state.conversations.find(c=>c.id===id);if(!conv)return;state.activeConversation=conv;conv.unreadCount=0;updateUnreadSummary();$('mainLayout').classList.add('chat-open');$('chatEmpty').classList.add('hidden');$('chatActive').classList.remove('hidden');updateChatConversationHeader(conv);renderConversations();
  if(state.messageChannel){await state.client.removeChannel(state.messageChannel);state.messageChannel=null;}
  await loadMessages();
- state.messageChannel=state.client.channel('villfam-chat-'+id).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'conversation_id=eq.'+id},async()=>{await loadMessages();if(document.visibilityState==='visible')await markConversationRead(id);loadConversations().catch(console.error);}).on('postgres_changes',{event:'*',schema:'public',table:'message_user_deletions'},async()=>loadMessages()).subscribe();
- if(document.visibilityState==='visible')await markConversationRead(id);
+ state.messageChannel=state.client.channel('villfam-chat-'+id).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'conversation_id=eq.'+id},async()=>{await loadMessages();if(isConversationVisible(id))await markConversationRead(id);loadConversations().catch(console.error);}).on('postgres_changes',{event:'*',schema:'public',table:'message_user_deletions'},async()=>loadMessages()).subscribe();
+ if(isConversationVisible(id))await markConversationRead(id);
 }
 $('backToChats').addEventListener('click',()=>$('mainLayout').classList.remove('chat-open'));
 async function loadMessages(){
@@ -2034,7 +2078,15 @@ function subscribeInbox(){
  if(state.inboxChannel)state.client.removeChannel(state.inboxChannel);
  const channel=state.client.channel('villfam-inbox-'+state.user.id);
  channel.on('postgres_changes',{event:'*',schema:'public',table:'messages'},async payload=>{
-  try{await loadConversations();if(state.activeConversation&&payload.new?.conversation_id===state.activeConversation.id){await loadMessages();if(document.visibilityState==='visible')await markConversationRead(state.activeConversation.id);}}catch(e){console.warn('Live message update:',e);}
+  try{
+   const msg=payload.new||payload.old;
+   if(payload.eventType==='INSERT'&&msg)playOneMessageBeep(msg.id,msg.sender_id,msg.conversation_id);
+   await loadConversations();
+   if(state.activeConversation&&msg?.conversation_id===state.activeConversation.id){
+    await loadMessages();
+    if(isConversationVisible(state.activeConversation.id))await markConversationRead(state.activeConversation.id);
+   }
+  }catch(e){console.warn('Live message update:',e);}
  });
  channel.on('postgres_changes',{event:'*',schema:'public',table:'villfam_group_invitations'},()=>scheduleInboxRefresh('group_invitation_table'));
  channel.on('postgres_changes',{event:'*',schema:'public',table:'conversation_members'},()=>scheduleInboxRefresh('group_membership_table'));
@@ -2396,52 +2448,7 @@ function showCallDialog(type,conversation){
  $('callTitle').textContent=(type==='video'?'Video call':'Audio call')+' · '+(conversation?.displayTitle||'VillFam');$('callGrid').replaceChildren();
  $('callDialog').showModal();$('callLookPanel').classList.toggle('hidden',type!=='video');$('toggleCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').classList.toggle('hidden',type!=='video');$('switchCallCameraButton').textContent=state.facingMode==='user'?'⇄ Switch to rear':'⇄ Switch to front';applyLookToPreviews();
 }
-function ensureCallAudioContext(){
- const AudioContextClass=window.AudioContext||window.webkitAudioContext;
- if(!AudioContextClass)return null;
- if(!state.callAudioContext){try{state.callAudioContext=new AudioContextClass();}catch(e){console.warn('Call ringtone audio is unavailable:',e);return null;}}
- return state.callAudioContext;
-}
-function primeCallRingtoneAudio(){
- const ctx=ensureCallAudioContext();
- if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});
-}
-function stopCallRingtone(){
- if(state.callRingtoneTimer){clearInterval(state.callRingtoneTimer);state.callRingtoneTimer=null;}
- state.callRingtoneType=null;
- (state.callRingtoneNodes||[]).forEach(node=>{try{node.onended=null;node.stop();}catch(e){}try{node.disconnect();}catch(e){}});
- state.callRingtoneNodes=[];
-}
-function scheduleCallRingtoneTone(ctx,frequency,startAt,duration,waveform,volume){
- const oscillator=ctx.createOscillator(),gain=ctx.createGain();
- oscillator.type=waveform;oscillator.frequency.setValueAtTime(frequency,startAt);
- gain.gain.setValueAtTime(0.0001,startAt);gain.gain.exponentialRampToValueAtTime(volume,startAt+0.025);gain.gain.setValueAtTime(volume,startAt+Math.max(0.03,duration-0.06));gain.gain.exponentialRampToValueAtTime(0.0001,startAt+duration);
- oscillator.connect(gain);gain.connect(ctx.destination);state.callRingtoneNodes.push(oscillator);
- oscillator.onended=()=>{try{oscillator.disconnect();gain.disconnect();}catch(e){}state.callRingtoneNodes=state.callRingtoneNodes.filter(node=>node!==oscillator);};
- oscillator.start(startAt);oscillator.stop(startAt+duration+0.03);
-}
-function scheduleCallRingtoneCycle(type){
- const ctx=state.callAudioContext;if(!ctx||ctx.state!=='running'||state.callRingtoneType!==type)return;
- const start=ctx.currentTime+0.035;
- if(type==='audio'){
-  // Audio calls use a classic paired telephone ring: two short dual-tone bursts.
-  [0,0.48].forEach(offset=>{scheduleCallRingtoneTone(ctx,440,start+offset,0.32,'triangle',0.075);scheduleCallRingtoneTone(ctx,480,start+offset,0.32,'sine',0.065);});
- }else{
-  // Video calls use a brighter four-note ascending/returning digital chime.
-  [659.25,783.99,987.77,783.99].forEach((frequency,index)=>scheduleCallRingtoneTone(ctx,frequency,start+index*0.19,0.2,'sine',0.075));
- }
-}
-function startCallRingtone(type){
- stopCallRingtone();const ringtoneType=type==='video'?'video':'audio';state.callRingtoneType=ringtoneType;
- const ctx=ensureCallAudioContext();if(!ctx)return;
- const begin=()=>{
-  if(!state.incomingCall||state.callRingtoneType!==ringtoneType||!$('incomingCallDialog')?.open)return;
-  scheduleCallRingtoneCycle(ringtoneType);
-  state.callRingtoneTimer=setInterval(()=>scheduleCallRingtoneCycle(ringtoneType),ringtoneType==='video'?2450:2050);
- };
- if(ctx.state==='running')begin();else ctx.resume().then(begin).catch(()=>{});
-}
-function showIncomingCall(call){state.incomingCall=call;$('incomingCallIcon').textContent=call.call_type==='video'?'📹':'☎';$('incomingCallTitle').textContent='Incoming '+(call.call_type==='video'?'video':'audio')+' call';$('incomingCallText').textContent=(call.caller_name||'A VillFam member')+' is calling '+(call.conversation_title||'you');if(!$('incomingCallDialog').open)$('incomingCallDialog').showModal();startCallRingtone(call.call_type);}
+function showIncomingCall(call){state.incomingCall=call;}
 function subscribeCallInbox(){
  if(!state.user||!state.client||state.callInboxChannel)return;
  state.client.rpc('villfam_cleanup_stale_calls',{p_conversation_id:null}).then(({error})=>{if(error)console.warn('Call recovery:',error.message);});
@@ -2453,12 +2460,12 @@ function subscribeCallInbox(){
    if(row.state==='joined'&&row.user_id!==state.user.id)syncCallPeers().catch(e=>callStatus('Connecting participant: '+errorText(e)));
    else if((row.state==='left'||row.state==='declined')&&row.user_id!==state.user.id){closeCallPeer(row.user_id);callStatus(row.state==='declined'?'A family member declined the call.':'A participant left the call.');}
   }
-  if(state.incomingCall&&row.call_id===state.incomingCall.id&&row.user_id===state.user.id&&row.state!=='ringing'&&!state.callActionBusy){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
+  if(state.incomingCall&&row.call_id===state.incomingCall.id&&row.user_id===state.user.id&&row.state!=='ringing'&&!state.callActionBusy){state.incomingCall=null;}
   if(payload.old?.state!==row.state)refreshConversationCallState();
  });
  channel.on('postgres_changes',{event:'*',schema:'public',table:'villfam_calls'},payload=>{
   const updated=payload.new;if(updated?.id===state.currentCallId&&updated.status==='ended'){cleanupCall();if($('callDialog').open)$('callDialog').close();toast('The call has ended.');}
-  if(updated&&state.incomingCall&&updated.id===state.incomingCall.id&&updated.status==='ended'&&!state.callActionBusy){state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();toast('This call is no longer available.');}
+  if(updated&&state.incomingCall&&updated.id===state.incomingCall.id&&updated.status==='ended'&&!state.callActionBusy){state.incomingCall=null;toast('This call is no longer available.');}
   if(payload.eventType==='INSERT'||payload.old?.status!==updated?.status)refreshConversationCallState();
  });
  channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){console.warn('Call inbox Realtime:',status);toast('Call alerts lost connection. Refresh VillFam to reconnect.');}});state.callInboxChannel=channel;
@@ -2593,7 +2600,7 @@ async function enterPeerCall(callId,isCaller,media){
   showCallDialog(call.call_type,state.callConversation);addCallTile(state.user.id,state.profile?.nickname||'You',true);
   if(call.call_type==='video'){showVideoOnTile(state.user.id,media,true);if(state.activeLookFilter!=='original'){try{await setCallVideoLook(state.activeLookFilter);}catch(filterError){console.warn('Call effect could not be enabled:',filterError);toast('Your camera effect could not start on this device.');}}}
   await subscribeCallSignals(callId);
-  if(!isCaller){const {error:respondError}=await state.client.rpc('villfam_respond_call',{p_call_id:callId,p_response:'accept'});if(respondError)throw respondError;accepted=true;state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();}
+  if(!isCaller){const {error:respondError}=await state.client.rpc('villfam_respond_call',{p_call_id:callId,p_response:'accept'});if(respondError)throw respondError;accepted=true;state.incomingCall=null;}
   startCallHeartbeat(callId);await syncCallPeers();
  }catch(e){
   if(isCaller||accepted){const {error:endError}=await state.client.rpc('villfam_end_call',{p_call_id:callId});if(endError)console.warn('Call cleanup:',endError.message);}
@@ -2626,15 +2633,15 @@ async function startCall(type){
  finally{state.callStarting=false;setBusy($('callAudioBtn'),false);setBusy($('callVideoBtn'),false);setBusy($('joinOngoingCallBtn'),false);if(state.activeConversation)updateChatCallState(state.activeConversation);}
 }
 async function answerIncomingCall(){
- const call=state.incomingCall;if(!call||state.callActionBusy)return;state.callActionBusy=true;setBusy($('answerIncomingCall'),true,'Connecting…');let media=null;
+ const call=state.incomingCall;if(!call||state.callActionBusy)return;state.callActionBusy=true;let media=null;
  try{media=await acquireCallMedia(call.call_type);await enterPeerCall(call.id,false,media);media=null;}
  catch(e){if(media)media.getTracks().forEach(t=>t.stop());toast('Could not answer call: '+errorText(e));}
- finally{state.callActionBusy=false;setBusy($('answerIncomingCall'),false);}
+ finally{state.callActionBusy=false;}
 }
 async function declineIncomingCall(){
- const call=state.incomingCall;if(!call||state.callActionBusy)return;state.callActionBusy=true;setBusy($('declineIncomingCall'),true,'Declining…');
- try{const {error}=await state.client.rpc('villfam_respond_call',{p_call_id:call.id,p_response:'decline'});if(error)throw error;state.incomingCall=null;if($('incomingCallDialog').open)$('incomingCallDialog').close();toast('Call declined.');}
- catch(e){toast('Could not decline the call: '+errorText(e));}finally{state.callActionBusy=false;setBusy($('declineIncomingCall'),false);}
+ const call=state.incomingCall;if(!call||state.callActionBusy)return;state.callActionBusy=true;
+ try{const {error}=await state.client.rpc('villfam_respond_call',{p_call_id:call.id,p_response:'decline'});if(error)throw error;state.incomingCall=null;toast('Call declined.');}
+ catch(e){toast('Could not decline the call: '+errorText(e));}finally{state.callActionBusy=false;}
 }
 function cleanupCall(){
  stopCallHeartbeat();stopCallFilterPipeline();if(state.callSignalChannel){state.client?.removeChannel(state.callSignalChannel);state.callSignalChannel=null;}
@@ -2649,15 +2656,11 @@ async function endCall(){
  if(failure)toast('Call ended on this device, but the server update failed: '+errorText(failure));else if(id){toast('You left the call.');loadConversations().catch(e=>console.warn('Call list refresh:',e));}
 }
 $('callAudioBtn').addEventListener('click',()=>startCall('audio'));$('callVideoBtn').addEventListener('click',()=>startCall('video'));$('joinOngoingCallBtn').addEventListener('click',()=>startCall(state.activeConversation?.ongoingCall?.call_type||'video'));
-$('declineIncomingCall').addEventListener('click',declineIncomingCall);
-$('answerIncomingCall').addEventListener('click',answerIncomingCall);
 $('hangupCallButton').addEventListener('click',endCall);$('closeCallDialog').addEventListener('click',endCall);
-$('incomingCallDialog').addEventListener('close',stopCallRingtone);
-document.addEventListener('pointerdown',primeCallRingtoneAudio,{passive:true});
-document.addEventListener('keydown',primeCallRingtoneAudio);
-$('incomingCallDialog').addEventListener('cancel',e=>{e.preventDefault();declineIncomingCall();});
+document.addEventListener('pointerdown',primeMessageAudio,{passive:true});
+document.addEventListener('keydown',primeMessageAudio);
 $('callDialog').addEventListener('cancel',e=>{e.preventDefault();endCall();});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(state.currentCallId)sendCallHeartbeat(state.currentCallId);if(state.user)refreshSingleSessionLease();}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(state.currentCallId)sendCallHeartbeat(state.currentCallId);if(state.user)refreshSingleSessionLease();if(state.activeConversation&&isConversationVisible(state.activeConversation.id))markConversationRead(state.activeConversation.id).catch(error=>console.warn('Read-state restore:',error));}});
 $('muteCallButton').addEventListener('click',()=>{const track=state.localCallStream?.getAudioTracks()[0];if(!track)return;state.callMuted=!state.callMuted;track.enabled=!state.callMuted;$('muteCallButton').textContent=state.callMuted?'Unmute mic':'Mute mic';});
 $('toggleCameraButton').addEventListener('click',()=>{const track=state.localCallStream?.getVideoTracks()[0];if(!track)return;state.callCameraEnabled=!state.callCameraEnabled;track.enabled=state.callCameraEnabled;$('toggleCameraButton').textContent=state.callCameraEnabled?'Turn camera off':'Turn camera on';});
 async function switchCallCamera(){
